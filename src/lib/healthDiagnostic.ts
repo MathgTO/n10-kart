@@ -249,7 +249,7 @@ function clutchCard(scores: DimensionScore[], laps: LapData[]): HealthCard {
     metrics.push({ label: 'Channels', value: 'limited' })
   }
 
-  // --- Clear slip / bog → fix ---
+  // Shop actions ONLY for clear slip / early-grab signatures in session data.
   if (detected.pattern === 'slip') {
     return {
       id: 'clutch',
@@ -276,66 +276,36 @@ function clutchCard(scores: DimensionScore[], laps: LapData[]): HealthCard {
     }
   }
 
-  // Soft score with clear fix threshold, or scatter treated as fix when score very soft
-  if (d17 <= 2.5) {
-    if (detected.pattern === 'scatter') {
-      return {
-        id: 'clutch',
-        title: 'Clutch',
-        status: 'fix',
-        diagnosis: 'Clutch feel is inconsistent lap to lap.',
-        optimize:
-          'Clean and inspect shoes/springs; recheck after one practice. Replace worn shoes if glazed or uneven.',
-        metrics,
-      }
-    }
-    return {
-      id: 'clutch',
-      title: 'Clutch',
-      status: 'fix',
-      diagnosis:
-        'Possible clutch issue (score soft) — not enough RPM/speed signature to call slip vs grab.',
-      optimize:
-        'Clean and inspect clutch before next practice; note if launches feel soft (slip) or boggy (early grab).',
-      metrics,
-    }
-  }
-
-  // --- Scatter or soft score without hard pattern → watch ---
+  // Scatter / soft D17 / limited channels: under-call — no clean/inspect/springs.
   if (detected.pattern === 'scatter') {
     return {
       id: 'clutch',
       title: 'Clutch',
       status: 'watch',
-      diagnosis: 'Clutch feel is inconsistent lap to lap.',
-      optimize:
-        'Clean and inspect shoes/springs; recheck after one practice. Replace worn shoes if glazed or uneven.',
+      diagnosis: 'Inconsistent but not a clear slip or early-grab call.',
+      optimize: 'No change.',
       metrics,
     }
   }
 
-  if (d17 < 3.5 && hasChannels) {
+  if (d17 < 3.5) {
     return {
       id: 'clutch',
       title: 'Clutch',
       status: 'watch',
-      diagnosis:
-        'Possible clutch issue (score soft) — not enough RPM/speed signature to call slip vs grab.',
+      diagnosis: 'No clutch problem in this session data',
       optimize:
-        'Clean and inspect clutch before next practice; note if launches feel soft (slip) or boggy (early grab).',
+        "No change — score soft but data doesn't show slip or early grab.",
       metrics,
     }
   }
-
 
   return {
     id: 'clutch',
     title: 'Clutch',
     status: 'healthy',
-    diagnosis: hasChannels
-      ? 'Clutch looks fine this session — RPM and speed match off corners.'
-      : 'Clutch looks fine this session — no red flags from available scores.',
-    optimize: 'No change. Clean on your normal maintenance schedule.',
+    diagnosis: 'No clutch problem in this session data',
+    optimize: 'No change.',
     metrics,
   }
 }
