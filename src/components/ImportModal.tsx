@@ -5,7 +5,8 @@ import { formatLapTime } from '@/lib/format'
 import type { ParseResult } from '@/lib/csv'
 import type { SeriesTag } from '@/lib/types'
 
-const ACCEPT = '.xrz,.xrk,.csv,text/csv'
+/** iOS/iPad greys out unknown types (.xrk/.xrz) if accept is extension-only. Allow all; validate in importFile. */
+const ACCEPT = '*/*'
 
 interface Props {
   open: boolean
@@ -112,7 +113,9 @@ export function ImportModal({ open, onClose }: Props) {
           <span className="block text-lg font-bold text-n10-lime">
             {busy ? 'Importing…' : 'Choose or drop file'}
           </span>
-          <span className="mt-2 block text-sm text-n10-soft">.xrk / .xrz / .csv</span>
+          <span className="mt-2 block text-sm text-n10-soft">
+            .xrk / .xrz / .csv · on iPad use Browse → Files (all files selectable)
+          </span>
         </button>
 
         {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
