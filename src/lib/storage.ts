@@ -10,6 +10,8 @@ export interface Prefs {
   demosLoaded: boolean
   /** Bumps when coach vocabulary (turns vs sectors) changes — refreshes demo copy */
   langVersion?: string
+  /** Bumps when scoring schema changes (e.g. null N/A dims) — recomputes stored reports */
+  reportVersion?: string
 }
 
 export function loadSessions(): StoredSession[] {

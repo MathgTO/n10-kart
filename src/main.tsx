@@ -12,7 +12,7 @@ createRoot(document.getElementById('root')!).render(
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     // Bust + update so a new deploy replaces the old cached shell
-    const swUrl = `${import.meta.env.BASE_URL}sw.js?v=5`
+    const swUrl = `${import.meta.env.BASE_URL}sw.js?v=6`
     navigator.serviceWorker
       .register(swUrl)
       .then((reg) => {

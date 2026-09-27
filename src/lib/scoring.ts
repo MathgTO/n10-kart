@@ -573,4 +573,33 @@ export function buildCoachingReport(input: BuildReportInput): {
   return { report, corners }
 }
 
+
+/** Rebuild report + corners for a stored session (migrates old localStorage shapes). */
+export function refreshStoredSession(
+  s: StoredSession,
+  previousSession?: StoredSession | null,
+  cornerNames?: string[]
+): StoredSession {
+  const names = cornerNames ?? (s.corners.length ? s.corners.map((c) => c.name) : DEFAULT_CORNERS)
+  const { report, corners } = buildCoachingReport({
+    sessionId: s.id,
+    track: s.trackName,
+    classAssumption: s.classAssumption,
+    series: s.series,
+    conditions: s.conditions,
+    laps: s.laps,
+    referenceLapIndex: s.referenceLapIndex,
+    cornerNames: names,
+    hasVideo: !!(s.videoName || s.videoObjectUrl),
+    previousSession: previousSession ?? null,
+  })
+  return {
+    ...s,
+    corners,
+    report,
+    activePriorityDimensionId: report.priority_dimension_id,
+    activePriorityDrillId: report.primary_drill.id,
+  }
+}
+
 export { computeDelta, sectorLosses, pickBestFlyingLap }

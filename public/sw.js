@@ -1,5 +1,5 @@
 /* Network-first for shell + assets so deploys win over stale PWA cache. */
-const CACHE = 'n10-shell-v6'
+const CACHE = 'n10-shell-v7'
 const BASE = self.registration.scope // e.g. https://.../n10-kart/
 const SHELL = ['', 'index.html', 'manifest.webmanifest', 'n10-mark.png', 'n10-logo.jpg', 'apple-touch-icon.png'].map(
   (p) => new URL(p || './', BASE).href,

@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { buildDemoSessions, DEMO_IDS } from '@/data/demos'
 import { getTrack } from '@/data/tracks'
-import { buildCoachingReport, pickBestFlyingLap } from '@/lib/scoring'
+import { buildCoachingReport, pickBestFlyingLap, refreshStoredSession } from '@/lib/scoring'
 import {
   loadFavorites,
   loadPrefs,
@@ -40,17 +40,40 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const existing = loadSessions()
     const LANG_V = 'turn-sector-v1'
+    const REPORT_V = 'na-null-v1'
+    const needsLang = prefs.langVersion !== LANG_V
+    const needsReport = prefs.reportVersion !== REPORT_V
     // First visit / empty library: auto-seed Mosport demos so Home is never blank
     if (existing.length === 0) {
       const demos = buildDemoSessions()
       setSessions(demos)
-      setPrefs((p) => ({ ...p, demosLoaded: true, langVersion: LANG_V }))
-    } else if (prefs.langVersion !== LANG_V) {
-      // Refresh demo copy when turn/sector language changes; keep imported sessions
+      setPrefs((p) => ({
+        ...p,
+        demosLoaded: true,
+        langVersion: LANG_V,
+        reportVersion: REPORT_V,
+      }))
+    } else if (needsLang || needsReport) {
+      // Refresh demos on lang change; always recompute stored reports when scoring schema bumps
+      // so old localStorage numeric cam/channel fakes become null N/A without re-import.
       const demos = buildDemoSessions()
       const without = existing.filter((s) => !DEMO_IDS.includes(s.id as (typeof DEMO_IDS)[number]))
-      setSessions([...demos, ...without])
-      setPrefs((p) => ({ ...p, demosLoaded: true, langVersion: LANG_V }))
+      // Sort oldest→newest so previousSession chain is stable, then restore newest-first.
+      const chrono = [...without].sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+      const refreshed: StoredSession[] = []
+      for (const s of chrono) {
+        const prev = refreshed.length ? refreshed[refreshed.length - 1] : null
+        const names = getTrack(s.trackId).corners.map((c) => c.name)
+        refreshed.push(refreshStoredSession(s, prev, names))
+      }
+      refreshed.reverse()
+      setSessions([...demos, ...refreshed])
+      setPrefs((p) => ({
+        ...p,
+        demosLoaded: true,
+        langVersion: LANG_V,
+        reportVersion: REPORT_V,
+      }))
     } else {
       setSessions(existing)
     }

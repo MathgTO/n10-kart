@@ -6,17 +6,33 @@ function fmtComposite(n: number | null | undefined): string {
   return n == null || !Number.isFinite(n) ? 'N/A' : n.toFixed(1)
 }
 
+/** True when this dim should show grey N/A (including legacy localStorage reports). */
+export function isUnavailableScore(s: DimensionScore, hasVideo?: boolean): boolean {
+  if (s.score == null || !Number.isFinite(s.score)) return true
+  if (s.unavailable_reason) return true
+  // Pre-N/A reports kept seeded numbers but marked needs_kart_cam
+  if (s.evidence_kind === 'needs_kart_cam') return true
+  if (hasVideo === false && NEEDS_KART_CAM.has(s.dimension_id)) return true
+  return false
+}
+
 function evidenceLabel(s: DimensionScore): string {
-  if (s.unavailable_reason === 'needs_cam') return 'needs cam'
+  if (s.unavailable_reason === 'needs_cam' || s.evidence_kind === 'needs_kart_cam') return 'needs cam'
   if (s.unavailable_reason === 'needs_channels') return 'needs channels'
   if (MYCHRON_HONEST.has(s.dimension_id)) return 'MyChron'
   if (NEEDS_KART_CAM.has(s.dimension_id)) {
-    return s.evidence_kind === 'needs_kart_cam' ? 'needs cam' : 'kart-cam'
+    return 'kart-cam'
   }
   return 'heuristic'
 }
 
-export function ScorePanel({ report }: { report: CoachingReport }) {
+export function ScorePanel({
+  report,
+  hasVideo,
+}: {
+  report: CoachingReport
+  hasVideo?: boolean
+}) {
   const [open, setOpen] = useState(false)
   const c = report.composites
   return (
@@ -40,7 +56,7 @@ export function ScorePanel({ report }: { report: CoachingReport }) {
           {report.scores.map((s) => {
             const dim = getDimension(s.dimension_id)
             const bias = MOSPORT_BIAS.includes(s.dimension_id)
-            const na = s.score == null
+            const na = isUnavailableScore(s, hasVideo)
             return (
               <div
                 key={s.dimension_id}
@@ -70,11 +86,17 @@ export function ScorePanel({ report }: { report: CoachingReport }) {
                       />
                     )}
                   </div>
-                  {s.evidence_markers[0] && (
+                  {!na && s.evidence_markers[0] && (
                     <p className="text-xs text-n10-mute mt-0.5">{s.evidence_markers[0]}</p>
                   )}
-                  {na && s.notes && (
-                    <p className="text-xs text-neutral-500 mt-0.5">{s.notes}</p>
+                  {na && (
+                    <p className="text-xs text-neutral-500 mt-0.5">
+                      {s.notes ??
+                        (s.unavailable_reason === 'needs_channels' ||
+                        (MYCHRON_HONEST.has(s.dimension_id) && s.evidence_kind !== 'mychron')
+                          ? 'Needs MyChron channels.'
+                          : 'Needs kart-cam footage to score.')}
+                    </p>
                   )}
                 </div>
                 <span
@@ -88,15 +110,17 @@ export function ScorePanel({ report }: { report: CoachingReport }) {
           })}
           <div className="pt-3 border-t border-n10-border">
             <p className="label-lg mb-2">Top 3 weaknesses</p>
-            {report.top_weaknesses.length === 0 ? (
+            {report.top_weaknesses.filter((w) => Number.isFinite(w.score)).length === 0 ? (
               <p className="text-sm text-n10-mute">No scored weaknesses yet — attach cam or channels.</p>
             ) : (
-              report.top_weaknesses.map((w) => (
-                <p key={w.dimension_id} className="text-sm text-n10-soft py-1">
-                  <span className="text-white font-semibold">{w.dimension_id}</span> ({w.score}) —{' '}
-                  {w.cue} <span className="text-n10-mute">[{w.marker}]</span>
-                </p>
-              ))
+              report.top_weaknesses
+                .filter((w) => Number.isFinite(w.score))
+                .map((w) => (
+                  <p key={w.dimension_id} className="text-sm text-n10-soft py-1">
+                    <span className="text-white font-semibold">{w.dimension_id}</span> ({w.score}) —{' '}
+                    {w.cue} <span className="text-n10-mute">[{w.marker}]</span>
+                  </p>
+                ))
             )}
           </div>
         </div>

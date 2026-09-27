@@ -56,7 +56,7 @@ function IosHomeScreenTip() {
 }
 
 export function Home() {
-  const { sessions, loadDemos, prefs } = useSessions()
+  const { sessions, loadDemos, prefs, deleteSession } = useSessions()
   const [importOpen, setImportOpen] = useState(false)
 
   return (
@@ -120,25 +120,25 @@ export function Home() {
             {sessions.map((s) => {
               const best = s.laps[s.bestLapIndex]
               return (
-                <li key={s.id}>
-                  <Link
-                    to={`/session/${s.id}`}
-                    className="block rounded-2xl border border-n10-border bg-n10-card p-4 hover:border-n10-lime/40 transition"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-lg font-bold">{s.title}</h3>
-                          <Tag>{s.series}</Tag>
-                          {s.isDemo && <Tag>Demo</Tag>}
-                        </div>
-                        <p className="mt-1 text-sm text-n10-soft">
-                          {s.classAssumption} · {s.trackName}
-                        </p>
-                        <p className="mt-1 text-sm text-n10-lime font-medium">
-                          Coach call → {s.report.focus.cornerName}
-                        </p>
+                <li
+                  key={s.id}
+                  className="rounded-2xl border border-n10-border bg-n10-card p-4 hover:border-n10-lime/40 transition"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <Link to={`/session/${s.id}`} className="min-w-0 flex-1 block">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-lg font-bold">{s.title}</h3>
+                        <Tag>{s.series}</Tag>
+                        {s.isDemo && <Tag>Demo</Tag>}
                       </div>
+                      <p className="mt-1 text-sm text-n10-soft">
+                        {s.classAssumption} · {s.trackName}
+                      </p>
+                      <p className="mt-1 text-sm text-n10-lime font-medium">
+                        Coach call → {s.report.focus.cornerName}
+                      </p>
+                    </Link>
+                    <div className="flex flex-col items-end gap-2 shrink-0">
                       <div className="text-right text-sm">
                         <p>
                           <span className="text-n10-mute">BEST </span>
@@ -148,8 +148,21 @@ export function Home() {
                         </p>
                         <p className="text-n10-mute mt-1">LAPS {s.laps.length}</p>
                       </div>
+                      <button
+                        type="button"
+                        className="text-xs font-semibold uppercase tracking-wide text-red-300/90 hover:text-red-200 border border-red-300/30 rounded-lg px-2.5 py-1"
+                        aria-label={`Delete ${s.title}`}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          if (!window.confirm(`Delete session "${s.title}"?`)) return
+                          deleteSession(s.id)
+                        }}
+                      >
+                        Delete
+                      </button>
                     </div>
-                  </Link>
+                  </div>
                 </li>
               )
             })}

@@ -64,6 +64,7 @@ export function SessionPage() {
             type="button"
             className="btn-secondary text-red-300"
             onClick={() => {
+              if (!window.confirm(`Delete session "${session.title}"?`)) return
               deleteSession(session.id)
               nav('/')
             }}
@@ -130,7 +131,7 @@ export function SessionPage() {
         priorityDim={session.report.priority_dimension_id}
       />
       <HealthDiagnostic session={session} />
-      <ScorePanel report={session.report} />
+      <ScorePanel report={session.report} hasVideo={!!(session.videoName || session.videoObjectUrl)} />
       <VideoPanel session={session} />
 
       {session.report.racecraft_cue && (
