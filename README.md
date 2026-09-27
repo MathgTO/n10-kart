@@ -18,3 +18,14 @@ Asserts `schema_version === "1.5"` at startup from `src/data/rubric-v1.json` (ba
 - `/session/:id` Coach call / next-run focus
 - `/drills` Drill library
 - `/knowledge` Track/class/sources
+
+## Staging (GitHub Pages)
+
+Live preview: **https://mathgto.github.io/n10-kart/**
+
+- Host: `gh-pages` branch (built `dist/`)
+- Rebuild & publish: `./scripts/deploy-gh-pages.sh`
+- Vite `base` is `/n10-kart/` for project Pages
+- Optional: push `.github/workflows/deploy-pages.yml` after `gh auth` has `workflow` scope to auto-deploy from `main`
+
+Netlify config (`netlify.toml`) remains for when credits are available; Pages is the current staging host.
