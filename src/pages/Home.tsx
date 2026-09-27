@@ -1,0 +1,184 @@
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { ImportModal } from '@/components/ImportModal'
+import { useSessions } from '@/hooks/SessionsContext'
+import { formatLapTime } from '@/lib/format'
+
+const IOS_TIP_KEY = 'n10-ios-homescreen-tip-dismissed'
+
+function isIosDevice() {
+  if (typeof navigator === 'undefined') return false
+  const ua = navigator.userAgent || ''
+  const iOS = /iPad|iPhone|iPod/.test(ua)
+  const iPadOS = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1
+  return iOS || iPadOS
+}
+
+function IosHomeScreenTip() {
+  const [show, setShow] = useState(false)
+
+  useEffect(() => {
+    try {
+      if (!isIosDevice()) return
+      if (window.matchMedia('(display-mode: standalone)').matches) return
+      if (localStorage.getItem(IOS_TIP_KEY) === '1') return
+      setShow(true)
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
+  if (!show) return null
+
+  return (
+    <div className="rounded-2xl border border-n10-lime/30 bg-n10-lime/5 px-4 py-3 flex gap-3 items-start">
+      <p className="flex-1 text-sm text-n10-soft leading-relaxed">
+        <span className="font-semibold text-n10-lime">Add to Home Screen:</span> Share → Add to Home
+        Screen — then open N10 like an app.
+      </p>
+      <button
+        type="button"
+        className="shrink-0 text-n10-mute text-lg leading-none px-1"
+        aria-label="Dismiss"
+        onClick={() => {
+          try {
+            localStorage.setItem(IOS_TIP_KEY, '1')
+          } catch {
+            /* ignore */
+          }
+          setShow(false)
+        }}
+      >
+        ×
+      </button>
+    </div>
+  )
+}
+
+export function Home() {
+  const { sessions, loadDemos, prefs } = useSessions()
+  const [importOpen, setImportOpen] = useState(false)
+
+  return (
+    <div className="space-y-8 pb-8">
+      <IosHomeScreenTip />
+
+      <section className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="max-w-xl">
+          <p className="text-sm font-bold uppercase tracking-wider text-n10-lime">Next run</p>
+          <h1 className="sr-only">N10 — The next tenth. This session.</h1>
+          <img
+            src={`${import.meta.env.BASE_URL}n10-logo.jpg`}
+            alt="N10 — The next tenth. This session."
+            className="mt-2 w-full max-w-md rounded-xl border border-n10-border object-contain shadow-lg shadow-black/40"
+            width={554}
+            height={280}
+            decoding="async"
+          />
+          <p className="mt-4 text-base text-n10-soft leading-relaxed">
+            Import a Race Studio session. Pick the reference. Get the Coach call — brake, apex, exit
+            — for the next run.
+          </p>
+        </div>
+        <div className="flex flex-col gap-3 w-full sm:w-auto">
+          {/* Single primary Import CTA on Home */}
+          <button
+            type="button"
+            className="btn-primary text-lg px-6 py-4"
+            onClick={() => setImportOpen(true)}
+          >
+            Import session
+          </button>
+          <button type="button" className="btn-secondary" onClick={() => loadDemos()}>
+            Try sample sessions
+          </button>
+        </div>
+      </section>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <InfoCard title="Formats" body="Race Studio .xrk / .xrz / CSV — pick a file from disk" />
+        <InfoCard title="Coach call" body="One turn to fix · sectors show where time went" />
+        <InfoCard title="Home circuit" body="Mosport Karting Centre · Bowmanville" />
+      </div>
+
+      <section>
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-lg font-bold uppercase tracking-wide text-n10-soft">Sessions</h2>
+          <span className="text-sm text-n10-mute">{sessions.length} in the library</span>
+        </div>
+
+        {sessions.length === 0 ? (
+          <div className="mt-4 panel text-center py-10">
+            <p className="text-lg font-semibold">No sessions yet</p>
+            <p className="mt-2 text-n10-soft">
+              Use <span className="text-n10-lime font-semibold">Import session</span> above, or try
+              sample sessions to see Coach call.
+            </p>
+          </div>
+        ) : (
+          <ul className="mt-4 space-y-3">
+            {sessions.map((s) => {
+              const best = s.laps[s.bestLapIndex]
+              return (
+                <li key={s.id}>
+                  <Link
+                    to={`/session/${s.id}`}
+                    className="block rounded-2xl border border-n10-border bg-n10-card p-4 hover:border-n10-lime/40 transition"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-lg font-bold">{s.title}</h3>
+                          <Tag>{s.series}</Tag>
+                          {s.isDemo && <Tag>Demo</Tag>}
+                        </div>
+                        <p className="mt-1 text-sm text-n10-soft">
+                          {s.classAssumption} · {s.trackName}
+                        </p>
+                        <p className="mt-1 text-sm text-n10-lime font-medium">
+                          Coach call → {s.report.focus.cornerName}
+                        </p>
+                      </div>
+                      <div className="text-right text-sm">
+                        <p>
+                          <span className="text-n10-mute">BEST </span>
+                          <span className="text-n10-lime font-bold text-base">
+                            {formatLapTime(best?.timeMs)}
+                          </span>
+                        </p>
+                        <p className="text-n10-mute mt-1">LAPS {s.laps.length}</p>
+                      </div>
+                    </div>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </section>
+
+      <p className="text-xs text-n10-mute">
+        Last track/series remembered: {prefs.trackId} · {prefs.series}
+      </p>
+
+      <ImportModal open={importOpen} onClose={() => setImportOpen(false)} />
+    </div>
+  )
+}
+
+function InfoCard({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-2xl border border-n10-border bg-n10-panel p-4">
+      <p className="label-lg">{title}</p>
+      <p className="mt-2 text-base text-n10-soft">{body}</p>
+    </div>
+  )
+}
+
+function Tag({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="rounded-full border border-n10-border px-2 py-0.5 text-xs font-semibold uppercase text-n10-soft">
+      {children}
+    </span>
+  )
+}

@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html, body, #root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #000;
+  color: #fff;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-n10-lime px-5 py-3 text-base font-bold text-black hover:brightness-110 active:scale-[0.99] transition;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-n10-border bg-n10-card px-5 py-3 text-base font-semibold text-white hover:border-n10-lime/50 transition;
+  }
+  .panel {
+    @apply rounded-2xl border border-n10-border bg-n10-panel p-5;
+  }
+  .label-lg {
+    @apply text-sm font-semibold uppercase tracking-wide text-n10-soft;
+  }
+  .sticky-focus {
+    @apply sticky bottom-0 z-30 border-t border-n10-border bg-black/95 backdrop-blur px-4 py-3;
+  }
+}

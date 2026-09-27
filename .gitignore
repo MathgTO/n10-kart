@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+dist-ssr/
+*.local
+
+# Local Netlify folder (keep netlify.toml)
+.netlify/
+
+# Logs / env / IDE
+logs/
+*.log
+npm-debug.log*
+.env
+.env.*
+!.env.example
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.tsbuildinfo
