@@ -33,8 +33,8 @@ function tireCard(
   const lateStint = lapCount >= 6
 
   const metrics: { label: string; value: string }[] = [
-    { label: 'D19 tire mgmt', value: d19.toFixed(1) },
-    { label: 'D18 consistency', value: d18.toFixed(1) },
+    { label: 'Tire score', value: d19.toFixed(1) },
+    { label: 'Consistency', value: d18.toFixed(1) },
   ]
   if (lapCount > 0) metrics.push({ label: 'Laps', value: String(lapCount) })
 
@@ -43,10 +43,11 @@ function tireCard(
       id: 'tire_pressure',
       title: 'Tire pressure',
       status: 'fix',
-      diagnosis:
-        `Tire management score soft (D19 ${d19.toFixed(1)}${lateStint ? ', late-stint length' : ''}). Rising slide / heat growth often means cooked pressures — setup, not “push more.”`,
+      diagnosis: lateStint
+        ? 'Tires look overheated late in the stint — pressures may be too high when hot.'
+        : 'Tire grip is dropping — pressures may be cooking up.',
       optimize:
-        'Reset cold pressures before next run; treat late slide as cook, not driver. Log cold→hot PSI — no PSI invent from data alone.',
+        '1) Reset cold pressures before next run. 2) Log cold→hot PSI after the run. 3) If hot PSI climbs a lot, start a touch lower cold next time.',
       metrics,
     }
   }
@@ -57,10 +58,10 @@ function tireCard(
       title: 'Tire pressure',
       status: 'watch',
       diagnosis: heatSeries
-        ? `D19 ${d19.toFixed(1)} with race/heat context — watch rising slide and hot-pressure growth over the stint.`
-        : `D19 ${d19.toFixed(1)}${d18 <= 3 ? ` · consistency D18 ${d18.toFixed(1)}` : ''} — mild heat/slide risk; pressures may be climbing.`,
+        ? 'Mild heat/slide risk in a race or heat — watch pressures over the stint.'
+        : 'Mild tire heat risk — pressures may be climbing.',
       optimize:
-        'Re-check cold set before next heat; watch hot PSI after the run. No pressure change indicated from telemetry numbers alone.',
+        'Re-check cold set before next heat; note hot PSI after the run. Change only if hot numbers climb high.',
       metrics,
     }
   }
@@ -70,7 +71,7 @@ function tireCard(
     title: 'Tire pressure',
     status: 'healthy',
     diagnosis: 'Tire management looks stable this session.',
-    optimize: 'Log cold→hot PSI next run; no pressure change indicated from data alone.',
+    optimize: 'Log cold→hot PSI next run; no pressure change needed from this data.',
     metrics,
   }
 }
@@ -87,7 +88,7 @@ function gearCard(
       title: 'Gear ratio',
       status: 'watch',
       diagnosis:
-        'Need peak speed + peak RPM channels to estimate current ratio vs the 5,800–6,100 band.',
+        'Need peak speed + peak RPM to estimate current gear vs the 5,800–6,100 band.',
       optimize: 'Import MyChron/CSV with RPM + speed, then re-check this card.',
       metrics: [
         { label: 'Peak RPM', value: maxRpm != null ? String(Math.round(maxRpm)) : '—' },
@@ -112,15 +113,15 @@ function gearCard(
   else status = 'watch'
 
   const exitLabel = exit != null ? `~${Math.round(exit)}` : '—'
-  const diagnosis = `Peak ${peakSpeedKmh.toFixed(0)} km/h @ ~${Math.round(peakRpm)} RPM; exit focus ${exitLabel} vs ${EXIT_RPM_BAND.lo}–${EXIT_RPM_BAND.hi} band. Est. ratio ~${estimatedCurrentRatio.toFixed(2)} (17T · Ø${(GEAR_ASSUMPTIONS.tireDiameterM * 1000).toFixed(0)} mm assume — verify sprockets).`
+  const diagnosis = `Peak ${peakSpeedKmh.toFixed(0)} km/h @ ~${Math.round(peakRpm)} RPM; exit ~${exitLabel} vs ${EXIT_RPM_BAND.lo}–${EXIT_RPM_BAND.hi} band. Est. ratio ~${estimatedCurrentRatio.toFixed(2)} (17T front — verify sprockets).`
 
   let optimize: string
   if (action === 'plus') {
-    optimize = `+${absTeeth} rear tooth (shorter) on 17T — est. now ~${Math.round(estimatedCurrentRatio * GEAR_ASSUMPTIONS.driverTeeth)}T → ideal ~${suggestedRearTeeth.lo}–${suggestedRearTeeth.hi}T. Junior: gear for yellow-slide peak, not limiter ego.`
+    optimize = `Add ${absTeeth} rear tooth (shorter gear) on 17T front — est. now ~${Math.round(estimatedCurrentRatio * GEAR_ASSUMPTIONS.driverTeeth)}T → try ~${suggestedRearTeeth.lo}–${suggestedRearTeeth.hi}T.`
   } else if (action === 'minus') {
-    optimize = `−${absTeeth} rear tooth (longer) on 17T — est. now ~${Math.round(estimatedCurrentRatio * GEAR_ASSUMPTIONS.driverTeeth)}T → ideal ~${suggestedRearTeeth.lo}–${suggestedRearTeeth.hi}T. Protects top end / tires if still in band.`
+    optimize = `Drop ${absTeeth} rear tooth (longer gear) on 17T front — est. now ~${Math.round(estimatedCurrentRatio * GEAR_ASSUMPTIONS.driverTeeth)}T → try ~${suggestedRearTeeth.lo}–${suggestedRearTeeth.hi}T.`
   } else {
-    optimize = `Hold — peak speed/RPM already near the ${EXIT_RPM_BAND.lo}–${EXIT_RPM_BAND.hi} band (ideal rear ~${suggestedRearTeeth.lo}–${suggestedRearTeeth.hi}T / 17T).`
+    optimize = `Hold current sprockets — already near the ${EXIT_RPM_BAND.lo}–${EXIT_RPM_BAND.hi} band (ideal rear ~${suggestedRearTeeth.lo}–${suggestedRearTeeth.hi}T / 17T).`
   }
 
   return {
@@ -209,13 +210,21 @@ function detectClutchPattern(laps: LapData[]): {
   return { pattern: 'none', detail: '' }
 }
 
+function patternLabel(pattern: 'slip' | 'bog' | 'scatter' | 'none'): string {
+  switch (pattern) {
+    case 'slip':
+      return 'slipping'
+    case 'bog':
+      return 'early grab'
+    case 'scatter':
+      return 'inconsistent'
+    default:
+      return 'ok'
+  }
+}
+
 function clutchCard(scores: DimensionScore[], laps: LapData[]): HealthCard {
   const d17 = scoreOf(scores, 'D17', 3.5)
-  const d10 = scoreOf(scores, 'D10', 3.5)
-  const d1 = scoreOf(scores, 'D1', 3)
-  const d2 = scoreOf(scores, 'D2', 3)
-  const lineOk = d1 >= 3.5 && d2 >= 3
-  const throttleOk = d10 >= 3.5
 
   const hasChannels = laps.some(
     (l) =>
@@ -228,62 +237,105 @@ function clutchCard(scores: DimensionScore[], laps: LapData[]): HealthCard {
     ? detectClutchPattern(laps)
     : { pattern: 'none' as const, detail: '' }
 
-  const clearPattern =
-    detected.pattern === 'slip' || detected.pattern === 'bog'
-  const mild =
-    detected.pattern === 'scatter' && (lineOk || throttleOk)
-
   const metrics: { label: string; value: string }[] = [
-    { label: 'D17 clutch/race', value: d17.toFixed(1) },
+    { label: 'Clutch score', value: d17.toFixed(1) },
   ]
   if (hasChannels) {
     metrics.push({
-      label: 'RPM/speed pattern',
-      value:
-        detected.pattern === 'none'
-          ? 'none'
-          : detected.pattern,
+      label: 'Pattern',
+      value: patternLabel(detected.pattern),
     })
   } else {
     metrics.push({ label: 'Channels', value: 'limited' })
   }
 
-  if (d17 <= 2.5 || clearPattern) {
+  // --- Clear slip / bog → fix ---
+  if (detected.pattern === 'slip') {
     return {
       id: 'clutch',
       title: 'Clutch',
       status: 'fix',
-      diagnosis: clearPattern
-        ? `Setup flag: ${detected.detail} Soft D17 (${d17.toFixed(1)}) — engagement/install check before blaming launches.`
-        : `D17 soft (${d17.toFixed(1)}) — clutch engagement/install is a setup hypothesis, not technique alone.`,
+      diagnosis:
+        'Clutch is slipping too much — engine revs up without matching kart speed.',
       optimize:
-        'Check clutch engagement/install (locked against crank shoulder — Briggs/Klaus). Confirm before next run; don’t overclaim without video.',
+        '1) Pull clutch, clean shoes + drum (no oil/glaze). 2) If still slips under power after clean: replace/reface shoes. 3) If it still slips: try heavier springs (engages harder / higher RPM). Verify install locked on crank shoulder.',
       metrics,
     }
   }
 
-  if (mild || (d17 < 3.5 && hasChannels)) {
+  if (detected.pattern === 'bog') {
+    return {
+      id: 'clutch',
+      title: 'Clutch',
+      status: 'fix',
+      diagnosis:
+        'Clutch is gripping too early — it hooks up before the engine is in the power band.',
+      optimize:
+        '1) Clean shoes + drum. 2) If still hooks early / feels boggy: fit lighter springs (engages later / higher RPM). Do not blame the driver first.',
+      metrics,
+    }
+  }
+
+  // Soft score with clear fix threshold, or scatter treated as fix when score very soft
+  if (d17 <= 2.5) {
+    if (detected.pattern === 'scatter') {
+      return {
+        id: 'clutch',
+        title: 'Clutch',
+        status: 'fix',
+        diagnosis: 'Clutch feel is inconsistent lap to lap.',
+        optimize:
+          'Clean and inspect shoes/springs; recheck after one practice. Replace worn shoes if glazed or uneven.',
+        metrics,
+      }
+    }
+    return {
+      id: 'clutch',
+      title: 'Clutch',
+      status: 'fix',
+      diagnosis:
+        'Possible clutch issue (score soft) — not enough RPM/speed signature to call slip vs grab.',
+      optimize:
+        'Clean and inspect clutch before next practice; note if launches feel soft (slip) or boggy (early grab).',
+      metrics,
+    }
+  }
+
+  // --- Scatter or soft score without hard pattern → watch ---
+  if (detected.pattern === 'scatter') {
     return {
       id: 'clutch',
       title: 'Clutch',
       status: 'watch',
-      diagnosis: mild
-        ? `Mild inconsistency: ${detected.detail} Line/throttle look OK — watch clutch feel on launches.`
-        : `D17 ${d17.toFixed(1)} — no hard slip/bog signature, but engagement worth a feel-check.`,
+      diagnosis: 'Clutch feel is inconsistent lap to lap.',
       optimize:
-        'Hold for now — recheck if launches feel soft or RPM flares without speed. Setup-tagged, not driver blame.',
+        'Clean and inspect shoes/springs; recheck after one practice. Replace worn shoes if glazed or uneven.',
       metrics,
     }
   }
+
+  if (d17 < 3.5 && hasChannels) {
+    return {
+      id: 'clutch',
+      title: 'Clutch',
+      status: 'watch',
+      diagnosis:
+        'Possible clutch issue (score soft) — not enough RPM/speed signature to call slip vs grab.',
+      optimize:
+        'Clean and inspect clutch before next practice; note if launches feel soft (slip) or boggy (early grab).',
+      metrics,
+    }
+  }
+
 
   return {
     id: 'clutch',
     title: 'Clutch',
     status: 'healthy',
     diagnosis: hasChannels
-      ? 'No clutch red flags from RPM/speed this session.'
-      : 'No clutch red flags from available session scores (limited RPM/speed channels).',
-    optimize: 'Hold — recheck if launches feel soft.',
+      ? 'Clutch looks fine this session — RPM and speed match off corners.'
+      : 'Clutch looks fine this session — no red flags from available scores.',
+    optimize: 'No change. Clean on your normal maintenance schedule.',
     metrics,
   }
 }
