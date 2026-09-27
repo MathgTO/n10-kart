@@ -19,7 +19,8 @@ export type HealthDiagnostic = {
 }
 
 function scoreOf(scores: DimensionScore[], id: string, fallback = 5): number {
-  return scores.find((s) => s.dimension_id === id)?.score ?? fallback
+  const v = scores.find((s) => s.dimension_id === id)?.score
+  return v != null && Number.isFinite(v) ? v : fallback
 }
 
 function tireCard(

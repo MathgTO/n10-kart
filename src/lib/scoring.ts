@@ -57,11 +57,52 @@ function weightForDim(id: DimensionId, series: SeriesTag): number {
   return Math.max(0.4, w)
 }
 
-function evidenceKind(id: DimensionId, hasTelemetry: boolean): EvidenceKind {
-  if (NEEDS_KART_CAM.has(id)) return 'needs_kart_cam'
-  if (MYCHRON_HONEST.has(id) && hasTelemetry) return 'mychron'
-  if (MYCHRON_HONEST.has(id)) return 'heuristic'
+export type ChannelFlags = { speed: boolean; rpm: boolean; lapTimes: boolean }
+
+/** Infer which MyChron channels are actually present on lap samples. */
+export function detectChannels(laps: LapData[]): ChannelFlags {
+  let speed = false
+  let rpm = false
+  for (const lap of laps) {
+    if ((lap.maxSpeed ?? 0) > 0) speed = true
+    if ((lap.maxRpm ?? 0) > 0) rpm = true
+    if ((lap.exitRpmFocus ?? 0) > 0) rpm = true
+    for (const s of lap.samples) {
+      if (s.speed > 0) speed = true
+      if (s.rpm > 0) rpm = true
+      if (speed && rpm) break
+    }
+    if (speed && rpm) break
+  }
+  return { speed, rpm, lapTimes: laps.length > 0 }
+}
+
+/** True MyChron dims need specific channels; others are heuristic / video. */
+function mychronChannelsOk(id: DimensionId, ch: ChannelFlags): boolean {
+  if (id === 'D4') return ch.rpm
+  if (id === 'D7') return ch.speed
+  if (id === 'D10') return ch.speed
+  if (id === 'D18') return ch.lapTimes
+  return ch.speed || ch.rpm
+}
+
+function evidenceKind(
+  id: DimensionId,
+  hasTelemetry: boolean,
+  hasVideo: boolean,
+  ch: ChannelFlags
+): EvidenceKind {
+  if (NEEDS_KART_CAM.has(id)) {
+    return hasVideo ? 'kart_cam' : 'needs_kart_cam'
+  }
+  if (MYCHRON_HONEST.has(id)) {
+    return hasTelemetry && mychronChannelsOk(id, ch) ? 'mychron' : 'heuristic'
+  }
   return 'heuristic'
+}
+
+function isAvailableScore(s: DimensionScore): s is DimensionScore & { score: number } {
+  return s.score != null && Number.isFinite(s.score)
 }
 
 export function buildCornerCues(
@@ -100,8 +141,11 @@ function scoreFromTelemetry(
   refIdx: number,
   series: SeriesTag,
   conditions: 'dry' | 'wet',
-  hasVideo: boolean
+  hasVideo: boolean,
+  channels?: ChannelFlags
 ): DimensionScore[] {
+  const ch = channels ?? detectChannels(laps)
+  const hasTelemetry = ch.speed || ch.rpm || ch.lapTimes
   const bestIdx = pickBestFlyingLap(laps)
   const ref = laps[refIdx] ?? laps[bestIdx]
   const best = laps[bestIdx] ?? ref
@@ -137,6 +181,34 @@ function scoreFromTelemetry(
   }
 
   return ALL_IDS.map((id) => {
+    const dim = getDimension(id)
+
+    // Kart-cam vision / racecraft dims: no invented score without footage
+    if (NEEDS_KART_CAM.has(id) && !hasVideo) {
+      return {
+        dimension_id: id,
+        score: null,
+        evidence_kind: 'needs_kart_cam' as EvidenceKind,
+        evidence_markers: [],
+        unavailable_reason: 'needs_cam' as const,
+        notes: 'Needs kart-cam footage to score.',
+      }
+    }
+
+    // Honest MyChron dims: N/A when required channels are missing
+    if (MYCHRON_HONEST.has(id) && !mychronChannelsOk(id, ch)) {
+      const need =
+        id === 'D4' ? 'RPM' : id === 'D18' ? 'lap times' : 'speed'
+      return {
+        dimension_id: id,
+        score: null,
+        evidence_kind: 'heuristic' as EvidenceKind,
+        evidence_markers: [],
+        unavailable_reason: 'needs_channels' as const,
+        notes: `Needs MyChron ${need} channel.`,
+      }
+    }
+
     let score: number
     if (seeded[id] != null) {
       score = seeded[id]
@@ -154,9 +226,9 @@ function scoreFromTelemetry(
     if (['D1', 'D2', 'D3', 'D5', 'D6', 'D8'].includes(id) && maxLoss > 80) {
       score -= 0.5
     }
-    const kind = evidenceKind(id, true)
-    const dim = getDimension(id)
-    const band = scoreBand(score)
+    const kind = evidenceKind(id, hasTelemetry, hasVideo, ch)
+    const clamped = clampScore(score)
+    const band = scoreBand(clamped)
     const markers: string[] = []
     if (MYCHRON_HONEST.has(id)) {
       if (id === 'D4') markers.push(`Exit RPM ~${Math.round(exitRpm)}`)
@@ -164,13 +236,10 @@ function scoreFromTelemetry(
       if (id === 'D18') markers.push(`vs ideal ${Math.round(consistencyGap)} ms`)
       if (id === 'D10') markers.push(`Peak S-split loss ${Math.round(maxLoss)} ms`)
     }
-    if (kind === 'needs_kart_cam' && !hasVideo) {
-      // Do not fake video evidence — leave markers empty / note
-    }
     return {
       dimension_id: id,
-      score: clampScore(score),
-      evidence_kind: hasVideo && NEEDS_KART_CAM.has(id) ? 'kart_cam' : kind,
+      score: clamped,
+      evidence_kind: kind,
       evidence_markers: markers,
       notes: dim?.example_feedback[band],
     }
@@ -179,24 +248,36 @@ function scoreFromTelemetry(
 
 function computeComposites(scores: DimensionScore[]) {
   const map = new Map(scores.map((s) => [s.dimension_id, s.score]))
-  const avgIds = (ids: string[]) => average(ids.map((id) => map.get(id) ?? 0))
+  const avgIds = (ids: string[]): number | null => {
+    const vals = ids
+      .map((id) => map.get(id))
+      .filter((n): n is number => n != null && Number.isFinite(n))
+    if (!vals.length) return null
+    return clampScore(average(vals))
+  }
   const q = avgIds(rubric.composites.qualifying_pace_index)
   const r = avgIds(rubric.composites.racecraft_index)
   const raceParts: number[] = []
   for (const part of rubric.composites.race_win_index) {
-    if (part === 'qualifying_pace_index') raceParts.push(q)
-    else if (part === 'racecraft_index') raceParts.push(r)
-    else raceParts.push(map.get(part) ?? 0)
+    if (part === 'qualifying_pace_index') {
+      if (q != null) raceParts.push(q)
+    } else if (part === 'racecraft_index') {
+      if (r != null) raceParts.push(r)
+    } else {
+      const v = map.get(part)
+      if (v != null && Number.isFinite(v)) raceParts.push(v)
+    }
   }
   return {
-    qualifying_pace_index: clampScore(q),
-    racecraft_index: clampScore(r),
-    race_win_index: clampScore(average(raceParts)),
+    qualifying_pace_index: q,
+    racecraft_index: r,
+    race_win_index: raceParts.length ? clampScore(average(raceParts)) : null,
   }
 }
 
 function pickTopWeaknesses(scores: DimensionScore[], series: SeriesTag, max = 3): WeaknessFinding[] {
-  const ranked = [...scores]
+  const ranked = scores
+    .filter(isAvailableScore)
     .map((s) => ({ ...s, weighted: s.score / weightForDim(s.dimension_id, series) }))
     .sort((a, b) => a.weighted - b.weighted)
   const out: WeaknessFinding[] = []
@@ -207,7 +288,7 @@ function pickTopWeaknesses(scores: DimensionScore[], series: SeriesTag, max = 3)
     out.push({
       dimension_id: s.dimension_id,
       score: s.score,
-      marker: s.evidence_markers[0] ?? (s.evidence_kind === 'needs_kart_cam' ? 'needs kart-cam' : '—'),
+      marker: s.evidence_markers[0] ?? '—',
       cue: dim?.bad_cues[0] ?? dim?.example_feedback[scoreBand(s.score)] ?? 'Needs work',
     })
   }
@@ -215,7 +296,7 @@ function pickTopWeaknesses(scores: DimensionScore[], series: SeriesTag, max = 3)
 }
 
 function pickStrengths(scores: DimensionScore[], max = 3): WeaknessFinding[] {
-  const ranked = [...scores].sort((a, b) => b.score - a.score)
+  const ranked = scores.filter(isAvailableScore).sort((a, b) => b.score - a.score)
   const out: WeaknessFinding[] = []
   for (const s of ranked) {
     if (out.length >= max) break
@@ -240,9 +321,9 @@ function resolvePrimaryDrill(
   let focusDim = weaknesses[0]?.dimension_id
   if (previousPriority && previousScores) {
     const prev = previousScores.find((s) => s.dimension_id === previousPriority)
-    if (prev && prev.score < ADVANCE_PRIORITY_AT) {
+    if (prev && prev.score != null && prev.score < ADVANCE_PRIORITY_AT) {
       focusDim = previousPriority
-    } else if (prev && prev.score >= ADVANCE_PRIORITY_AT) {
+    } else if (prev && prev.score != null && prev.score >= ADVANCE_PRIORITY_AT) {
       advanced = true
       focusDim =
         weaknesses.find((w) => w.dimension_id !== previousPriority)?.dimension_id ??
@@ -276,10 +357,14 @@ function buildSetupHypotheses(
   const map = new Map(scores.map((s) => [s.dimension_id, s.score]))
   const picks: SetupHypothesisId[] = []
   const custom: { id: SetupHypothesisId; message: string }[] = []
-  const exit = map.get('D4') ?? 5
-  const tires = map.get('D19') ?? 5
-  const throttle = map.get('D10') ?? 5
-  const consistency = map.get('D18') ?? 5
+  const num = (id: string, fallback = 5) => {
+    const v = map.get(id)
+    return v != null && Number.isFinite(v) ? v : fallback
+  }
+  const exit = num('D4')
+  const tires = num('D19')
+  const throttle = num('D10')
+  const consistency = num('D18')
 
   if (tires <= 3.5) picks.push('tire_pressure_session')
   if (tires <= 3 || series === 'race' || series === 'mika' || series === 'bsc_ontario') {
@@ -315,7 +400,7 @@ function buildSetupHypotheses(
     picks.push('restricted_slide_gearing')
   }
   if (exit <= 2.5 && throttle >= 3.5) picks.push('chassis_before_engine')
-  if ((map.get('D17') ?? 5) <= 2.5) picks.push('clutch_health')
+  if (num('D17') <= 2.5) picks.push('clutch_health')
   if (consistency <= 2.5 && tires <= 3.5) picks.push('tire_pressure_race_heat')
 
   const preferred = (rubric.preferred_setup_hypothesis_ids ?? []) as string[]
@@ -341,7 +426,7 @@ function vsLast(current: DimensionScore[], previous?: DimensionScore[] | null): 
   return current
     .map((s) => {
       const p = prevMap.get(s.dimension_id)
-      if (p == null) return null
+      if (p == null || s.score == null) return null
       return { dimension_id: s.dimension_id, previous: p, current: s.score, delta: s.score - p }
     })
     .filter((x): x is ProgressDelta => x != null)
@@ -399,6 +484,7 @@ export interface BuildReportInput {
   referenceLapIndex: number
   cornerNames?: string[]
   hasVideo?: boolean
+  channels?: ChannelFlags
   previousSession?: StoredSession | null
 }
 
@@ -413,7 +499,8 @@ export function buildCoachingReport(input: BuildReportInput): {
     refIdx,
     input.series,
     input.conditions,
-    !!input.hasVideo
+    !!input.hasVideo,
+    input.channels
   )
   const composites = computeComposites(scores)
   const top_weaknesses = pickTopWeaknesses(scores, input.series, 3) // M2 hard cap 3
@@ -453,10 +540,14 @@ export function buildCoachingReport(input: BuildReportInput): {
   let racecraft_cue: string | null = null
   if (input.series === 'bsc_ontario' || input.series === 'race' || input.series === 'mika') {
     const d15 = scores.find((s) => s.dimension_id === 'D15')
-    racecraft_cue =
-      d15 && d15.score < 3.5
-        ? 'Outside usually donates — present earlier or wait a corner. Own inside before turn-in; protect exit.'
-        : 'Keep passes planned one corner ahead. Draft, own inside, exit sticks.'
+    if (d15 && d15.score != null) {
+      racecraft_cue =
+        d15.score < 3.5
+          ? 'Outside usually donates — present earlier or wait a corner. Own inside before turn-in; protect exit.'
+          : 'Keep passes planned one corner ahead. Draft, own inside, exit sticks.'
+    } else if (!input.hasVideo) {
+      racecraft_cue = 'Attach kart-cam to score racecraft (D14–D17). Protect exit after every pass.'
+    }
   }
 
   const report: CoachingReport = {

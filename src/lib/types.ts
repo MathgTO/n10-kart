@@ -44,10 +44,13 @@ export interface CornerCue {
 
 export interface DimensionScore {
   dimension_id: DimensionId
-  score: number
+  /** null when the dim cannot be measured (missing MyChron channels or kart-cam) */
+  score: number | null
   evidence_kind: EvidenceKind
   evidence_markers: string[]
   notes?: string
+  /** Short UI reason when score is null, e.g. "needs cam" / "needs channels" */
+  unavailable_reason?: 'needs_cam' | 'needs_channels'
 }
 
 export interface WeaknessFinding {
@@ -70,9 +73,9 @@ export interface CoachingReport {
   class_assumption: string
   scores: DimensionScore[]
   composites: {
-    qualifying_pace_index: number
-    racecraft_index: number
-    race_win_index: number
+    qualifying_pace_index: number | null
+    racecraft_index: number | null
+    race_win_index: number | null
   }
   top_weaknesses: WeaknessFinding[]
   strengths: WeaknessFinding[]

@@ -133,6 +133,7 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
         laps: parse.laps,
         referenceLapIndex: compareLapIndex,
         cornerNames: track.corners.map((c) => c.name),
+        channels: parse.channels,
         previousSession: prev,
       })
       const session: StoredSession = {
@@ -192,21 +193,37 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
   const attachVideo = useCallback((sessionId: string, file: File) => {
     const url = URL.createObjectURL(file)
     setSessions((list) =>
-      list.map((s) =>
-        s.id === sessionId
-          ? {
-              ...s,
-              videoName: file.name,
-              videoObjectUrl: url,
-              videoCueMarkers: s.report.top_weaknesses.slice(0, 3).map((w, i) => ({
-                t: 30 + i * 25,
-                label: w.cue,
-              })),
-            }
-          : s
-      )
+      list.map((s) => {
+        if (s.id !== sessionId) return s
+        const prev = previousFor(list, sessionId)
+        const { report, corners } = buildCoachingReport({
+          sessionId: s.id,
+          track: s.trackName,
+          classAssumption: s.classAssumption,
+          series: s.series,
+          conditions: s.conditions,
+          laps: s.laps,
+          referenceLapIndex: s.referenceLapIndex,
+          cornerNames: getTrack(s.trackId).corners.map((c) => c.name),
+          hasVideo: true,
+          previousSession: prev,
+        })
+        return {
+          ...s,
+          videoName: file.name,
+          videoObjectUrl: url,
+          corners,
+          report,
+          activePriorityDimensionId: report.priority_dimension_id,
+          activePriorityDrillId: report.primary_drill.id,
+          videoCueMarkers: report.top_weaknesses.slice(0, 3).map((w, i) => ({
+            t: 30 + i * 25,
+            label: w.cue,
+          })),
+        }
+      })
     )
-  }, [])
+  }, [previousFor])
 
   const deleteSession = useCallback((id: string) => {
     setSessions((list) => list.filter((s) => s.id !== id))
