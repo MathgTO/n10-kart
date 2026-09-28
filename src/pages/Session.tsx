@@ -11,7 +11,7 @@ import { HealthDiagnostic } from '@/components/HealthDiagnostic'
 import { VideoPanel } from '@/components/VideoPanel'
 import { VsLastStrip } from '@/components/VsLastStrip'
 import { useSessions } from '@/hooks/SessionsContext'
-import { formatLapTime } from '@/lib/format'
+import { formatLapLabel, formatLapTime } from '@/lib/format'
 import { getTrack } from '@/data/tracks'
 import { MOSPORT_GP_SECTORS } from '@/data/mosportSectors'
 
@@ -56,7 +56,7 @@ export function SessionPage() {
             {session.classAssumption} · {session.trackName} · {session.series}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button type="button" className="btn-secondary" onClick={() => setImportOpen(true)}>
             Import another
           </button>
@@ -73,6 +73,23 @@ export function SessionPage() {
           </button>
         </div>
       </div>
+
+      {/* Single race-video path: empty-state card OR player/replace once */}
+      {!session.videoObjectUrl ? (
+        <section className="w-full rounded-2xl border-2 border-n10-lime bg-n10-lime/10 py-4 px-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-base font-black text-n10-lime uppercase tracking-wide">Race video</p>
+              <p className="text-sm text-n10-soft mt-0.5">
+                Upload onboard / kart-cam (mp4, mov, webm). Stays on this device — optional for coaching.
+              </p>
+            </div>
+            <VideoPanel session={session} compact />
+          </div>
+        </section>
+      ) : (
+        <VideoPanel session={session} />
+      )}
 
       {/* Compare lap = delta subject; Best ★ stays the target */}
       <section className="panel">
@@ -94,7 +111,7 @@ export function SessionPage() {
                   : 'border-n10-border bg-n10-card text-n10-soft'
               }`}
             >
-              L{i + 1} {formatLapTime(lap.timeMs)}
+              {formatLapLabel(lap, i)} {formatLapTime(lap.timeMs)}
               {i === session.bestLapIndex ? ' ★ best' : ''}
               {i === session.referenceLapIndex && i !== session.bestLapIndex ? ' · compare' : ''}
             </button>
@@ -132,7 +149,6 @@ export function SessionPage() {
       />
       <HealthDiagnostic session={session} />
       <ScorePanel report={session.report} hasVideo={!!(session.videoName || session.videoObjectUrl)} />
-      <VideoPanel session={session} />
 
       {session.report.racecraft_cue && (
         <section className="panel">
