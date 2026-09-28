@@ -1,0 +1,119 @@
+{
+  "schema_version": "1.0",
+  "id": "hilliard_inferno_flame_clutch_health",
+  "product": "N10 Health \u2014 clutch diagnostic",
+  "class_default": "LO206 Junior @ Mosport / MIKA",
+  "clutch_model": "Hilliard Inferno Flame (4-shoe centrifugal)",
+  "source": {
+    "title": "The clutch, understood. \u2014 Hilliard Inferno Flame trackside service guide",
+    "date": "2026-09-25",
+    "path": "/workspace/briggs-coach-api/hilliard-inferno-flame-clutch-guide.pdf",
+    "assumption": "Confirm cover name + bronze bushing vs needle bearing before service; lubrication differs."
+  },
+  "tag": "setup",
+  "never_mix_with": "driver_blame",
+  "baseline": {
+    "initial_contact_rpm_suggested": 3400,
+    "note": "Hilliard suggested initial contact with 2 white + 2 black springs, opposite matching colors, four leading shoes, no optional weights. Initial contact \u2260 full lock-up.",
+    "spring_table_initial_contact_rpm": {
+      "black": 3800,
+      "white": 2800,
+      "yellow": 2300,
+      "orange": 1900,
+      "red": 1400,
+      "green": 1200
+    },
+    "spring_rule": "Heavier/stronger spring \u2192 later bite. Weaker \u2192 earlier. Match opposite springs. Mixed colors = intermediate."
+  },
+  "rpm_speed_read": {
+    "purpose": "Use engine RPM and kart speed TOGETHER to diagnose early vs late slip. Never use RPM alone.",
+    "channels": [
+      "rpm",
+      "speed",
+      "optional_throttle"
+    ],
+    "phases": {
+      "idle": "Shoes in; drum free. Speed ~0; RPM at idle below engagement.",
+      "initial_contact": "Centrifugal force overcomes springs; shoes first touch drum.",
+      "controlled_slip": "RPM rising while speed lags \u2014 shoes rubbing while speeds equalize. Short slip normal on launch.",
+      "lock": "RPM and road speed rise together (nearly 1:1 after gearing). Prolonged high RPM after speed catches up = incomplete lock."
+    },
+    "signatures": [
+      {
+        "id": "late_slip_flare",
+        "name": "Engages too late / slides too long",
+        "telemetry": "RPM flares (climbs hard) while speed lags / rises slowly after throttle; optionally large RPM\u2013speed divergence after launch or hairpin exits.",
+        "confirm_also": [
+          "hot drum",
+          "burnt smell",
+          "blue/purple drum"
+        ],
+        "setup_actions": [
+          "Stop and cool; inspect oil/chain-lube contamination, glaze, blocked shoe grooves, heat damage.",
+          "Confirm shoes slide freely; springs not wrongly installed or excessively strong.",
+          "Check chain alignment/slack, brake drag, gearing (tall ratio can demand more clutch torque than setup can give).",
+          "If hardware healthy: lower engagement with weaker OEM springs OR add Hilliard weights symmetrically; prefer leading shoe orientation for firmer bite."
+        ],
+        "health_ui_line": "Late slip: RPM up, speed lagging \u2014 clutch converting power to heat. Cool \u2192 clean \u2192 then softer springs or more weight (balanced)."
+      },
+      {
+        "id": "early_bite_bog",
+        "name": "Engages too early / harsh early grab",
+        "telemetry": "RPM drops sharply as clutch bites while speed is still low; or engagement begins below intended RPM; kart may bog / load the engine.",
+        "confirm_also": [
+          "creep at idle on stand",
+          "engine loads when braking to a stop"
+        ],
+        "setup_actions": [
+          "Verify idle below engagement and throttle returns fully.",
+          "Drum/driver freewheels with engine off; no rub on cover/spacers/guard.",
+          "Inspect seized/dry bearing, wrong stack-up, grease drag, broken springs, shoes hanging on lugs.",
+          "If mechanically sound: raise engagement with stronger OEM springs; remove optional weights in balanced pairs."
+        ],
+        "health_ui_line": "Early bite: RPM falls hard as it grabs \u2014 raise engagement (stronger springs / remove weights) after ruling out drag."
+      },
+      {
+        "id": "incomplete_lock",
+        "name": "Never fully locks",
+        "telemetry": "After speed has caught up, RPM stays high / keeps flaring under load \u2014 clutch not achieving full lock.",
+        "setup_actions": [
+          "STOP before heat destroys surfaces.",
+          "Inspect contamination, glaze, worn shoes/drum, weak torque capacity (springs/weights/orientation).",
+          "Do not continue the session."
+        ],
+        "health_ui_line": "Incomplete lock: speed caught up but RPM still high \u2014 stop, inspect friction surfaces."
+      },
+      {
+        "id": "power_or_drag_not_clutch",
+        "name": "Bog with low RPM (not classic slip)",
+        "telemetry": "RPM stays low AND kart acceleration is poor (no flare).",
+        "setup_actions": [
+          "Investigate engine/throttle opening, brake drag, gearing, excess load BEFORE blaming clutch."
+        ],
+        "health_ui_line": "Low RPM + sluggish speed = power/drag/gear first \u2014 not a slip-flare clutch call."
+      }
+    ],
+    "spring_direction_cheat": {
+      "heavier_stronger_springs": "Engage later (higher RPM initial contact)",
+      "lighter_weaker_springs": "Engage earlier (lower RPM)",
+      "more_shoe_weight": "Earlier bite + more torque capacity (~100\u2013200 rpm lower per insert, opposite shoes identical)",
+      "leading_shoes": "Sharper, less slip",
+      "trailing_shoes": "Softer, more slip; beds slowly"
+    }
+  },
+  "shop_checklist_plain": [
+    "RPM flares, speed lags \u2192 slipping late/too much: cool \u2192 clean shoes/drum \u2192 then weaker springs or add balanced weights (leading shoes for firmer lock).",
+    "RPM drops hard / boggy early grab \u2192 gripping too early: stronger springs; remove balanced weights; confirm idle below engagement.",
+    "Heavier/stronger springs = later engagement; lighter/weaker = earlier.",
+    "Always match opposite shoes (spring color, weights, leading/trailing). Never reuse weight snap rings.",
+    "Needle bearing \u2260 bronze bushing: grease only the needle kit lightly; bronze gets one drop light oil \u2014 never grease. Keep lube off friction faces.",
+    "Stop-now: drives at idle, cracked drum, broken spring, blue/purple smoked drum, seized bearing."
+  ],
+  "stop_now": [
+    "Clutch drives kart at idle or will not release",
+    "Cracked drum, broken spring, missing retainer, loose mounting bolt",
+    "Blue/purple drum with smoke or persistent burnt smell",
+    "Needle bearing seized, gritty, or damaged"
+  ],
+  "change_order": "mechanical fault \u2192 contamination/wear \u2192 gearing/load \u2192 springs/weights/orientation"
+}

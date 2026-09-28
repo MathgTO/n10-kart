@@ -18,6 +18,24 @@ export type HealthDiagnostic = {
   gearAdvice: GearAdvice | null
 }
 
+/** Briggs Hilliard Inferno Flame — clutch calls require RPM + speed together. */
+export const CLUTCH_HEALTH = {
+  id: 'hilliard_inferno_flame_clutch_health',
+  require_rpm_and_speed: true as const,
+  tag: 'setup' as const,
+  never_mix_with: 'driver_blame' as const,
+}
+
+/** Plain shop checklist (Hilliard Inferno Flame) — always setup-tagged. */
+export const CLUTCH_SHOP_CHECKLIST: readonly string[] = [
+  'RPM flares, speed lags → slipping late/too much: cool → clean shoes/drum → then weaker springs or add balanced weights (leading shoes for firmer lock).',
+  'RPM drops hard / boggy early grab → gripping too early: stronger springs; remove balanced weights; confirm idle below engagement.',
+  'Heavier/stronger springs = later engagement; lighter/weaker = earlier.',
+  'Always match opposite shoes (spring color, weights, leading/trailing). Never reuse weight snap rings.',
+  'Needle bearing ≠ bronze bushing: grease only the needle kit lightly; bronze gets one drop light oil — never grease. Keep lube off friction faces.',
+  'Stop-now: drives at idle, cracked drum, broken spring, blue/purple smoked drum, seized bearing.',
+]
+
 function scoreOf(scores: DimensionScore[], id: string, fallback = 5): number {
   const v = scores.find((s) => s.dimension_id === id)?.score
   return v != null && Number.isFinite(v) ? v : fallback
@@ -142,19 +160,37 @@ function gearCard(
   }
 }
 
-/** Heuristic clutch flags from RPM/speed samples — setup-tagged, not driver blame. */
+export type ClutchPattern =
+  | 'late_slip_flare'
+  | 'early_bite_bog'
+  | 'incomplete_lock'
+  | 'power_or_drag_not_clutch'
+  | 'scatter'
+  | 'none'
+
+/**
+ * Heuristic clutch flags from RPM + speed samples (Briggs / Hilliard Inferno Flame).
+ * Setup-tagged only — never driver blame. Requires both channels.
+ */
 function detectClutchPattern(laps: LapData[]): {
-  pattern: 'slip' | 'bog' | 'scatter' | 'none'
+  pattern: ClutchPattern
   detail: string
 } {
+  if (!CLUTCH_HEALTH.require_rpm_and_speed) {
+    return { pattern: 'none', detail: '' }
+  }
+
   const flying = laps.filter((l) => l.timeMs >= 45000 && l.timeMs <= 180000 && l.samples.length > 20)
   const pool = flying.length ? flying : laps.filter((l) => l.samples.length > 20)
   if (!pool.length) return { pattern: 'none', detail: '' }
 
   const exitRpms: number[] = []
   let slipHits = 0
-  let bogHits = 0
+  let earlyBiteHits = 0
+  let incompleteLockHits = 0
+  let powerDragHits = 0
   let sampleWindows = 0
+  let midSpeedWindows = 0
 
   for (const lap of pool) {
     if (lap.exitRpmFocus != null && Number.isFinite(lap.exitRpmFocus)) {
@@ -167,20 +203,53 @@ function detectClutchPattern(laps: LapData[]): {
       const c = samples[i + 1]
       const dt = Math.max(0.01, b.t - a.t)
       const rpmRise = (b.rpm - a.rpm) / dt
+      const rpmDrop = (a.rpm - b.rpm) / dt
       const speedRise = (b.speed - a.speed) / dt
-      // Slow corner / exit: speed low, looking for engagement issues
+
+      // Slow corner / launch / hairpin exit: look for engagement issues
       const slowCorner = b.speed < 55 && a.speed < 60
-      if (!slowCorner) continue
-      sampleWindows++
-      // RPM flare without matching speed = slip
-      if (rpmRise > 800 && speedRise < 8 && b.rpm > 5200) slipHits++
-      // Low exit RPM while speed builds slowly = boggy engagement
-      if (b.rpm < 5200 && c.rpm < 5400 && speedRise > 0 && speedRise < 12 && b.speed > 30) bogHits++
+      if (slowCorner) {
+        sampleWindows++
+        // Late slip flare: RPM climbs hard while speed lags
+        if (rpmRise > 800 && speedRise < 8 && b.rpm > 5200) slipHits++
+        // Early bite bog: RPM drops sharply as clutch grabs while speed still low
+        if (
+          rpmDrop > 600 &&
+          b.speed < 45 &&
+          a.speed < 50 &&
+          a.rpm > 3800 &&
+          b.rpm < a.rpm - 200 &&
+          speedRise < 15
+        ) {
+          earlyBiteHits++
+        }
+        // Low RPM + sluggish (no flare) → power/drag/gear first, not clutch
+        if (
+          b.rpm < 4800 &&
+          c.rpm < 5000 &&
+          rpmRise < 400 &&
+          speedRise > 0 &&
+          speedRise < 10 &&
+          b.speed > 25 &&
+          b.speed < 50
+        ) {
+          powerDragHits++
+        }
+      }
+
+      // Incomplete lock: speed has caught up (mid/higher speed) but RPM still high / flaring under load
+      const speedCaughtUp = b.speed >= 60 && a.speed >= 55
+      if (speedCaughtUp) {
+        midSpeedWindows++
+        if (b.rpm > 5800 && rpmRise > 400 && speedRise < 6) incompleteLockHits++
+      }
     }
   }
 
   const slipRate = sampleWindows > 0 ? slipHits / sampleWindows : 0
-  const bogRate = sampleWindows > 0 ? bogHits / sampleWindows : 0
+  const earlyBiteRate = sampleWindows > 0 ? earlyBiteHits / sampleWindows : 0
+  const powerDragRate = sampleWindows > 0 ? powerDragHits / sampleWindows : 0
+  const incompleteRate = midSpeedWindows > 0 ? incompleteLockHits / midSpeedWindows : 0
 
   let exitStd = 0
   if (exitRpms.length >= 3) {
@@ -190,16 +259,30 @@ function detectClutchPattern(laps: LapData[]): {
     )
   }
 
-  if (slipRate >= 0.08) {
+  // Priority: incomplete lock (stop) > late slip > early bite > power/drag > scatter
+  if (incompleteRate >= 0.06) {
     return {
-      pattern: 'slip',
-      detail: `RPM flare without matching speed off slow corners (~${Math.round(slipRate * 100)}% of exit windows).`,
+      pattern: 'incomplete_lock',
+      detail: `Speed caught up but RPM still high under load (~${Math.round(incompleteRate * 100)}% of mid-speed windows).`,
     }
   }
-  if (bogRate >= 0.1) {
+  if (slipRate >= 0.08) {
     return {
-      pattern: 'bog',
-      detail: `Low exit RPM with slow speed build off slow corners (~${Math.round(bogRate * 100)}% of windows).`,
+      pattern: 'late_slip_flare',
+      detail: `RPM flare while speed lags off slow corners (~${Math.round(slipRate * 100)}% of exit windows).`,
+    }
+  }
+  if (earlyBiteRate >= 0.08) {
+    return {
+      pattern: 'early_bite_bog',
+      detail: `Sharp RPM drop as clutch grabs at low speed (~${Math.round(earlyBiteRate * 100)}% of windows).`,
+    }
+  }
+  // Prefer power/drag over boggy-looking low-RPM without flare
+  if (powerDragRate >= 0.1 && slipRate < 0.04) {
+    return {
+      pattern: 'power_or_drag_not_clutch',
+      detail: `Low RPM + sluggish speed with no flare (~${Math.round(powerDragRate * 100)}% of windows).`,
     }
   }
   if (exitStd > 220) {
@@ -211,80 +294,124 @@ function detectClutchPattern(laps: LapData[]): {
   return { pattern: 'none', detail: '' }
 }
 
-function patternLabel(pattern: 'slip' | 'bog' | 'scatter' | 'none'): string {
+function patternLabel(pattern: ClutchPattern): string {
   switch (pattern) {
-    case 'slip':
-      return 'slipping'
-    case 'bog':
-      return 'early grab'
+    case 'late_slip_flare':
+      return 'late slip'
+    case 'early_bite_bog':
+      return 'early bite'
+    case 'incomplete_lock':
+      return 'incomplete lock'
+    case 'power_or_drag_not_clutch':
+      return 'power/drag'
     case 'scatter':
-      return 'inconsistent'
+      return 'scatter'
     default:
       return 'ok'
   }
 }
 
-function clutchCard(scores: DimensionScore[], laps: LapData[]): HealthCard {
-  const d17 = scoreOf(scores, 'D17', 3.5)
-
-  const hasChannels = laps.some(
+function hasRpmAndSpeedChannels(laps: LapData[]): boolean {
+  return laps.some(
     (l) =>
       l.samples.length > 10 &&
       l.samples.some((s) => s.rpm > 1000) &&
       l.samples.some((s) => s.speed > 10)
   )
+}
 
-  const detected = hasChannels
-    ? detectClutchPattern(laps)
-    : { pattern: 'none' as const, detail: '' }
+function clutchCard(scores: DimensionScore[], laps: LapData[]): HealthCard {
+  const d17 = scoreOf(scores, 'D17', 3.5)
+
+  const hasChannels = hasRpmAndSpeedChannels(laps)
+
+  // Assert: clutch_health.require_rpm_and_speed — never invent slip/bog without both.
+  if (!hasChannels) {
+    return {
+      id: 'clutch',
+      title: 'Clutch',
+      status: 'watch',
+      diagnosis:
+        'RPM and speed channels both required for clutch calls — cannot diagnose engagement from limited data.',
+      optimize: 'Import MyChron with RPM + speed',
+      metrics: [
+        { label: 'Clutch score', value: d17.toFixed(1) },
+        { label: 'Channels', value: 'need RPM+speed' },
+      ],
+    }
+  }
+
+  const detected = detectClutchPattern(laps)
 
   const metrics: { label: string; value: string }[] = [
     { label: 'Clutch score', value: d17.toFixed(1) },
+    { label: 'Pattern', value: patternLabel(detected.pattern) },
   ]
-  if (hasChannels) {
-    metrics.push({
-      label: 'Pattern',
-      value: patternLabel(detected.pattern),
-    })
-  } else {
-    metrics.push({ label: 'Channels', value: 'limited' })
-  }
 
-  // Shop actions ONLY for clear slip / early-grab signatures in session data.
-  if (detected.pattern === 'slip') {
+  // Late slip: cooler/cleaner then WEAKER springs or add balanced weights (Briggs direction).
+  if (detected.pattern === 'late_slip_flare') {
     return {
       id: 'clutch',
       title: 'Clutch',
       status: 'fix',
       diagnosis:
-        'Clutch is slipping too much — engine revs up without matching kart speed.',
+        'Late slip: RPM up, speed lagging — clutch converting power to heat. Cool → clean → then softer springs or more weight (balanced).',
       optimize:
-        '1) Pull clutch, clean shoes + drum (no oil/glaze). 2) If still slips under power after clean: replace/reface shoes. 3) If it still slips: try heavier springs (engages harder / higher RPM). Verify install locked on crank shoulder.',
+        '1) Stop and cool; inspect oil/chain-lube, glaze, blocked shoe grooves, heat damage. 2) Confirm shoes slide freely; springs not wrongly installed or too strong. 3) Check chain alignment/slack, brake drag, gearing. 4) If hardware healthy: weaker OEM springs OR add Hilliard weights symmetrically; prefer leading shoes for firmer bite.',
       metrics,
     }
   }
 
-  if (detected.pattern === 'bog') {
+  // Early bite: STRONGER springs / remove weights (Briggs direction).
+  if (detected.pattern === 'early_bite_bog') {
     return {
       id: 'clutch',
       title: 'Clutch',
       status: 'fix',
       diagnosis:
-        'Clutch is gripping too early — it hooks up before the engine is in the power band.',
+        'Early bite: RPM falls hard as it grabs — raise engagement (stronger springs / remove weights) after ruling out drag.',
       optimize:
-        '1) Clean shoes + drum. 2) If still hooks early / feels boggy: fit lighter springs (engages later / higher RPM). Do not blame the driver first.',
+        '1) Verify idle below engagement and throttle returns fully. 2) Drum freewheels with engine off; no rub on cover/spacers/guard. 3) Inspect seized/dry bearing, wrong stack-up, grease drag, broken springs, shoes hanging on lugs. 4) If mechanically sound: stronger OEM springs; remove optional weights in balanced pairs.',
       metrics,
     }
   }
 
-  // Scatter / soft D17 / limited channels: under-call — no clean/inspect/springs.
+  // Incomplete lock: STOP language.
+  if (detected.pattern === 'incomplete_lock') {
+    return {
+      id: 'clutch',
+      title: 'Clutch',
+      status: 'fix',
+      diagnosis:
+        'Incomplete lock: speed caught up but RPM still high — stop, inspect friction surfaces.',
+      optimize:
+        'STOP before heat destroys surfaces. Inspect contamination, glaze, worn shoes/drum, weak torque capacity (springs/weights/orientation). Do not continue the session.',
+      metrics,
+    }
+  }
+
+  // Low RPM + sluggish (no flare) → engine/drag/gear FIRST — not a clutch shop call.
+  if (detected.pattern === 'power_or_drag_not_clutch') {
+    return {
+      id: 'clutch',
+      title: 'Clutch',
+      status: 'watch',
+      diagnosis:
+        'Low RPM + sluggish speed = power/drag/gear first — not a slip-flare clutch call.',
+      optimize:
+        'Investigate engine/throttle opening, brake drag, gearing, excess load BEFORE changing clutch springs or weights. No clutch shop change from this signature.',
+      metrics,
+    }
+  }
+
+  // Soft D17 / scatter without clear signature: under-call — "No change".
   if (detected.pattern === 'scatter') {
     return {
       id: 'clutch',
       title: 'Clutch',
       status: 'watch',
-      diagnosis: 'Inconsistent but not a clear slip or early-grab call.',
-      optimize: 'No change.',
+      diagnosis: 'Inconsistent but not a clear late-slip, early-bite, or incomplete-lock call.',
+      optimize: 'No change',
       metrics,
     }
   }
@@ -294,9 +421,8 @@ function clutchCard(scores: DimensionScore[], laps: LapData[]): HealthCard {
       id: 'clutch',
       title: 'Clutch',
       status: 'watch',
-      diagnosis: 'No clutch problem in this session data',
-      optimize:
-        "No change — score soft but data doesn't show slip or early grab.",
+      diagnosis: 'No clear clutch signature in this session data.',
+      optimize: "No change — score soft but data doesn't show late slip, early bite, or incomplete lock.",
       metrics,
     }
   }
@@ -305,8 +431,8 @@ function clutchCard(scores: DimensionScore[], laps: LapData[]): HealthCard {
     id: 'clutch',
     title: 'Clutch',
     status: 'healthy',
-    diagnosis: 'No clutch problem in this session data',
-    optimize: 'No change.',
+    diagnosis: 'No clutch problem in this session data.',
+    optimize: 'No change',
     metrics,
   }
 }

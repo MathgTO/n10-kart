@@ -1,6 +1,7 @@
 import type { StoredSession } from '@/lib/types'
 import {
   buildHealthDiagnosticFromSession,
+  CLUTCH_SHOP_CHECKLIST,
   type HealthCard,
   type HealthStatus,
 } from '@/lib/healthDiagnostic'
@@ -87,6 +88,24 @@ function Card({ card }: { card: HealthCard }) {
           ))}
         </div>
       )}
+
+      {card.id === 'clutch' && <ClutchShopChecklist />}
     </article>
+  )
+}
+
+/** Compact always-visible Hilliard Inferno Flame shop checklist under the clutch card. */
+function ClutchShopChecklist() {
+  return (
+    <div className="mt-3 rounded-lg border border-n10-border/60 bg-n10-panel/60 px-3 py-2">
+      <p className="text-[10px] font-bold uppercase tracking-wide text-teal-200/70">
+        Shop checklist · Hilliard Inferno Flame · setup only
+      </p>
+      <ol className="mt-1.5 list-decimal space-y-0.5 pl-4 text-[11px] leading-snug text-n10-mute">
+        {CLUTCH_SHOP_CHECKLIST.map((line) => (
+          <li key={line.slice(0, 32)}>{line}</li>
+        ))}
+      </ol>
+    </div>
   )
 }
