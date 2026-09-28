@@ -1,6 +1,6 @@
 # Briggs Karting — Executive Summary
 
-**Date:** Sep 11, 2026  
+**Date:** Sep 11, 2026 (trackside MyChron tuning + weekly KB refresh Sep 28, 2026 ET)  
 **Audience:** User (MathG) + app-building bot  
 **Full KB:** `/workspace/briggs-karting-knowledge-base.md`
 
@@ -37,6 +37,25 @@ LO206 cannot mask mistakes with power. Kart-cam coaching should prioritize: **la
 - Common kart-cam mistakes list  
 - General vs Briggs-specific cheat sheet  
 
+
+## Trackside MyChron tuning (Sep 28, 2026)
+
+Future tuning bot ingest: **`.xrk` / `.xrz`** → setup-tagged directions (one change).  
+- KB section: **Trackside tuning from MyChron session data**  
+- Machine pack: `/workspace/briggs-coach-api/trackside-tuning-from-xrk-v1.json`  
+- Brief: `/workspace/briggs-coach-api/trackside-tuning-exec.md`  
+- Rubric schema: **1.8** (source-authority refresh; `changelog_1_8`; prior trackside = 1.7)  
+- Rule: RPM+speed (+delta/water) separates **gear vs clutch vs tire vs chassis vs driving**; Junior gears for restricted slide, not limiter ego.  
+- Gap: confirm MIKA Junior tire brand/PSI and current min weight PDF — do not invent Mosport numbers.
+
+## Weekly KB refresh (Sep 28, 2026 ET) — first run
+
+- **Material doc/source upgrades (no coaching-dim changes):** Linked official **Briggs 206 Factory Ruleset v2026.1.1** (unified US/Canada; Maple Leaf embossed stamp no longer required). Confirmed Junior **yellow .570″ #555741** + carb lock **#555726** + Hilliard Inferno Flame on approved clutch list from that PDF.
+- **Ontario parallel (not MIKA):** TRAK 2026 Class Structure — Briggs Junior **300 lbs**, **VEGA BLUE ONT 4.6/6.5** (TRAK “GOLD SLIDE” naming — do not assume for MIKA).
+- **Re-checked, unchanged coaching content:** Swift gear-ratio + AiM Race Studio LO206 guides; Hilliard Inferno Flame Health pack (on-disk PDF); trackside MyChron pack.
+- **Still open:** MIKA Junior min-weight + tire/PSI PDFs (Mosport rules hub **404 from box** this pass).
+- Rubric schema remains **1.8** after source-authority metadata bump (see `changelog_1_8`). Weekly log: `/workspace/n10-review/weekly-kb-changelog.md`.
+
 ## Blockers / gaps
 
 - Exact facility name ambiguous until user confirms.  
@@ -44,6 +63,7 @@ LO206 cannot mask mistakes with power. Kart-cam coaching should prioritize: **la
 - Some elite analyses paywalled (Dove Substack).  
 - Re-verify YouTube channel ownership before on-screen attribution.  
 - Local rulebooks needed for tires, clutch list, weights, slides.
+- **Mosport / MIKA Junior tire brand/PSI** and current MIKA min-weight PDF still unconfirmed (TRAK parallel 300 lb / Vega Blue ONT is **not** MIKA confirmation).
 
 ## One-line product thesis
 

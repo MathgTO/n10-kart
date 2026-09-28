@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.5",
+  "schema_version": "1.8",
   "product": "Briggs LO206 Racing Coach (MyChron + kart-cam)",
   "default_class_assumption": "LO206 Junior @ Mosport / MIKA (path to BSC Ontario wins)",
   "score_scale": {
@@ -73,9 +73,9 @@
       ],
       "briggs_note": "Critical for min speed without power",
       "example_feedback": {
-        "high": "Width looks intentional \u2014 you\u2019re using the full road and protecting minimum speed.",
+        "high": "Width looks intentional — you’re using the full road and protecting minimum speed.",
         "mid": "Entry width is okay, but exits still leave money on the table. Commit to the exit kerb on the next three corners that open onto straights.",
-        "low": "You\u2019re turning early and floating inside. Pick one corner and force full track-out for five laps \u2014 LO206 needs that exit speed."
+        "low": "You’re turning early and floating inside. Pick one corner and force full track-out for five laps — LO206 needs that exit speed."
       },
       "primary_drill_id": "later_turn_in"
     },
@@ -98,7 +98,7 @@
       ],
       "briggs_note": "Early turn-in amplifies exit loss with low power",
       "example_feedback": {
-        "high": "Turn-in patience is strong \u2014 apexes support the exit.",
+        "high": "Turn-in patience is strong — apexes support the exit.",
         "mid": "A couple of early darts are killing exit. Delay turn-in about one kart length on your worst corner.",
         "low": "Early turn-in is the main time thief. Name a turn-in marker, then delay it one kart length for five laps and compare exit."
       },
@@ -123,9 +123,9 @@
       ],
       "briggs_note": null,
       "example_feedback": {
-        "high": "Apexes look like exit tools, not trophies \u2014 good.",
-        "mid": "You\u2019re hitting the inside but still lifting to get there. Let the apex come to you later.",
-        "low": "Early apex + lift is stacking. Stop \u201ckerb worship\u201d \u2014 later apex, earlier throttle."
+        "high": "Apexes look like exit tools, not trophies — good.",
+        "mid": "You’re hitting the inside but still lifting to get there. Let the apex come to you later.",
+        "low": "Early apex + lift is stacking. Stop “kerb worship” — later apex, earlier throttle."
       },
       "primary_drill_id": "later_turn_in"
     },
@@ -151,9 +151,9 @@
       ],
       "briggs_note": "Exit RPM is race currency on LO206",
       "example_feedback": {
-        "high": "Exits are committed \u2014 you\u2019re feeding throttle early and using the road.",
+        "high": "Exits are committed — you’re feeding throttle early and using the road.",
         "mid": "Throttle arrives late on one or two key corners. Aim for progressive full throttle as soon as the wheel starts unwinding.",
-        "low": "Exit commitment is soft. LO206 races are won on exit RPM \u2014 one primary corner: earlier roll-on, full track-out, no lift."
+        "low": "Exit commitment is soft. LO206 races are won on exit RPM — one primary corner: earlier roll-on, full track-out, no lift."
       },
       "primary_drill_id": "later_turn_in",
       "mychron_signals": [
@@ -182,7 +182,7 @@
       "briggs_note": null,
       "example_feedback": {
         "high": "Initial brake hit looks firm and decisive.",
-        "mid": "Brakes are a bit soft. Hit harder on the straight, then bleed \u2014 don\u2019t stretch a gentle squeeze forever.",
+        "mid": "Brakes are a bit soft. Hit harder on the straight, then bleed — don’t stretch a gentle squeeze forever.",
         "low": "Soft brake + coast is costing you. Firm stop on the straight first, then release into the turn."
       },
       "primary_drill_id": "no_coast_braking"
@@ -210,8 +210,8 @@
       ],
       "briggs_note": "Rear-brake-only karts are sensitive on release",
       "example_feedback": {
-        "high": "Trail release is clean \u2014 deceleration blends into rotation.",
-        "mid": "There\u2019s a flat coast shelf before turn-in. Keep a light trail instead of going to zero brake.",
+        "high": "Trail release is clean — deceleration blends into rotation.",
+        "mid": "There’s a flat coast shelf before turn-in. Keep a light trail instead of going to zero brake.",
         "low": "Snap release / coast is pushing the front. Treat trail as a release skill: firm hit, then progressive bleed into apex."
       },
       "primary_drill_id": "trail_creep"
@@ -233,7 +233,7 @@
       ],
       "briggs_note": null,
       "example_feedback": {
-        "high": "Brake markers are stacked \u2014 great consistency.",
+        "high": "Brake markers are stacked — great consistency.",
         "mid": "Brake points wander a bit. Pick one visual reference and nail it for five laps.",
         "low": "Inconsistent braking is inventing a new lap every time. Name the marker out loud for three corners."
       },
@@ -264,9 +264,9 @@
       ],
       "briggs_note": "Scrub kills LO206 momentum",
       "example_feedback": {
-        "high": "Steering is quiet \u2014 minimal angle, clean unwind.",
+        "high": "Steering is quiet — minimal angle, clean unwind.",
         "mid": "A few mid-corner corrections are scrubbing speed. Hold one input longer before adjusting.",
-        "low": "Sawing the wheel is scrubbing the tires. Drill: count \u201cone\u201d while holding mid-corner steering \u2014 less input, more speed."
+        "low": "Sawing the wheel is scrubbing the tires. Drill: count “one” while holding mid-corner steering — less input, more speed."
       },
       "primary_drill_id": "hands_quiet"
     },
@@ -280,7 +280,7 @@
         "9-and-3"
       ],
       "good_cues": [
-        "Fixed 9\u20133"
+        "Fixed 9–3"
       ],
       "bad_cues": [
         "Sliding hands",
@@ -290,7 +290,7 @@
       "example_feedback": {
         "high": "Hands stay planted at 9-and-3.",
         "mid": "Hands migrate under load. Reset to 9-and-3 every straight.",
-        "low": "Hand shuffle is costing precision. Lock 9-and-3 for a full session \u2014 no exceptions."
+        "low": "Hand shuffle is costing precision. Lock 9-and-3 for a full session — no exceptions."
       },
       "primary_drill_id": "hands_quiet"
     },
@@ -316,7 +316,7 @@
       "briggs_note": "Cooks tires and drops RPM on LO206",
       "example_feedback": {
         "high": "Throttle is progressive and you hold full cleanly.",
-        "mid": "A few stabs on exit. Roll on once \u2014 don\u2019t pump.",
+        "mid": "A few stabs on exit. Roll on once — don’t pump.",
         "low": "Throttle stabbing is heating the rears and killing RPM. One smooth roll-on to full; if it spins, you turned in too early or asked too soon."
       },
       "primary_drill_id": "later_turn_in",
@@ -343,7 +343,7 @@
       ],
       "briggs_note": null,
       "example_feedback": {
-        "high": "Rotation is controlled \u2014 settle, then drive out.",
+        "high": "Rotation is controlled — settle, then drive out.",
         "mid": "Occasional rear step. Ease brake release a touch earlier or unwind sooner.",
         "low": "Snap rotation / panic inputs. Slow the hands, finish the trail gently, straighten earlier."
       },
@@ -368,7 +368,7 @@
       ],
       "briggs_note": null,
       "example_feedback": {
-        "high": "Eyes are ahead \u2014 inputs look anticipatory, not reactive.",
+        "high": "Eyes are ahead — inputs look anticipatory, not reactive.",
         "mid": "A few late reactions. Look to the exit earlier so hands follow eyes.",
         "low": "Target fixation is making you late. For three corners, name the next reference before you arrive."
       },
@@ -393,9 +393,9 @@
       ],
       "briggs_note": "Weight class dependent",
       "example_feedback": {
-        "high": "Body is quiet in the seat \u2014 good weight transfer.",
+        "high": "Body is quiet in the seat — good weight transfer.",
         "mid": "Upper body moves more than needed. Relax shoulders; let the kart work.",
-        "low": "Body thrash is unloading the tires. Quiet torso for five laps \u2014 inputs only through hands/feet."
+        "low": "Body thrash is unloading the tires. Quiet torso for five laps — inputs only through hands/feet."
       },
       "primary_drill_id": "hands_quiet"
     },
@@ -418,9 +418,9 @@
       ],
       "briggs_note": "Passes often need tow in LO206",
       "example_feedback": {
-        "high": "Draft use is smart \u2014 close for tow, peel with a plan.",
+        "high": "Draft use is smart — close for tow, peel with a plan.",
         "mid": "Gaps are a bit big to ever tow. Close earlier on the straight without unsettled bumper contact.",
-        "low": "You\u2019re either too far to tow or too close and unsettled. Practice gap control before attempting passes."
+        "low": "You’re either too far to tow or too close and unsettled. Practice gap control before attempting passes."
       },
       "primary_drill_id": "racecraft_practice"
     },
@@ -446,9 +446,9 @@
       ],
       "briggs_note": null,
       "example_feedback": {
-        "high": "Passes are planned \u2014 inside owned, exit protected.",
+        "high": "Passes are planned — inside owned, exit protected.",
         "mid": "A few half-alongside attempts. Present earlier or wait a corner; outside usually donates.",
-        "low": "Dive-bombs / outside lunges aren\u2019t sticking. Plan the pass a corner ahead: tow, own the inside before turn-in, protect exit."
+        "low": "Dive-bombs / outside lunges aren’t sticking. Plan the pass a corner ahead: tow, own the inside before turn-in, protect exit."
       },
       "primary_drill_id": "racecraft_practice"
     },
@@ -473,9 +473,9 @@
       ],
       "briggs_note": "Over-defense punishes LO206 harder (slow race)",
       "example_feedback": {
-        "high": "Defense is selective and legal \u2014 you still race your exit.",
-        "mid": "Covering early is fine; don\u2019t give away exit speed every corner.",
-        "low": "Over-defending is making you the slowest kart. Cover once early, then race your line \u2014 don\u2019t gift a switchback."
+        "high": "Defense is selective and legal — you still race your exit.",
+        "mid": "Covering early is fine; don’t give away exit speed every corner.",
+        "low": "Over-defending is making you the slowest kart. Cover once early, then race your line — don’t gift a switchback."
       },
       "primary_drill_id": "racecraft_practice"
     },
@@ -499,7 +499,7 @@
       ],
       "briggs_note": null,
       "example_feedback": {
-        "high": "Lap 1 is measured \u2014 you survived and gained cleanly.",
+        "high": "Lap 1 is measured — you survived and gained cleanly.",
         "mid": "A bit greedy on cold tires. Survive first, attack once grip arrives.",
         "low": "Cold-tire aggression is high-risk. Prioritize clean exits on lap 1; the pass comes after tires wake up."
       },
@@ -521,7 +521,7 @@
       ],
       "briggs_note": "Consistency wins mains in parity classes",
       "example_feedback": {
-        "high": "Lines stack lap to lap \u2014 that\u2019s how you win LO206 mains.",
+        "high": "Lines stack lap to lap — that’s how you win LO206 mains.",
         "mid": "Pace is there but variance is high. Repeat the same references for five laps.",
         "low": "Every lap is reinvented. Consistency first: same markers, same exits, then push."
       },
@@ -552,9 +552,9 @@
       ],
       "briggs_note": "May need gearing chat (tag as setup)",
       "example_feedback": {
-        "high": "You adapt as tires age \u2014 inputs stay smooth late in the run.",
+        "high": "You adapt as tires age — inputs stay smooth late in the run.",
         "mid": "Slides grow late. Soften exits and protect the rear sooner in the stint.",
-        "low": "Tires are falling off and inputs aren\u2019t adapting. Smooth earlier; if exits feel lazy across the field, consider a setup hypothesis (gearing), not just \u201cpush harder.\u201d"
+        "low": "Tires are falling off and inputs aren’t adapting. Smooth earlier; if exits feel lazy across the field, consider a setup hypothesis (gearing), not just “push harder.”"
       },
       "primary_drill_id": "hands_quiet",
       "setup_hypothesis_hint": "If exits feel lazy despite clean inputs, +1 rear tooth is a common LO206 tire-wear response (Swift)."
@@ -579,7 +579,7 @@
       ],
       "briggs_note": "Low power means wet mistakes stick until the next straight",
       "example_feedback": {
-        "high": "Wet markers look adapted \u2014 earlier brakes, avoid painted kerbs.",
+        "high": "Wet markers look adapted — earlier brakes, avoid painted kerbs.",
         "mid": "Still a bit dry-line in places. Move markers earlier and leave shiny paint alone.",
         "low": "Dry line in the wet is costly on LO206. Earlier brakes, smoother everything, skip painted kerbs."
       },
@@ -596,7 +596,7 @@
     {
       "id": "no_coast_braking",
       "name": "No-coast braking drill",
-      "instruction": "Eliminate the flat speed shelf before turn-in. Firm brake, then continuous release into the corner \u2014 no coast.",
+      "instruction": "Eliminate the flat speed shelf before turn-in. Firm brake, then continuous release into the corner — no coast.",
       "source": "PURPL beginner mistakes / trail braking"
     },
     {
@@ -608,7 +608,7 @@
     {
       "id": "hands_quiet",
       "name": "Hands quiet drill",
-      "instruction": "Hold mid-corner steering and count \u201cone\u201d before any correction. Goal: less sawing, less scrub.",
+      "instruction": "Hold mid-corner steering and count “one” before any correction. Goal: less sawing, less scrub.",
       "source": "Dove / PURPL steering themes"
     },
     {
@@ -634,7 +634,7 @@
         "RPM low off corner",
         "tires wearing / sliding exits"
       ],
-      "message": "Setup hypothesis (not driver blame): exits feel lazy \u2014 common LO206 response is +1 rear tooth to keep RPM in the ~5800\u20136100 band (Swift)."
+      "message": "Setup hypothesis (not driver blame): exits feel lazy — common LO206 response is +1 rear tooth to keep RPM in the ~5800–6100 band (Swift)."
     },
     {
       "id": "gear_minus_one",
@@ -646,7 +646,7 @@
         "tire save",
         "living on limiter on short tracks"
       ],
-      "message": "Setup hypothesis: from the front or for a long main, \u22121 rear tooth (longer) can protect tires and top speed (Swift)."
+      "message": "Setup hypothesis: from the front or for a long main, −1 rear tooth (longer) can protect tires and top speed (Swift)."
     },
     {
       "id": "clutch_health",
@@ -656,7 +656,7 @@
         "bogging launches",
         "inconsistent drive out of slow corners"
       ],
-      "message": "Setup hypothesis: check clutch health/engagement and install (must be locked against crank shoulder \u2014 Briggs/Klaus). Don\u2019t assume it\u2019s only technique."
+      "message": "Setup hypothesis: check clutch health/engagement and install (must be locked against crank shoulder — Briggs/Klaus). Don’t assume it’s only technique."
     },
     {
       "id": "chassis_before_engine",
@@ -688,7 +688,7 @@
         "hot tire growth",
         "slide increasing over stint"
       ],
-      "message": "Tire pressure (setup): log cold PSI before the run and hot PSI after. LO206 tire growth with heat changes effective gearing \u2014 if exits get looser late, check whether hot pressures climbed and whether you\u2019re overheating the rears before you \u201ctry harder\u201d (Swift tire-growth + tire-management cues). Confirm compound/pressure box against current MIKA / Mosport rules \u2014 don\u2019t invent a number off telemetry alone."
+      "message": "Tire pressure (setup): log cold PSI before the run and hot PSI after. LO206 tire growth with heat changes effective gearing — if exits get looser late, check whether hot pressures climbed and whether you’re overheating the rears before you “try harder” (Swift tire-growth + tire-management cues). Confirm compound/pressure box against current MIKA / Mosport rules — don’t invent a number off telemetry alone."
     },
     {
       "id": "tire_pressure_race_heat",
@@ -701,7 +701,7 @@
         "bsc_ontario",
         "rising slide / D19 soft"
       ],
-      "message": "Tire pressure (race/heat): if grip falls off and opposite-lock creeps up, treat hot pressure + tire cook as a setup conversation first. Longer gear (\u22121 rear tooth) sometimes saves the tire on long mains; pressure and ratio interact (Swift). Re-check cold set before the next heat."
+      "message": "Tire pressure (race/heat): if grip falls off and opposite-lock creeps up, treat hot pressure + tire cook as a setup conversation first. Longer gear (−1 rear tooth) sometimes saves the tire on long mains; pressure and ratio interact (Swift). Re-check cold set before the next heat."
     },
     {
       "id": "gear_ratio_optimize",
@@ -713,7 +713,62 @@
         "limiter behavior",
         "series strategy"
       ],
-      "message": "Gear ratio flag (setup): LO206 Junior (yellow .570\u2033 slide) \u2014 gear for the restricted power-band peak, not limiter ego (Klaus #7). Target living ~5800\u20136100 on power; +1 rear tooth if exits feel lazy / RPM soft; \u22121 if you\u2019re on the limiter early or saving tires from the front (Swift)."
+      "message": "Gear ratio flag (setup): LO206 Junior (yellow .570″ slide) — gear for the restricted power-band peak, not limiter ego (Klaus #7). Target living ~5800–6100 on power; +1 rear tooth if exits feel lazy / RPM soft; −1 if you’re on the limiter early or saving tires from the front (Swift)."
+    },
+    {
+      "id": "clutch_late_slip_flare",
+      "tag": "setup",
+      "never_mix_with": "driver_blame",
+      "when": [
+        "rpm flares while speed lags",
+        "hot drum",
+        "burnt smell",
+        "blueing"
+      ],
+      "message": "Setup hypothesis (clutch): RPM flare with lagging speed = late/long slip. Cool, clean contamination/glaze, check gearing/drag, then weaker springs or add balanced weights (Hilliard Flame guide)."
+    },
+    {
+      "id": "clutch_early_bite",
+      "tag": "setup",
+      "never_mix_with": "driver_blame",
+      "when": [
+        "rpm drops sharply on bite",
+        "creep at idle",
+        "boggy early grab"
+      ],
+      "message": "Setup hypothesis (clutch): early grab / RPM drop on bite. Confirm freewheel & idle, then stronger springs / remove balanced weights (Hilliard Flame guide)."
+    },
+    {
+      "id": "carb_float_check",
+      "tag": "setup",
+      "summary": "Verify carb float height / fuel delivery per Briggs guide; no illegal jet changes (Junior lock).",
+      "when_signals": [
+        "elevated water/CHT with soft top end",
+        "tip-in bog after shipping/storage"
+      ],
+      "one_change": "Check float only this outing",
+      "source": "https://www.briggsracing.com/sites/default/files/2022-08/16commonmistakes.pdf"
+    },
+    {
+      "id": "chassis_front_wider",
+      "tag": "setup",
+      "summary": "Understeer/push: widen front track one spacer step (or +caster per chassis chart) — one change.",
+      "when_signals": [
+        "push entry-mid",
+        "won't rotate with healthy exit RPM"
+      ],
+      "one_change": "One front spacer step only",
+      "source": "https://nhka.net/wp-content/uploads/2018/02/crg-setup-guide.pdf"
+    },
+    {
+      "id": "chassis_rear_narrower",
+      "tag": "setup",
+      "summary": "Snap oversteer/rear step: narrow rear slightly — one change; re-check pressures.",
+      "when_signals": [
+        "snap oversteer",
+        "rear step on power"
+      ],
+      "one_change": "One rear width step only"
     }
   ],
   "report_examples": [
@@ -740,7 +795,7 @@
         }
       ],
       "primary_drill_id": "later_turn_in",
-      "primary_drill_message": "One priority only: later turn-in on your worst hairpin for 5 laps \u2014 compare exits.",
+      "primary_drill_message": "One priority only: later turn-in on your worst hairpin for 5 laps — compare exits.",
       "racecraft_cue": null,
       "setup_hypotheses": []
     },
@@ -768,11 +823,11 @@
       ],
       "primary_drill_id": "racecraft_practice",
       "primary_drill_message": "Next practice: pass/defense session. Own the inside before turn-in; protect exit after the pass.",
-      "racecraft_cue": "Outside usually donates \u2014 present earlier or wait a corner (Lorandi).",
+      "racecraft_cue": "Outside usually donates — present earlier or wait a corner (Lorandi).",
       "setup_hypotheses": [
         {
           "id": "gear_plus_one",
-          "message": "Setup hypothesis: from mid/back, +1\u20132 rear teeth can help early-lap acceleration (Swift) \u2014 separate from driving notes."
+          "message": "Setup hypothesis: from mid/back, +1–2 rear teeth can help early-lap acceleration (Swift) — separate from driving notes."
         }
       ]
     }
@@ -823,7 +878,7 @@
       ]
     },
     "rules_hub_url": "https://mosportkartingcentre.com/private-karting/for-members/rules-and-regulations/",
-    "briggs_rule_set": "2026 Briggs & Stratton Canadian Rule Set (via Mosport rules hub)",
+    "briggs_rule_set": "Briggs 206 Factory Ruleset v2026.1.1 (unified US/Canada)",
     "observed_briggs_classes_2026": [
       "LO206 Cadet",
       "LO206 Junior Lite",
@@ -840,23 +895,35 @@
       "Club",
       "Grand Prix reverse"
     ],
-    "gps_policy": "Do not bake fabricated corner GPS into this rubric. Circuit geometry lives in the app (N10 already models Mosport layouts). Rubric stays coaching principles + bias dims."
+    "gps_policy": "Do not bake fabricated corner GPS into this rubric. Circuit geometry lives in the app (N10 already models Mosport layouts). Rubric stays coaching principles + bias dims.",
+    "briggs_rule_set_url": "https://www.briggsracing.com/sites/default/files/2026-01/Briggs%202026%20206%20Rules_Final.pdf",
+    "briggs_rule_set_local": "/workspace/briggs-coach-api/Briggs-2026-206-Rules_Final.pdf",
+    "rules_hub_fetch_note": "Mosport rules hub returned 404 from box on weekly refresh 2026-09-28 ET; re-check live site."
   },
   "confirmed_class": {
     "name": "LO206 Junior",
     "slide": "Yellow .570\" (Briggs Part #555741)",
     "carb_lock": "Required (Part #555726 typical)",
     "typical_national_min_weight_lb": 300,
-    "weight_note": "Verify current MIKA Class Structure \u2014 clubs may adjust",
+    "weight_note": "Factory Ruleset leaves Junior weight to sanctioning body. TRAK 2026 parallel = 300 lb — NOT MIKA confirmation. Verify current MIKA Class Structure PDF.",
     "coaching_overlays": [
       "Restricted slide: gear for power band, not limiter (Klaus #7)",
       "Amplify D2/D3/D4/D8/D18 scoring weight vs Senior stock-slide",
       "Prefer setup templates: restricted_slide_gearing, gear_plus_one, gear_minus_one"
     ],
     "rules_references": [
+      "https://www.briggsracing.com/sites/default/files/2026-01/Briggs%202026%20206%20Rules_Final.pdf",
       "https://mosportkartingcentre.com/private-karting/for-members/rules-and-regulations/",
-      "2026 Briggs & Stratton Canadian Rule Set (via Mosport hub)"
-    ]
+      "https://goodwoodkartways.com/wp-content/uploads/2026/04/2026-TRAK-Class-Structure.pdf"
+    ],
+    "ontario_parallel_trak_2026": {
+      "source_pdf": "https://goodwoodkartways.com/wp-content/uploads/2026/04/2026-TRAK-Class-Structure.pdf",
+      "local_pdf": "/workspace/briggs-coach-api/2026-TRAK-Class-Structure.pdf",
+      "junior_weight_lb": 300,
+      "tires": "VEGA BLUE ONT 4.6/6.5",
+      "slide_label_in_trak_pdf": "GOLD SLIDE",
+      "warning": "TRAK parallel only — do not treat as MIKA slide/weight/tire authority"
+    }
   },
   "preferred_setup_hypothesis_ids": [
     "restricted_slide_gearing",
@@ -906,8 +973,8 @@
   },
   "product_north_star": {
     "name": "Continuous improvement AI coach (data + video)",
-    "usage": "After every practice and race \u2014 MyChron drop and/or kart-cam",
-    "aim": "Excellence \u2014 measurable session-to-session gains toward BSC Ontario wins",
+    "usage": "After every practice and race — MyChron drop and/or kart-cam",
+    "aim": "Excellence — measurable session-to-session gains toward BSC Ontario wins",
     "loop": [
       "ingest_mychron_or_kart_cam",
       "pick_reference_lap_and_focus_corner_or_sector",
@@ -925,7 +992,7 @@
       "prefer_vs_last_session_language": true,
       "max_focus_channels": 3
     },
-    "n10_focus_copy": "Brake, apex, exit \u2014 sector, exit, delta versus the reference"
+    "n10_focus_copy": "Brake, apex, exit — sector, exit, delta versus the reference"
   },
   "session_progress": {
     "track_dimension_trends": true,
@@ -945,7 +1012,7 @@
       "product_north_star.loop dual path (data focus call + optional video score)",
       "data_coach_parity: AiM Race Studio 3 / Swift LO206 workflows N10 must match or beat",
       "mychron_signals on D4/D7/D10/D18 for exit RPM, brake consistency, throttle, lap stack",
-      "No fabricated Mosport corner GPS \u2014 coaching principles only; layout names remain app-side"
+      "No fabricated Mosport corner GPS — coaching principles only; layout names remain app-side"
     ]
   },
   "input_modes": {
@@ -960,7 +1027,7 @@
       "CSV export via Race Studio 3"
     ],
     "secondary": "kart_cam_video",
-    "rule": "Never invent video timestamps from telemetry alone. Map data cues to drill language; use kart-cam when scoring D9/D12/D13/D14\u2013D17 or when evidence clips are required.",
+    "rule": "Never invent video timestamps from telemetry alone. Map data cues to drill language; use kart-cam when scoring D9/D12/D13/D14–D17 or when evidence clips are required.",
     "session_pairing": "Prefer same-session MyChron + kart-cam when both exist; otherwise score what was uploaded and tag missing modality."
   },
   "data_coach_parity": {
@@ -984,22 +1051,22 @@
       {
         "id": "speed_rpm_overlay",
         "feature": "Overlay speed + RPM on key corners",
-        "coach_win": "Separate driving (low speed, OK RPM) vs gearing (lazy exit RPM) \u2192 setup tag"
+        "coach_win": "Separate driving (low speed, OK RPM) vs gearing (lazy exit RPM) → setup tag"
       },
       {
         "id": "exit_rpm_band",
-        "feature": "Exit RPM vs LO206 ~5800\u20136100 band (Junior: gear for restricted-slide peak, not limiter ego)",
+        "feature": "Exit RPM vs LO206 ~5800–6100 band (Junior: gear for restricted-slide peak, not limiter ego)",
         "coach_win": "Surface exit RPM on focus corner every session; link D4 + gear templates"
       },
       {
         "id": "consistency_ideal_lap",
         "feature": "Ideal lap from best sectors + consistency gap",
-        "coach_win": "Map consistency gap \u2192 D18 + reference_naming drill; vs-last language"
+        "coach_win": "Map consistency gap → D18 + reference_naming drill; vs-last language"
       },
       {
         "id": "session_compare",
         "feature": "Compare sessions / drivers with same reference",
-        "coach_win": "Session history with dimension trends + advance priority when score \u2265 4"
+        "coach_win": "Session history with dimension trends + advance priority when score ≥ 4"
       },
       {
         "id": "one_change_rule",
@@ -1010,19 +1077,63 @@
     "n10_observed_baseline": {
       "app": "https://n10-kart.netlify.app",
       "ingest": "Drop MyChron file / USB-C .xrz",
-      "focus_copy": "Brake, apex, exit \u2014 sector, exit, delta versus the reference",
+      "focus_copy": "Brake, apex, exit — sector, exit, delta versus the reference",
       "panes_default": [
         "speed",
         "rpm",
         "delta"
       ],
       "home_default": "Mosport Karting Centre (Bowmanville)",
-      "demo_class": "Briggs Junior \u00b7 Birel ART \u00b7 LO206 Yellow",
+      "demo_class": "Briggs Junior · Birel ART · LO206 Yellow",
       "has_theoretical_best_sectors_lap": true,
       "has_kart_cam_scoring": false,
       "has_20_dim_rubric": false,
       "has_setup_hypothesis_tags": false,
       "has_racecraft_dims": false
     }
+  },
+  "clutch_health": {
+    "diagnostic_path": "/workspace/briggs-coach-api/clutch-health-diagnostic-v1.json",
+    "source_pdf": "/workspace/briggs-coach-api/hilliard-inferno-flame-clutch-guide.pdf",
+    "require_rpm_and_speed": true,
+    "tag": "setup"
+  },
+  "changelog_1_6": {
+    "date": "2026-09-28",
+    "summary": "Hilliard Inferno Flame clutch health: RPM+speed signatures for early/late slip into N10 Health / SetupBox."
+  },
+  "trackside_tuning": {
+    "pack_path": "/workspace/briggs-coach-api/trackside-tuning-from-xrk-v1.json",
+    "exec_brief": "/workspace/briggs-coach-api/trackside-tuning-exec.md",
+    "kb_section": "Trackside tuning from MyChron session data",
+    "require_setup_tag": true,
+    "one_change_at_a_time": true,
+    "junior_restricted_slide_not_limiter_ego": true,
+    "delegates_clutch_to": "/workspace/briggs-coach-api/clutch-health-diagnostic-v1.json"
+  },
+  "changelog_1_7": {
+    "date": "2026-09-28",
+    "summary": "Trackside tuning pack from MyChron .xrk/.xrz: signal→setup map, Junior/Mosport overlays, tire cold/hot methodology without invented PSI, pointer for tuning bot.",
+    "changes": [
+      "schema_version 1.7",
+      "trackside_tuning pointer to trackside-tuning-from-xrk-v1.json + exec brief",
+      "KB major section Trackside tuning from MyChron session data",
+      "Setup hypotheses remain tagged setup; one-change rule reinforced for gear/clutch/tire/chassis",
+      "Junior yellow .570: gear for restricted band not limiter ego (Klaus #7)",
+      "Open gaps flagged: MIKA weight PDF, Mosport Junior tire PSI/brand",
+      "Added setup templates: carb_float_check, chassis_front_wider, chassis_rear_narrower"
+    ]
+  },
+  "changelog_1_8": {
+    "date": "2026-09-28",
+    "summary": "Weekly KB refresh (first run): source-authority update to Briggs 206 Factory Ruleset v2026.1.1 + TRAK 2026 Junior parallel; no coaching-dimension or drill changes; clutch RPM+speed pairing unchanged.",
+    "changes": [
+      "schema_version 1.8",
+      "home_track.briggs_rule_set → unified Factory Ruleset v2026.1.1 with URL + local PDF path",
+      "confirmed_class.rules_references prefer Factory Ruleset PDF; TRAK 2026 Class Structure as Ontario parallel (300 lb / Vega Blue ONT) with explicit not-MIKA warning",
+      "KB/exec weekly refresh notes; Mosport hub 404 from box flagged",
+      "No changes to 20 dims, drills, clutch_health RPM+speed rules, or trackside_tuning signal map"
+    ],
+    "weekly_changelog": "/workspace/n10-review/weekly-kb-changelog.md"
   }
 }

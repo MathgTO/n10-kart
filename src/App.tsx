@@ -1,14 +1,14 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Shell } from '@/components/Shell'
 import { SessionsProvider } from '@/hooks/SessionsContext'
-import { assertRubricV15 } from '@/lib/assertRubric'
+import { assertRubricV18 } from '@/lib/assertRubric'
 import { DrillsPage } from '@/pages/Drills'
 import { Home } from '@/pages/Home'
 import { KnowledgePage } from '@/pages/Knowledge'
 import { SessionPage } from '@/pages/Session'
 
-// Startup assert — rubric schema 1.5 required
-assertRubricV15()
+// Startup assert — rubric schema 1.8 required
+assertRubricV18()
 
 export default function App() {
   return (

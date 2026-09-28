@@ -1,6 +1,6 @@
 # Briggs Karting Race-Win Knowledge Base
 
-**Research date:** Friday, Sep 11, 2026  
+**Research date:** Friday, Sep 11, 2026 (trackside MyChron tuning Mon Sep 28, 2026; weekly KB refresh Mon Sep 28, 2026 ET)  
 **Purpose:** Source-backed knowledge for a video-analysis coaching app that reviews kart-camera (onboard/GoPro) uploads from Briggs-class racers.  
 **Rule for consumers of this doc:** Prefer attributable coaching cues; do not invent quotes, video titles, or URLs. Where a URL could not be confirmed, that is marked clearly.
 
@@ -47,35 +47,37 @@ Coaching implication: **carry speed, protect exit RPM, minimize scrub/slide, pla
 ### Tier A — Official / series / engine authority
 1. **Briggs Racing — 206 Racing Engine** — [https://www.briggsracing.com/racing-engines/206](https://www.briggsracing.com/racing-engines/206) — Specs, sealed philosophy, docs list (carb guide, 16 Common Mistakes).
 2. **Briggs Racing — “The 16 Common Mistakes, A Preventative Guide” (David Klaus)** — [https://www.briggsracing.com/sites/default/files/2022-08/16commonmistakes.pdf](https://www.briggsracing.com/sites/default/files/2022-08/16commonmistakes.pdf) — Engine install, clutch, oil, gearing-for-power-band, chassis-first diagnosis.
-3. **ASN Canada karting regulations hub** — [https://www.asncanada.ca/karting-regulations](https://www.asncanada.ca/karting-regulations) — Canadian sporting/technical baseline.
-4. **TRAK / Goodwood 2026 supplements** — Goodwood Kartways TRAK PDFs (class structure, Briggs weights/slides/tires) — local ON context.
-5. **Road America Karting Club / Briggs & Stratton Motorplex** — [https://www.roadamerica.com/karting-club](https://www.roadamerica.com/karting-club) — Named Briggs facility + LO206 club racing.
+3. **Briggs 206 Factory Ruleset v2026.1.1** (effective Jan 31, 2026) — [https://www.briggsracing.com/sites/default/files/2026-01/Briggs%202026%20206%20Rules_Final.pdf](https://www.briggsracing.com/sites/default/files/2026-01/Briggs%202026%20206%20Rules_Final.pdf) — Unified US/Canada engine rules; Junior yellow .570″ slide #555741 + carb lock #555726; approved clutches include Inferno by Hilliard Flame; Canadian “Maple Leaf” embossed stamp **no longer required** (Canadian Eligibility §2). Local copy: `/workspace/briggs-coach-api/Briggs-2026-206-Rules_Final.pdf`.
+4. **Briggs news — Unified 2026 206 Rule Set** (Jan 30, 2026) — [https://www.briggsracing.com/support/news/briggs-stratton-motorsports-simplifies-racing](https://www.briggsracing.com/support/news/briggs-stratton-motorsports-simplifies-racing) — Announces US/Canada unification and removal of Canadian Maple Leaf seal requirement.
+5. **ASN Canada karting regulations hub** — [https://www.asncanada.ca/karting-regulations](https://www.asncanada.ca/karting-regulations) — Hosts same Briggs 2026 Factory PDF + **Bulletin 2026-01 LO206 Camshaft** (intake lobe centerline 105°–107.5° at pushrod; tech, not coaching). Local bulletin copy: `/workspace/briggs-coach-api/2026-ASN-Kart-Bulletin-01-LO206-Camshaft.pdf`.
+6. **TRAK / Goodwood 2026 Class Structure** — [https://goodwoodkartways.com/wp-content/uploads/2026/04/2026-TRAK-Class-Structure.pdf](https://goodwoodkartways.com/wp-content/uploads/2026/04/2026-TRAK-Class-Structure.pdf) — Ontario parallel (not MIKA): Briggs Junior **300 lbs**, tires **VEGA BLUE ONT 4.6/6.5**; TRAK lists “GOLD SLIDE” for Junior — **do not assume MIKA uses TRAK slide naming**. Local copy: `/workspace/briggs-coach-api/2026-TRAK-Class-Structure.pdf`.
+7. **Road America Karting Club / Briggs & Stratton Motorplex** — [https://www.roadamerica.com/karting-club](https://www.roadamerica.com/karting-club) — Named Briggs facility + LO206 club racing.
 
 ### Tier B — LO206-specific technical coaching (setup/data)
-6. **Swift Karting — LO206 gear ratio tuning guide** (May 28, 2026) — [https://swiftkarting.com/pages/lo206-gear-ratio-tuning-guide](https://swiftkarting.com/pages/lo206-gear-ratio-tuning-guide) — Power band 5,800–6,100; one-tooth fixes; grid-position gearing; tire management via ratio.
-7. **Swift Karting — AiM Race Studio LO206 analysis** — [https://swiftkarting.com/blogs/news/how-to-use-aim-race-studio-lo206-data](https://swiftkarting.com/blogs/news/how-to-use-aim-race-studio-lo206-data) — Overlay speed/RPM; exit RPM vs gearing vs driving.
-8. **Swift Karting — LO206 resources/downloads** — [https://swiftkarting.com/pages/lo206-resources-downloads](https://swiftkarting.com/pages/lo206-resources-downloads) — Dyno, clutch, gear charts, tire growth.
-9. **GoToTheGrid — LO206 phenomenon overview** (Nov 11, 2025) — [https://www.gotothegrid.com/en/blog/briggs-lo206-how-a-4-stroke-engine-conquered-the-karting-world](https://www.gotothegrid.com/en/blog/briggs-lo206-how-a-4-stroke-engine-conquered-the-karting-world) — Context: educational driving school effect of low power + parity.
+8. **Swift Karting — LO206 gear ratio tuning guide** (May 28, 2026) — [https://swiftkarting.com/pages/lo206-gear-ratio-tuning-guide](https://swiftkarting.com/pages/lo206-gear-ratio-tuning-guide) — Power band 5,800–6,100; one-tooth fixes; grid-position gearing; tire management via ratio.
+9. **Swift Karting — AiM Race Studio LO206 analysis** — [https://swiftkarting.com/blogs/news/how-to-use-aim-race-studio-lo206-data](https://swiftkarting.com/blogs/news/how-to-use-aim-race-studio-lo206-data) — Overlay speed/RPM; exit RPM vs gearing vs driving.
+10. **Swift Karting — LO206 resources/downloads** — [https://swiftkarting.com/pages/lo206-resources-downloads](https://swiftkarting.com/pages/lo206-resources-downloads) — Dyno, clutch, gear charts, tire growth.
+11. **GoToTheGrid — LO206 phenomenon overview** (Nov 11, 2025) — [https://www.gotothegrid.com/en/blog/briggs-lo206-how-a-4-stroke-engine-conquered-the-karting-world](https://www.gotothegrid.com/en/blog/briggs-lo206-how-a-4-stroke-engine-conquered-the-karting-world) — Context: educational driving school effect of low power + parity.
 
 ### Tier C — Elite karting coaches (general technique; highly transferable; note class differences)
-10. **Alessio Lorandi / PURPL / Senndit** — 2013 CIK-FIA Karting World Champion; articles on line, trail braking, overtaking, beginner mistakes:
+12. **Alessio Lorandi / PURPL / Senndit** — 2013 CIK-FIA Karting World Champion; articles on line, trail braking, overtaking, beginner mistakes:
     - Racing line: [https://purpl.app/blog/racing-line-karting/](https://purpl.app/blog/racing-line-karting/)
     - Trail braking: [https://purpl.app/blog/trail-braking-karting/](https://purpl.app/blog/trail-braking-karting/)
     - Overtaking: [https://purpl.app/blog/overtaking-in-karting/](https://purpl.app/blog/overtaking-in-karting/)
     - Racecraft: [https://senndit.com/karting-racecraft-101-when-to-overtake-vs-when-to-defend/](https://senndit.com/karting-racecraft-101-when-to-overtake-vs-when-to-defend/)
     - Beginner mistakes (data fingerprints): [https://purpl.app/blog/beginner-karting-mistakes/](https://purpl.app/blog/beginner-karting-mistakes/)
     - YouTube channel (confirmed in author schema): [https://www.youtube.com/@senndit](https://www.youtube.com/@senndit)
-11. **Terence Dove — On Racing Drivers (Substack)** — Deep onboard video analysis of elite kart technique:
+13. **Terence Dove — On Racing Drivers (Substack)** — Deep onboard video analysis of elite kart technique:
     - Deep braking masterclass: [https://www.terencedove.com/p/how-to-brake-super-deep](https://www.terencedove.com/p/how-to-brake-super-deep)
     - Smooth steering masterclass: [https://www.terencedove.com/p/smooth-steering-masterclass](https://www.terencedove.com/p/smooth-steering-masterclass)
-12. **Scott Mansell / Driver61 — Trail braking** — [https://driver61.com/uni/trail-braking/](https://driver61.com/uni/trail-braking/) — Car-rooted but foundational friction-circle / release skill; kart coaches frequently adapt it.
-13. **Kart-Map — Racing lines guide** (Apr 1, 2026) — [https://www.kart-map.com/en/blog/kart-racing-lines-apex-braking-exit-guide](https://www.kart-map.com/en/blog/kart-racing-lines-apex-braking-exit-guide) — Late apex / exit priority primer.
-14. **Red Bull — 7 novice karting mistakes** (Aug 29, 2022) — [https://www.redbull.com/mea-en/karting-mistakes-novices-make](https://www.redbull.com/mea-en/karting-mistakes-novices-make) — Hands position, hard brake then release, early turn-in, look ahead.
-15. **Redline Racing USA — Overtaking techniques** (Feb 6, 2026) — [https://redlineracingusa.com/go-kart-overtaking-techniques/](https://redlineracingusa.com/go-kart-overtaking-techniques/) — Clean passes, switchback, set up a corner ahead.
+14. **Scott Mansell / Driver61 — Trail braking** — [https://driver61.com/uni/trail-braking/](https://driver61.com/uni/trail-braking/) — Car-rooted but foundational friction-circle / release skill; kart coaches frequently adapt it.
+15. **Kart-Map — Racing lines guide** (Apr 1, 2026) — [https://www.kart-map.com/en/blog/kart-racing-lines-apex-braking-exit-guide](https://www.kart-map.com/en/blog/kart-racing-lines-apex-braking-exit-guide) — Late apex / exit priority primer.
+16. **Red Bull — 7 novice karting mistakes** (Aug 29, 2022) — [https://www.redbull.com/mea-en/karting-mistakes-novices-make](https://www.redbull.com/mea-en/karting-mistakes-novices-make) — Hands position, hard brake then release, early turn-in, look ahead.
+17. **Redline Racing USA — Overtaking techniques** (Feb 6, 2026) — [https://redlineracingusa.com/go-kart-overtaking-techniques/](https://redlineracingusa.com/go-kart-overtaking-techniques/) — Clean passes, switchback, set up a corner ahead.
 
 ### Tier D — Community / secondary (use cautiously; verify against Tier A–C)
-16. Reddit r/Karting threads on LO206 passing and clutch (useful for common pain points; not authoritative).
-17. Chassis brand discussion (OTK / Birel ART / CRG popularity in LO206) — forums/Reddit; treat as “common in paddock,” not ranked superiority.
+18. Reddit r/Karting threads on LO206 passing and clutch (useful for common pain points; not authoritative).
+19. Chassis brand discussion (OTK / Birel ART / CRG popularity in LO206) — forums/Reddit; treat as “common in paddock,” not ranked superiority.
 
 ### YouTube / video sources (titles & URLs only where found)
 
@@ -392,7 +394,7 @@ Score each dimension **0–5** (or 0–100 scaled). Prefer **evidence clips** + 
 
 ### Facility / club context
 - Owner/driver club racing via **MIKA** (Mosport International Karting Association); typically ~13–14 Sunday race events/year (+ specials) ([CASC MIKA](https://www.casc.on.ca/club/mika)).
-- Facility site: [mosportkartingcentre.com](https://mosportkartingcentre.com/) — lists Briggs & Stratton + multiple track layouts; kart-owner rules/regs page hosts MIKA / ASN / **2026 Briggs & Stratton Canadian Rule Set** downloads.
+- Facility site: [mosportkartingcentre.com](https://mosportkartingcentre.com/) — lists Briggs & Stratton + multiple track layouts; kart-owner rules/regs page lists MIKA / ASN / Briggs downloads (hub **404 from box** on weekly refresh Sep 28, 2026 ET — prefer Factory Ruleset PDF URL + re-check hub live).
 - Also hosts / has hosted **Briggs & Stratton Challenge Ontario (BSC Ontario)** events (CKN, Jun 2026 coverage).
 
 ### Circuit characteristics (coaching-relevant)
@@ -405,13 +407,14 @@ Score each dimension **0–5** (or 0–100 scaled). Prefer **evidence clips** + 
   - Race footage: draft use (D14) on longer pulls; overtake quality (D15) into hairpins where inside ownership matters.
 
 ### Briggs classes observed at MIKA (2026 results samples)
-Public 2026 MIKA result grids at Mosport include (non-exhaustive): **LO206 Cadet, Junior Lite, Junior, Senior, Senior Lite/Light, Senior Heavy, Masters** (and combined Briggs Sr Heavy/Sr Light grids). Exact weights/slides = **MIKA Class Structure + 2026 Briggs Canadian Rule Set** (download from Mosport rules page — PDF URL not stably fetched this pass; app should link the live rules page).
+Public 2026 MIKA result grids at Mosport include (non-exhaustive): **LO206 Cadet, Junior Lite, Junior, Senior, Senior Lite/Light, Senior Heavy, Masters** (and combined Briggs Sr Heavy/Sr Light grids). Exact weights/tires = **MIKA Class Structure** (PDF not stably fetched this pass). Engine slide/lock/clutch = **Briggs 206 Factory Ruleset v2026.1.1**. App should link the live Mosport rules page when available plus the Factory Ruleset PDF.
 
 ### Official docs to prefer for Mosport users
-1. Mosport kart-owner rules hub: https://mosportkartingcentre.com/private-karting/for-members/rules-and-regulations/
-2. 2026 Briggs & Stratton Canadian Rule Set (linked from that hub)
-3. 2026 MIKA Supplemental Regulations + Class Structure (same hub)
+1. Mosport kart-owner rules hub: https://mosportkartingcentre.com/private-karting/for-members/rules-and-regulations/ — **weekly refresh Sep 28, 2026 ET:** box fetch returned **404**; treat URL as live-site target; do not invent PDF filenames.
+2. **Briggs 206 Factory Ruleset v2026.1.1** (unified US/Canada; replaces separate “Canadian Rule Set” naming for engine tech): https://www.briggsracing.com/sites/default/files/2026-01/Briggs%202026%20206%20Rules_Final.pdf — also mirrored on ASN hub and Goodwood.
+3. 2026 MIKA Supplemental Regulations + Class Structure (listed on Mosport hub when available) — **PDF not stably fetched this pass**.
 4. Track map PDF linked under Forms & Waivers (“Mosport Track Map”)
+5. BSC Ontario series site: https://bscontario.com/ — championship context (prizing/weekends); still prefer CKN + club bulletins for sporting detail.
 
 ### Still needed from user
 - Exact **class** (e.g. LO206 Senior vs Masters vs Sr Heavy/Light)
@@ -423,13 +426,14 @@ Public 2026 MIKA result grids at Mosport include (non-exhaustive): **LO206 Cadet
 
 **Confirmed by user:** Sep 11, 2026 — class = **LO206 Junior**.
 
-### Spec notes (Canadian Briggs rule sets; verify current-year MIKA PDF)
-From published **Briggs 206 Canada Rule Set** class charts (2020–2024 editions; same Junior package repeatedly):
-- **Yellow slide** Briggs Part **#555741**, max opening **.570”**
-- Typical national chart **min weight ~300 lb** (kart + driver + required equipment) — **MIKA may adjust; always check current MIKA Class Structure**
-- **Carb lock** required (locking cap Part **#555726**) for Junior / Cadet / Junior Light style classes
-- Exhaust: RLV pipe family referenced as Part **#EXF5507** / #5507 in older docs
-- Slide optimization allowed only per Briggs method (throttle-cap material removal); do not exceed No-Go — tech DQ risk for tiny opening gains (~0.1 hp caution in Briggs docs)
+### Spec notes (Briggs 206 Factory Ruleset v2026.1.1; verify current-year MIKA PDF for weight/tires)
+From **Briggs 206 Factory Ruleset v2026.1.1** (fetched Sep 28, 2026; class structure chart — age/weight “per sanctioning body”):
+- **Yellow slide** Briggs Part **#555741**, max opening **.570”** (Junior)
+- **Carb lock** required (locking cap Part **#555726**) for Kid Kart / Cadet / Junior Light / Junior
+- Exhaust for non-Kid Kart classes: RLV **EXF5520** (formerly 5506), **EXF5507**, or **EXF5511**
+- Slide optimization allowed only by removing material from the highlighted throttle-cap area; multiple gaskets / machining the slide prohibited; do not exceed No-Go — Briggs cautions ~0.1 hp for an extra .010” opening vs DQ risk
+- **Canadian Eligibility:** with combined Canadian/USA rulesets, the special embossed Maple Leaf stamp is **no longer required**; factory-sealed engines meeting class specs are eligible
+- **Min weight:** Factory chart does **not** fix a single Junior weight (sanctioning body). Ontario parallel: **TRAK 2026 Class Structure** lists Briggs Junior **300 lbs** + **VEGA BLUE ONT 4.6/6.5** (TRAK “GOLD SLIDE” naming — **not** authority for MIKA). **MIKA Class Structure PDF still unconfirmed this pass — do not invent Mosport numbers.**
 
 ### Coaching overlays vs Senior/Masters
 - Junior is **restricted** vs Senior **stock slide** — less power; Klaus #7 applies hard: **gear for power-band peak of the restricted slide, not the 6100 limiter ego**.
@@ -440,7 +444,7 @@ From published **Briggs 206 Canada Rule Set** class charts (2020–2024 editions
 ### App defaults to set
 - `default_class_assumption` = `LO206 Junior @ Mosport / MIKA`
 - Prefer Junior-oriented setup templates: `restricted_slide_gearing`, `gear_plus_one` / `gear_minus_one`
-- Source link: live Mosport rules hub + 2026 Briggs Canadian Rule Set
+- Source link: Briggs 206 Factory Ruleset v2026.1.1 PDF + live Mosport rules hub (when available) + MIKA Class Structure
 
 ---
 
@@ -492,13 +496,206 @@ From published **Briggs 206 Canada Rule Set** class charts (2020–2024 editions
 
 ---
 
+## Clutch health: Hilliard Inferno Flame (LO206) — RPM + speed
+
+**Source (user-provided, 25 Sep 2026):** `/workspace/briggs-coach-api/hilliard-inferno-flame-clutch-guide.pdf`  
+**Machine pack for N10 Health:** `/workspace/briggs-coach-api/clutch-health-diagnostic-v1.json`  
+**App rule:** clutch findings are always **`setup`-tagged**, never driver blame. Confirm cover name + **bronze bushing vs needle bearing** before lube advice (rules differ).
+
+### Model & goal
+- Four-shoe **centrifugal** clutch (Hilliard Inferno Flame assumed when “Hillier/Hilliard” is named).
+- Free at idle → predictable **initial contact** → short controlled slip → **prompt lock**. Goal is not zero slip; long slip = heat.
+
+### Baseline (Hilliard starting tune)
+- Four **leading** shoes; **2 white + 2 black** springs opposite matching colors; no optional weights.
+- Suggested **initial contact ~3,400 rpm** (first touch, **not** full lock-up).
+- Spring-only approx. initial contact (four same color): Black 3800 · White 2800 · Yellow 2300 · Orange 1900 · Red 1400 · Green 1200.
+
+### How to read early vs late slip with MyChron (RPM + speed together)
+
+| Signature | RPM | Speed | Meaning | First setup move (after mechanical OK) |
+| --- | --- | --- | --- | --- |
+| **Late / long slip** | Flares / climbs hard | Lags / rises slowly | Clutch slipping under load → heat | Cool → clean/decontaminate → weaker springs **or** add balanced weights; leading shoes |
+| **Early bite** | Drops sharply as it grabs; or contact below target | Still low / boggy launch | Engaging too soon for available torque | Stronger springs; remove balanced weights; verify idle & freewheel |
+| **Incomplete lock** | Stays high after road speed catches up | Has caught up | Not locking — stop | Full inspection before next run |
+| **Not clutch slip** | Stays **low** | Poor acceleration | Engine/throttle, brake drag, gearing, load | Diagnose those **before** clutch tune |
+
+**Tuning direction cheat:** heavier/stronger springs = **later** engagement; lighter/weaker = **earlier**. More shoe weight ≈ **100–200 rpm earlier** contact + more capacity (identical on opposite shoes). Leading = sharper/less slip; trailing = softer/more slip.
+
+**Change order:** mechanical fault → contamination/wear → gearing/load → springs/weights/orientation.
+
+### Stop-now (Health UI red)
+Drives at idle / won’t release · cracked drum · broken spring · missing retainer · loose bolt · blue/purple smoked drum · seized/gritty bearing.
+
+### N10 Health UI requirements
+1. Always plot/compare **RPM vs speed** on launches and slow-corner exits.  
+2. Emit `clutch_late_slip_flare` or `clutch_early_bite` setup hypotheses — never “driver not aggressive enough.”  
+3. Shop checklist: 4–6 plain lines in `clutch-health-diagnostic-v1.json` → `shop_checklist_plain`.
+
+---
+
+
+---
+
+## Trackside tuning from MyChron session data
+
+**Purpose:** Feed a future expert **tuning bot** that ingests AiM MyChron **`.xrk` / `.xrz`** (and related Race Studio exports) and emits **setup-tagged** directions — never driver blame mixed into setup.  
+**Product rules (hard):** (1) every setup hypothesis tagged `setup`; (2) **one change at a time**; (3) LO206 Junior = **yellow .570″ slide** → gear for **restricted power band**, not limiter ego (Klaus #7).  
+**Machine pack:** `/workspace/briggs-coach-api/trackside-tuning-from-xrk-v1.json`  
+**1-page brief:** `/workspace/briggs-coach-api/trackside-tuning-exec.md`  
+**Related:** clutch Health pack `clutch-health-diagnostic-v1.json` (RPM+speed); N10 already MyChron-first.
+
+### File formats (AiM)
+
+| Ext | Role | Source |
+| --- | --- | --- |
+| **`.xrk`** | Native logged session from MyChron5/6-class devices (channels + laps) | [AiM File Types PDF](https://www.aimsports.com/webinars/Documents/AiM_FileTypes.pdf) |
+| **`.xrz`** | Compressed wrapper; contains one `.xrk` (faster USB transfer) | Same |
+| **CSV / Race Studio export** | Human/bot-friendly channel tables after RS3 analysis | Race Studio 3 workflow |
+| **`.drk` / legacy** | Older RS2 ecosystem; prefer `.xrk/.xrz` for N10 | Same PDF |
+
+N10 observed ingest today: **`.xrz`**. Tuning bot should accept `.xrk`, `.xrz`, and RS3 CSV when present.
+
+### Channels that matter for LO206 (priority order)
+
+Attributed to Swift Karting “Most Important AiM Channels” (Nov 24, 2025): [swiftkarting.com/blogs/news/most-important-aim-channels-lo206](https://swiftkarting.com/blogs/news/most-important-aim-channels-lo206)
+
+| Priority | Channel | Why for tuning bot |
+| --- | --- | --- |
+| 1 | **Engine RPM** | Peak on longest straight; exit RPM after key corners; draft bumps; lazy pull if geared tall |
+| 2 | **Wheel speed** (rear axle or front wheel) | Better than GPS for acceleration / gear math / clutch slip detection |
+| 3 | **GPS speed** | Fallback if no wheel-speed sensor; smoother/less precise on hard accel |
+| 4 | **CHT / water-style temp** (as logged) | Draft heat, bind/load, lean/float starve signals (pair with feel + Klaus) |
+| 5 | **Longitudinal accel (G)** | Filter “on power” segments for RPM histograms / pull quality |
+| 6 | **Brake / throttle** (if present) | Separate timid throttle / early brake from gearing |
+| 7 | **Infrared tire temps** (optional upgrade) | Pressure / balance confirmation — not required for v1 bot |
+
+**Always pair RPM + speed** (never RPM alone) for clutch and gearing calls — same rule as Hilliard Health pack.
+
+### Qualitative power-band bands (sourced; Junior overlay)
+
+| Band | Unrestricted / “stock slide” LO206 (Swift) | Junior yellow .570″ (Klaus overlay) |
+| --- | --- | --- |
+| Usable power band cited for gearing | **~5,800–6,100 RPM** ([Swift gear guide](https://swiftkarting.com/pages/lo206-gear-ratio-tuning-guide)) | **Do not treat 6,100 as the target.** Restricted slides peak **earlier**; Klaus example: unrestricted peak HP ~5,600; **Green** slide peak ~4,800 — gearing past ~5,300 can be slower ([Klaus PDF #7](https://www.briggsracing.com/sites/default/files/2022-08/16commonmistakes.pdf)). Yellow .570″ sits between stock and green — **confirm dyno/slide chart**; until then prefer **exit RPM in the strong mid-band** over “kiss the limiter mid-corner.” |
+| Rev ceiling | Sealed **6,100 RPM** | Same limiter hardware; **gear for band, not limiter ego** |
+| Typical sprint ratio zone | ~**3.8–4.7**; common medium-sprint start **68/17 = 4.00** (Swift) | Same math; Junior weight + less power → often lives toward **shorter** side of a Senior baseline for the same track — **verify with session peaks/floors**, don’t invent Mosport tooth counts |
+
+**Tooth math (Swift):** ratio = rear ÷ driver; one rear tooth ≈ **0.06** on 17T driver, ≈ **0.05** on 19T. Most LO206 changes = **±1 rear tooth**.
+
+### Signal → tune action table (setup-tagged)
+
+Use this as the bot’s decision spine. Every row emits `tag: setup` (or `tag: driving` only when RPM band is healthy and speed is the problem — and still **do not blame**; coach a drill).
+
+| ID | Session feature (from .xrk) | Primary hypothesis | One-change action | Sources |
+| --- | --- | --- | --- | --- |
+| **S1** | Exit RPM **below** usable band on slow corners **and** min corner speed is already competitive vs reference | Gearing **too tall** (long) | `gear_plus_one` — add **1** rear tooth | Swift Race Studio + gear guide; PURPL RPM article |
+| **S2** | Exit RPM **in band** but min corner / exit **speed** low vs reference | Line / confidence / balance — **not** first a shorter gear | Driving drill (later apex / width) **or** chassis balance template; **do not** stack gear+chassis same run | Swift: “If rpm is fine but speed is low → driving/line/balance” |
+| **S3** | Peak RPM **flat on limiter early** on longest straight (solo, not only in draft) | Gearing **too short** | `gear_minus_one` — remove **1** rear tooth | Swift; PURPL; Harris RPM guide pattern |
+| **S4** | Peak RPM **never approaches** band top / soft pull all straight | Gearing too tall **or** drag (brake, chain, bind) | First rule out drag (Klaus #12); then `gear_plus_one` | Klaus #12; Swift |
+| **S5** | **Junior-specific:** living on **6,100** mid-straight while exits feel lazy / peak after restrictor peak | Gear for **restricted-slide peak**, not limiter | `restricted_slide_gearing` — lengthen enough to leave limiter ego; re-check exit floors | Klaus #7 |
+| **S6** | RPM **flares** while **speed lags** on launch or hairpin exit (divergence) | Clutch **late / long slip** | Cool → inspect → weaker springs / add balanced weights (see clutch Health pack) | Hilliard guide + clutch JSON; PURPL slip |
+| **S7** | RPM **drops sharply** as clutch grabs; boggy launch; contact below target | Clutch **early bite** | Stronger springs / remove weights; verify idle & freewheel | Clutch Health pack |
+| **S8** | After speed catches up, RPM **stays high** / keeps flaring | **Incomplete lock** — stop | Full clutch inspection before next run | Clutch Health pack |
+| **S9** | RPM **stays low** + poor accel (**no** flare) | Power / throttle / brake drag / gear / load — **not** classic slip | Diagnose those before clutch springs | Clutch Health “power_or_drag_not_clutch” |
+| **S10** | Water/CHT **elevated** + top-end soft / sluggish; or bog on tip-in | Carb **float** / fuel starve / wrong oil side-effects / exhaust wrap heat (high level) | Verify float per Briggs carb guide; **no invented jet recipes** (class locks jets) | Klaus #1, #2, #5 |
+| **S11** | Lap times fall **3–5 tenths**; slide on tight exits; exit RPM drifting out of band as stint ages | Tire wear / glaze → ratio behaves “too long” | `gear_plus_one` for next race segment **or** tire-pressure check if hot PSI overshot | Swift gear scenarios |
+| **S12** | Hot PSI **above** compound window late; kart feels “on ice” / greasy | Tire pressure **too high hot** | Lower next **cold** start (methodology below); bleed hot toward target between sessions if needed | [Swift tire pressure guide](https://swiftkarting.com/pages/lo206-tire-pressure-guide-hot-vs-cold-growth) |
+| **S13** | Hot PSI **below** window; kart heavy / won’t rotate / drags exit | Tire pressure **too low hot** | Raise next cold start slightly | Swift tire guide |
+| **S14** | Min corner speed **inconsistent** lap-to-lap while RPM peaks stable | Grip / pressure / line consistency | Prefer `tire_pressure_session` or D18 consistency drill — **one** lever | Swift + rubric D18 |
+| **S15** | Push / understeer entry–mid (speed stays high, driver can’t rotate; video or notes) | Chassis: more front “jack” / load | Widen **front** track a spacer step **or** more caster (manufacturer chart) — one change | CRG setup guide patterns; ANGRI track-width notes |
+| **S16** | Snap oversteer / rear step on entry or power | Chassis: too much rear grip / unload | Narrow **rear** slightly **or** seat/ballast toward stability — one change | Same chassis literature |
+| **S17** | Delta vs reference: biggest loss on **exit** of hairpin (Mosport T5-type) with low exit RPM | Gear **or** early apex (split with S1/S2) | If RPM low → S1; if RPM OK → later turn-in drill | Mosport overlay + Swift overlay method |
+| **S18** | Same numerical ratio but pair choice (e.g. 17/68 vs 19/76) | Rotating inertia | Bigger pair = smoother flowing; smaller = snappier tight tracks | Swift gear guide §5 |
+
+### Gearing (trackside protocol)
+
+1. Log **peak RPM** end of longest straight + **exit RPM** at 1–2 slowest corners every session (PURPL 10-minute routine; Swift).  
+2. Write peak next to sprocket on the setup sheet.  
+3. Change **one tooth** at the rear; re-run; compare reference lap.  
+4. Grid strategy (Swift): front row → often **−1** (longer) for top speed/tire; mid/back → **+1–2** for early passes.  
+5. Tire growth / heat changes effective rollout — use Swift tire-circumference tools when ambient/track temp swings ([resources](https://swiftkarting.com/pages/lo206-resources-downloads)).
+
+### Clutch (pointer)
+
+Full diagnostic lives in **Clutch health** section above + `clutch-health-diagnostic-v1.json`. Tuning bot must call that pack for S6–S9 and keep findings `setup`-tagged.
+
+### Tires / pressure methodology (no fake Mosport PSI)
+
+**Unknown / must confirm:** exact MIKA/BSC Ontario **Junior tire brand & compound** and any series-published PSI. Do **not** invent Mosport Junior cold/hot numbers.
+
+**Published methodology (Swift LO206 tire guide, Feb 2026):** [swiftkarting.com/pages/lo206-tire-pressure-guide-hot-vs-cold-growth](https://swiftkarting.com/pages/lo206-tire-pressure-guide-hot-vs-cold-growth)
+
+- Cold PSI = starting guess; **hot PSI is the goal**.  
+- Typical growth on sprint tracks: ~**2–4 PSI** (can exceed **5** hot/abrasive/aggressive; minimal in wet/cold).  
+- Measure **hot immediately** on pit-in (not 5 minutes later).  
+- Illustrative only (Swift): many hard-compound kart tires often operate ~**14–18 PSI hot** — **confirm your series tire**. Kinetic Karting MG Red notes (US paddock) target ~13–14 hot — **not** authority for Mosport unless MIKA specs MG Red.  
+- Vega manufacturer guidance (TKART): work inside maker’s **hot window**; prefer lower end of window for wear when safe ([TKART Vega](https://tkart.it/en/magazine/expert-advice/tire-management-track-experts)).  
+- Aggressive sliding drivers need **lower cold starts** to hit the same hot target.
+
+**Bot output template:** `Confirm series tire → set consistent cold baseline → log hot within ~60s → adjust cold ±0.5–1.0 PSI next run → one change only.`
+
+### Chassis balance cues (honest / attributable)
+
+Kart chassis response is brand-specific; use **directions**, not absolute Mosport widths, unless measured on MathG’s chassis.
+
+| Symptom | Common first lever | Cited pattern |
+| --- | --- | --- |
+| Understeer / push | **Widen front** track (more scrub/jack → help unload inside rear) | CRG setup guide; ANGRI |
+| Too much front bite / bind | Narrow front or reduce caster | Same |
+| Loose rear / snap | **Narrow rear** slightly or soften rear grip path; check pressures | Same |
+| Won’t rotate / heavy | Seat forward / slightly more front %; check pressures too low | Swift scaling guide: ~42–44% front common LO206 start |
+| Exit traction loss (LO206-critical) | Protect rear %; don’t add large front ballast casually | KartBalance LO206 weight notes |
+
+CRG baseline example (general kart, **not** Mosport-spec): front width ~45.5–46″; rear near legal max; caster/camber II/II start; weight ~43/57 ([CRG setup PDF via NHKA](https://nhka.net/wp-content/uploads/2018/02/crg-setup-guide.pdf)). **Junior legal rear width may be narrower than Senior** — check MIKA/ASN tech.
+
+**Klaus #12:** when “engine won’t pull,” systematically check chassis bind, kerb strike → mount shift, toe, bent axle, rubbered track bind — **before** engine blame.
+
+### Carb / float (high level only — legal)
+
+- Float height critical after shipping; too much fuel → bog/sluggish; too little → **heat up** + top-end starve (Klaus #1).  
+- Official Briggs carburetor tuning guide on 206 docs; Canadian LO206 Junior typically **locks jets** + yellow slide + carb lock — **no illegal jet changes**.  
+- Tuning bot may suggest: verify float, idle mixture screw (air bleed) per Briggs guide, clean filter — never invent main-jet sizes.
+
+### Change-one-variable protocol
+
+1. Pick **one** setup ID (S1–S18) from largest delta loss.  
+2. Apply **one** physical change (one tooth **or** one pressure step **or** one spacer **or** one clutch spring step).  
+3. Keep driving cues as **separate** optional drill if S2.  
+4. Re-log same reference corner; compare RPM+speed+delta.  
+5. Only then queue the next change.  
+Matches Swift Race Studio step 5 (“one or two specific goals”) and rubric `change_one_priority_per_session`.
+
+### Junior / Mosport overlays
+
+- Class: **LO206 Junior**, yellow slide **.570″** (#555741), carb lock; national chart min weight often **~300 lb** — **verify current MIKA Class Structure**.  
+- Engine rules: [Briggs 206 Factory Ruleset v2026.1.1 PDF](https://www.briggsracing.com/sites/default/files/2026-01/Briggs%202026%20206%20Rules_Final.pdf). Mosport hub (cite live downloads; box fetch **404** on weekly refresh Sep 28, 2026 ET): [rules-and-regulations](https://mosportkartingcentre.com/private-karting/for-members/rules-and-regulations/).  
+- Track: hairpin / T5-type → prioritize **exit RPM + min speed** (S1/S2/S17). Bowl / linked → scrub & consistency.  
+- Series path: MIKA reps → BSC Ontario multi-day — prefer tire-saving longer ratios for long finals when peaks still within ~100 RPM of clean limit (Swift), **Junior-adjusted**.
+
+### Canadian / Briggs rule posture (high level)
+
+- Sealed engine, stock jets philosophy, approved clutch list, no illegal mods.  
+- Engine tech authority for 2026: **Briggs 206 Factory Ruleset v2026.1.1** (unified US/Canada). ASN + Mosport may still label downloads “Canadian Rule Set” — same PDF family; prefer the Factory Ruleset URL above.  
+- Approved clutches in Factory Ruleset §36 include **Inferno Racing by Hilliard: Fire, Flame, Blaze or Fury** (matches N10 Hilliard Inferno Flame Health pack).  
+- Point users to Factory Ruleset + **MIKA supplements** for weights/tires/slides — bot must not invent legal parts or Mosport numbers.  
+- ASN Canada karting regs hub: [asncanada.ca/karting-regulations](https://www.asncanada.ca/karting-regulations).
+
+### Open gaps (do not fabricate)
+
+1. Exact **MIKA 2026 Junior min weight** from current MIKA Class Structure PDF (Mosport hub 404 from box on Sep 28 weekly refresh; TRAK parallel = 300 lbs — **not** MIKA confirmation).  
+2. Exact **MIKA Junior tire brand/compound** and published cold/hot PSI (TRAK parallel = VEGA BLUE ONT 4.6/6.5 — **not** MIKA confirmation).  
+3. MathG’s measured **baseline sprocket**, front/rear width, seat holes, clutch spring set.  
+4. Whether N10 session always includes **wheel speed** vs GPS-only.  
+5. Yellow-slide **dyno peak RPM** for this build (use Swift slide dyno summary when available; don’t assume Green numbers).
+
+
 ## Gaps / what needs user confirmation
 
 1. **Exact meaning of “Briggs Karting” for this user** — **Resolved:** LO206 Junior at Mosport Karting Centre (MIKA).
 2. **Home track and series** — **Mosport / MIKA (near-term).** **Ultimate: win BSC Ontario (LO206 Junior).** Still optional: Inter-Club Challenge interest.
-3. **Class & weight** — **Class confirmed LO206 Junior (yellow .570” slide).** Confirm current MIKA min weight (~300 lb in national charts) and 2026 slide/lock specs from Mosport rules hub.
-4. **Tire brand/compound** — series-spec (e.g., Vega variants) vs open.
-5. **Clutch brand allowed** — rulebook-specific approved list.
+3. **Class & weight** — **Class confirmed LO206 Junior (yellow .570” slide #555741 per Factory Ruleset v2026.1.1).** Confirm current **MIKA** min weight (TRAK parallel 300 lbs is not MIKA).
+4. **Tire brand/compound** — confirm MIKA Junior tire (TRAK parallel VEGA BLUE ONT 4.6/6.5 is not MIKA) + cold/hot PSI.
+5. **Clutch brand allowed** — Factory Ruleset lists Hilliard Inferno Flame among legal options; still confirm any MIKA supplemental limits.
 6. **Chain pitch** — #35 vs #219 adapter rules by sanctioning body.
 7. **Whether Animal (open/builder) is in scope** — driving similar but power/RPM/fuel differ; do not mix tech notes blindly.
 8. **Champion interviews** — region-specific LO206 champions’ tip videos not fully catalogued; needs a second pass once series is known.
@@ -524,4 +721,4 @@ From published **Briggs 206 Canada Rule Set** class charts (2020–2024 editions
 
 ---
 
-*End of knowledge base. Research compiled Sep 11, 2026. Update when user confirms track/class.*
+*End of knowledge base. Core research Sep 11, 2026; trackside MyChron tuning pack Sep 28, 2026; weekly KB refresh Sep 28, 2026 ET (unified Factory Ruleset + TRAK class structure).*

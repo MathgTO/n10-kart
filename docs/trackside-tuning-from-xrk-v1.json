@@ -1,0 +1,557 @@
+{
+  "schema_version": "1.0",
+  "id": "trackside_tuning_from_xrk",
+  "product": "Briggs LO206 trackside tuning bot (MyChron .xrk/.xrz)",
+  "class_default": "LO206 Junior @ Mosport / MIKA (path to BSC Ontario)",
+  "companion_docs": {
+    "knowledge_base": "/workspace/briggs-karting-knowledge-base.md",
+    "exec_brief": "/workspace/briggs-coach-api/trackside-tuning-exec.md",
+    "clutch_health": "/workspace/briggs-coach-api/clutch-health-diagnostic-v1.json",
+    "rubric": "/workspace/briggs-coach-api/rubric-v1.json"
+  },
+  "product_rules": {
+    "setup_hypotheses_always_tagged": "setup",
+    "never_mix_setup_with_driver_blame": true,
+    "one_change_at_a_time": true,
+    "junior_gear_for_restricted_band_not_limiter_ego": true,
+    "output_must_include": [
+      "tag",
+      "signal_ids",
+      "hypothesis",
+      "one_change_action",
+      "evidence_channels",
+      "source_urls",
+      "confidence"
+    ]
+  },
+  "ingest": {
+    "primary_formats": [
+      ".xrk",
+      ".xrz"
+    ],
+    "also_accept": [
+      "Race Studio 3 CSV export",
+      ".drk legacy if needed"
+    ],
+    "note_xrz": "AiM: .xrz compresses one .xrk for faster transfer",
+    "file_types_source": "https://www.aimsports.com/webinars/Documents/AiM_FileTypes.pdf",
+    "n10_observed": [
+      ".xrz"
+    ]
+  },
+  "channels": {
+    "priority": [
+      {
+        "id": "rpm",
+        "required": true,
+        "role": "peaks, exit floors, limiter flats, clutch flare"
+      },
+      {
+        "id": "speed_wheel",
+        "required_preferred": true,
+        "role": "pair with RPM for gear + clutch; better than GPS"
+      },
+      {
+        "id": "speed_gps",
+        "fallback_for": "speed_wheel",
+        "role": "acceptable if no wheel-speed sensor"
+      },
+      {
+        "id": "water_or_cht",
+        "required": false,
+        "role": "heat / load / lean-float starve cues"
+      },
+      {
+        "id": "longitudinal_g",
+        "required": false,
+        "role": "on-power filter for RPM histogram"
+      },
+      {
+        "id": "brake",
+        "required": false,
+        "role": "separate late/early brake from gear"
+      },
+      {
+        "id": "throttle",
+        "required": false,
+        "role": "separate timid throttle from tall gear"
+      },
+      {
+        "id": "tire_ir_temp",
+        "required": false,
+        "role": "optional pressure/balance confirmation"
+      }
+    ],
+    "rule_rpm_plus_speed": "Never diagnose clutch or gearing from RPM alone; always pair with speed.",
+    "channel_guide_url": "https://swiftkarting.com/blogs/news/most-important-aim-channels-lo206"
+  },
+  "class_defaults": {
+    "engine": "Briggs LO206 sealed",
+    "slide": "Yellow .570 in (Briggs #555741)",
+    "carb_lock": "Locking cap #555726 typical Junior",
+    "rev_limiter_rpm": 6100,
+    "power_band_stock_slide_swift_rpm": {
+      "low": 5800,
+      "high": 6100
+    },
+    "power_band_junior_note": "Restricted slides peak earlier than stock. Klaus: unrestricted peak HP ~5600; Green slide peak ~4800 \u2014 gearing past ~5300 can be slower. Yellow .570 sits between stock and green \u2014 confirm dyno; prefer strong mid-band exits over limiter ego.",
+    "klaus_green_example": {
+      "peak_hp_rpm": 4800,
+      "do_not_gear_past_approx": 5300,
+      "source": "https://www.briggsracing.com/sites/default/files/2022-08/16commonmistakes.pdf"
+    },
+    "typical_ratio_zone": {
+      "min": 3.8,
+      "max": 4.7,
+      "common_start_example": "68/17=4.00"
+    },
+    "chain_pitch_common": "#35",
+    "driver_teeth_common": [
+      17,
+      18,
+      19
+    ],
+    "one_rear_tooth_delta_ratio": {
+      "on_17t": 0.06,
+      "on_19t": 0.05
+    },
+    "national_min_weight_lb_chart_typical": 300,
+    "min_weight_verify": "Confirm current MIKA Class Structure \u2014 do not assume 300 lb without PDF",
+    "home_track": "Mosport Karting Centre",
+    "series_near": "MIKA",
+    "series_goal": "BSC Ontario"
+  },
+  "qualitative_bands": {
+    "exit_rpm_low": "Exit RPM clearly below usable band for this slide (Junior: below strong mid-band; do not use Green numbers as Yellow truth)",
+    "exit_rpm_ok": "Exit RPM inside usable band while speed still soft vs reference",
+    "peak_on_limiter_early": "RPM flat at ~6100 with track still left on longest straight in solo running",
+    "peak_never_near_band_top": "Peaks well below band top every lap solo",
+    "clutch_late_slip": "RPM flares while speed lags on launch or slow-corner exit",
+    "clutch_early_bite": "RPM drops hard as clutch grabs; boggy; engagement below target",
+    "hot_psi_high": "Hot pressures above compound window; greasy/'on ice' late",
+    "hot_psi_low": "Hot pressures below window; heavy/won't rotate",
+    "numbers_policy": "Only cite numeric thresholds when sourced (Swift/Klaus/Hilliard). Otherwise use qualitative bands + user-logged baselines."
+  },
+  "signal_to_action": [
+    {
+      "id": "S1",
+      "signals": [
+        "exit_rpm_low",
+        "min_corner_speed_ok_vs_reference"
+      ],
+      "tag": "setup",
+      "hypothesis": "Gearing too tall (long)",
+      "template_id": "gear_plus_one",
+      "one_change": "Add 1 rear tooth; re-log exit RPM + delta on same corner",
+      "channels": [
+        "rpm",
+        "speed"
+      ],
+      "confidence_hint": "high if repeated across clean laps",
+      "sources": [
+        "https://swiftkarting.com/blogs/news/how-to-use-aim-race-studio-lo206-data",
+        "https://swiftkarting.com/pages/lo206-gear-ratio-tuning-guide"
+      ]
+    },
+    {
+      "id": "S2",
+      "signals": [
+        "exit_rpm_ok",
+        "min_corner_or_exit_speed_low"
+      ],
+      "tag": "driving_or_chassis",
+      "hypothesis": "Line / confidence / balance \u2014 not first a shorter gear",
+      "template_id": "chassis_before_engine",
+      "one_change": "One drill (later turn-in/width) OR one chassis spacer \u2014 not both; do not add short gear yet",
+      "channels": [
+        "rpm",
+        "speed",
+        "optional_brake",
+        "optional_throttle"
+      ],
+      "confidence_hint": "medium \u2014 needs notes or video for chassis vs driving",
+      "sources": [
+        "https://swiftkarting.com/blogs/news/how-to-use-aim-race-studio-lo206-data"
+      ]
+    },
+    {
+      "id": "S3",
+      "signals": [
+        "peak_on_limiter_early_solo"
+      ],
+      "tag": "setup",
+      "hypothesis": "Gearing too short",
+      "template_id": "gear_minus_one",
+      "one_change": "Remove 1 rear tooth",
+      "channels": [
+        "rpm",
+        "speed"
+      ],
+      "sources": [
+        "https://swiftkarting.com/pages/lo206-gear-ratio-tuning-guide",
+        "https://purpl.app/blog/kart-rpm-data/"
+      ]
+    },
+    {
+      "id": "S4",
+      "signals": [
+        "peak_never_near_band_top",
+        "soft_pull"
+      ],
+      "tag": "setup",
+      "hypothesis": "Too tall OR mechanical drag/bind",
+      "template_id": "chassis_before_engine",
+      "one_change": "Rule out brake drag/chain/bind (Klaus #12) before gear_plus_one",
+      "channels": [
+        "rpm",
+        "speed"
+      ],
+      "sources": [
+        "https://www.briggsracing.com/sites/default/files/2022-08/16commonmistakes.pdf"
+      ]
+    },
+    {
+      "id": "S5",
+      "signals": [
+        "junior_living_on_6100",
+        "lazy_exits"
+      ],
+      "tag": "setup",
+      "hypothesis": "Geared for limiter ego instead of restricted-slide peak",
+      "template_id": "restricted_slide_gearing",
+      "one_change": "Lengthen one tooth; re-check exit floors stay in strong mid-band",
+      "channels": [
+        "rpm",
+        "speed"
+      ],
+      "sources": [
+        "https://www.briggsracing.com/sites/default/files/2022-08/16commonmistakes.pdf"
+      ]
+    },
+    {
+      "id": "S6",
+      "signals": [
+        "rpm_flare_speed_lag"
+      ],
+      "tag": "setup",
+      "hypothesis": "Clutch late / long slip",
+      "template_id": "clutch_health",
+      "one_change": "Delegate to clutch-health-diagnostic-v1.json late_slip_flare path",
+      "channels": [
+        "rpm",
+        "speed"
+      ],
+      "delegate": "clutch_health.late_slip_flare",
+      "sources": [
+        "/workspace/briggs-coach-api/clutch-health-diagnostic-v1.json"
+      ]
+    },
+    {
+      "id": "S7",
+      "signals": [
+        "rpm_drop_on_grab",
+        "boggy_launch"
+      ],
+      "tag": "setup",
+      "hypothesis": "Clutch early bite",
+      "template_id": "clutch_health",
+      "one_change": "Delegate to clutch-health early_bite_bog path",
+      "channels": [
+        "rpm",
+        "speed"
+      ],
+      "delegate": "clutch_health.early_bite_bog"
+    },
+    {
+      "id": "S8",
+      "signals": [
+        "incomplete_lock_after_speed_caught"
+      ],
+      "tag": "setup",
+      "hypothesis": "Clutch incomplete lock \u2014 stop",
+      "template_id": "clutch_health",
+      "one_change": "STOP session; full clutch inspection",
+      "severity": true,
+      "delegate": "clutch_health.incomplete_lock"
+    },
+    {
+      "id": "S9",
+      "signals": [
+        "rpm_stays_low",
+        "poor_accel_no_flare"
+      ],
+      "tag": "setup",
+      "hypothesis": "Power / drag / gear / load \u2014 not classic clutch slip",
+      "template_id": "chassis_before_engine",
+      "one_change": "Check throttle opening, brake drag, gearing, load before clutch springs",
+      "delegate": "clutch_health.power_or_drag_not_clutch"
+    },
+    {
+      "id": "S10",
+      "signals": [
+        "water_cht_elevated",
+        "top_end_soft_or_tip_in_bog"
+      ],
+      "tag": "setup",
+      "hypothesis": "Float / fuel delivery / heat path (high level)",
+      "template_id": "carb_float_check",
+      "one_change": "Verify float height per Briggs carb guide; no illegal jet changes",
+      "channels": [
+        "water_or_cht",
+        "rpm"
+      ],
+      "sources": [
+        "https://www.briggsracing.com/sites/default/files/2022-08/16commonmistakes.pdf"
+      ]
+    },
+    {
+      "id": "S11",
+      "signals": [
+        "laptime_drop_3_to_5_tenths",
+        "slide_tight_exits",
+        "exit_rpm_drifting_out"
+      ],
+      "tag": "setup",
+      "hypothesis": "Tire wear/glaze makes ratio behave too long",
+      "template_id": "gear_plus_one",
+      "one_change": "Add 1 rear tooth for next segment OR verify hot tire pressures first if greasy",
+      "sources": [
+        "https://swiftkarting.com/pages/lo206-gear-ratio-tuning-guide"
+      ]
+    },
+    {
+      "id": "S12",
+      "signals": [
+        "hot_psi_above_window",
+        "greasy_late"
+      ],
+      "tag": "setup",
+      "hypothesis": "Tire pressure too high hot",
+      "template_id": "tire_pressure_session",
+      "one_change": "Lower next cold start 0.5\u20132 PSI toward hot target; confirm series tire",
+      "sources": [
+        "https://swiftkarting.com/pages/lo206-tire-pressure-guide-hot-vs-cold-growth"
+      ]
+    },
+    {
+      "id": "S13",
+      "signals": [
+        "hot_psi_below_window",
+        "wont_rotate_heavy"
+      ],
+      "tag": "setup",
+      "hypothesis": "Tire pressure too low hot",
+      "template_id": "tire_pressure_session",
+      "one_change": "Raise next cold start slightly; re-measure hot within ~60s pit-in",
+      "sources": [
+        "https://swiftkarting.com/pages/lo206-tire-pressure-guide-hot-vs-cold-growth"
+      ]
+    },
+    {
+      "id": "S14",
+      "signals": [
+        "min_corner_speed_inconsistent",
+        "peak_rpm_stable"
+      ],
+      "tag": "setup",
+      "hypothesis": "Grip/pressure/consistency \u2014 not gear first",
+      "template_id": "tire_pressure_session",
+      "one_change": "One pressure step OR consistency drill \u2014 not both",
+      "channels": [
+        "speed",
+        "rpm"
+      ]
+    },
+    {
+      "id": "S15",
+      "signals": [
+        "understeer_push"
+      ],
+      "tag": "setup",
+      "hypothesis": "Need more front jack / turn-in",
+      "template_id": "chassis_front_wider",
+      "one_change": "Widen front one spacer step OR +caster per chassis chart \u2014 one only",
+      "sources": [
+        "https://nhka.net/wp-content/uploads/2018/02/crg-setup-guide.pdf"
+      ]
+    },
+    {
+      "id": "S16",
+      "signals": [
+        "snap_oversteer_rear_step"
+      ],
+      "tag": "setup",
+      "hypothesis": "Too much rear grip / unload issue",
+      "template_id": "chassis_rear_narrower",
+      "one_change": "Narrow rear slightly OR small seat/ballast stability move \u2014 one only"
+    },
+    {
+      "id": "S17",
+      "signals": [
+        "delta_loss_hairpin_exit",
+        "mosport_t5_type"
+      ],
+      "tag": "setup",
+      "hypothesis": "Split: low exit RPM \u2192 S1; RPM OK \u2192 driving line",
+      "template_id": "gear_ratio_optimize",
+      "one_change": "Apply S1 or S2 rule; Mosport overlay prioritizes exit",
+      "channels": [
+        "rpm",
+        "speed",
+        "delta"
+      ]
+    },
+    {
+      "id": "S18",
+      "signals": [
+        "same_ratio_different_pair"
+      ],
+      "tag": "setup",
+      "hypothesis": "Rotating inertia mismatch for layout",
+      "template_id": "sprocket_pair_inertia",
+      "one_change": "Bigger pair for flowing; smaller for tight \u2014 keep same ratio first",
+      "sources": [
+        "https://swiftkarting.com/pages/lo206-gear-ratio-tuning-guide"
+      ]
+    }
+  ],
+  "setup_templates": {
+    "gear_plus_one": {
+      "tag": "setup",
+      "action": "Add 1 rear sprocket tooth",
+      "when": "S1, S11, optionally after S4 drag ruled out"
+    },
+    "gear_minus_one": {
+      "tag": "setup",
+      "action": "Remove 1 rear sprocket tooth",
+      "when": "S3; front-row/long-main tire save per Swift"
+    },
+    "restricted_slide_gearing": {
+      "tag": "setup",
+      "action": "Gear for yellow-slide mid-band peak, not 6100 ego",
+      "when": "S5 Junior"
+    },
+    "clutch_health": {
+      "tag": "setup",
+      "action": "Use clutch-health-diagnostic-v1.json",
+      "when": "S6\u2013S9"
+    },
+    "tire_pressure_session": {
+      "tag": "setup",
+      "action": "Cold\u2192hot methodology; confirm series tire; no invented Mosport PSI",
+      "when": "S12\u2013S14",
+      "methodology_url": "https://swiftkarting.com/pages/lo206-tire-pressure-guide-hot-vs-cold-growth",
+      "sourced_growth_psi": {
+        "typical_min": 2,
+        "typical_max": 4,
+        "can_exceed": 5
+      },
+      "sourced_hot_window_hard_compound_illustrative_psi": {
+        "min": 14,
+        "max": 18,
+        "note": "Swift illustrative for many hard compounds \u2014 NOT Mosport Junior fact"
+      },
+      "mosport_junior_psi": "UNKNOWN \u2014 confirm series tire + MIKA/BSC bulletin"
+    },
+    "chassis_before_engine": {
+      "tag": "setup",
+      "action": "Systematic bind/drag/kerb/alignment check before engine blame",
+      "when": "S4, S9, Klaus #12"
+    },
+    "chassis_front_wider": {
+      "tag": "setup",
+      "action": "Widen front track one spacer step",
+      "when": "S15"
+    },
+    "chassis_rear_narrower": {
+      "tag": "setup",
+      "action": "Narrow rear track slightly",
+      "when": "S16"
+    },
+    "carb_float_check": {
+      "tag": "setup",
+      "action": "Verify float per Briggs carb guide; jets stay stock/legal",
+      "when": "S10"
+    },
+    "sprocket_pair_inertia": {
+      "tag": "setup",
+      "action": "Change sprocket pair size at same ratio",
+      "when": "S18"
+    },
+    "gear_ratio_optimize": {
+      "tag": "setup",
+      "action": "Use peak+exit RPM routine to pick \u00b11 tooth",
+      "when": "S17 / general"
+    }
+  },
+  "one_change_protocol": {
+    "steps": [
+      "Select single highest-confidence signal id from largest delta loss",
+      "Emit one setup-tagged action only",
+      "Optional separate driving drill if S2 \u2014 never bundled as same physical change",
+      "Re-run; compare reference lap RPM+speed+delta",
+      "Queue next change only after evidence"
+    ],
+    "forbid": [
+      "Gear + clutch springs same outing",
+      "Pressure + track width same outing",
+      "Setup language blaming the driver"
+    ]
+  },
+  "mosport_junior_overlays": {
+    "priority_corners": "Hairpin / T5-type exits (exit RPM + min speed); bowl/linked for scrub consistency",
+    "slide": "Yellow .570",
+    "weight": "Verify MIKA (~300 lb national chart typical)",
+    "rules_hub": "https://mosportkartingcentre.com/private-karting/for-members/rules-and-regulations/",
+    "rules_hub_note": "Prefer live PDF downloads; CDN may 404 intermittently"
+  },
+  "open_gaps": [
+    "Exact MIKA 2026 Junior min weight from current Class Structure PDF",
+    "Exact Mosport/MIKA/BSC Junior tire brand/compound and published PSI",
+    "MathG baseline sprocket, widths, seat, clutch springs",
+    "Whether sessions always have wheel speed vs GPS-only",
+    "Yellow-slide dyno peak RPM for this engine build"
+  ],
+  "sources": [
+    {
+      "title": "Swift LO206 gear ratio tuning guide",
+      "url": "https://swiftkarting.com/pages/lo206-gear-ratio-tuning-guide"
+    },
+    {
+      "title": "Swift AiM Race Studio LO206 analysis",
+      "url": "https://swiftkarting.com/blogs/news/how-to-use-aim-race-studio-lo206-data"
+    },
+    {
+      "title": "Swift most important AiM channels",
+      "url": "https://swiftkarting.com/blogs/news/most-important-aim-channels-lo206"
+    },
+    {
+      "title": "Swift LO206 tire pressure cold vs hot",
+      "url": "https://swiftkarting.com/pages/lo206-tire-pressure-guide-hot-vs-cold-growth"
+    },
+    {
+      "title": "Swift LO206 resources/downloads",
+      "url": "https://swiftkarting.com/pages/lo206-resources-downloads"
+    },
+    {
+      "title": "Klaus 16 Common Mistakes PDF",
+      "url": "https://www.briggsracing.com/sites/default/files/2022-08/16commonmistakes.pdf"
+    },
+    {
+      "title": "AiM file types (.xrk/.xrz)",
+      "url": "https://www.aimsports.com/webinars/Documents/AiM_FileTypes.pdf"
+    },
+    {
+      "title": "PURPL kart RPM data",
+      "url": "https://purpl.app/blog/kart-rpm-data/"
+    },
+    {
+      "title": "CRG chassis setup guide (patterns)",
+      "url": "https://nhka.net/wp-content/uploads/2018/02/crg-setup-guide.pdf"
+    },
+    {
+      "title": "ASN Canada karting regulations",
+      "url": "https://www.asncanada.ca/karting-regulations"
+    }
+  ]
+}
