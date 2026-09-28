@@ -12,11 +12,12 @@ export function GearRatioBand({ advice }: { advice: GearAdvice | null }) {
     )
   }
 
+  const absTeeth = Math.max(1, Math.abs(advice.toothDelta) || 1)
   const actionLabel =
     advice.action === 'plus'
-      ? 'Shorter (+ rear tooth)'
+      ? `Shorter (+${absTeeth} rear tooth)`
       : advice.action === 'minus'
-        ? 'Longer (− rear tooth)'
+        ? `Longer (−${absTeeth} rear tooth)`
         : 'Hold'
 
   return (

@@ -8,7 +8,7 @@
 
 ## Job
 
-Ingest MyChron **`.xrk` / `.xrz`** (N10 already MyChron-first). Emit **setup-tagged** directions. Never driver-blame a gearing/clutch/tire/chassis call. **One change per outing.** Junior = yellow **.570″** → gear for **restricted band**, not 6100 ego (Klaus #7).
+Ingest MyChron **`.xrk` / `.xrz`** (N10 already MyChron-first). Emit **setup-tagged** directions. Never driver-blame a gearing/clutch/tire/chassis call. **One CATEGORY per outing** (gear OR clutch OR tires OR chassis; magnitude from data). Junior = yellow **.570″** → gear for **restricted band**, not 6100 ego (Klaus #7).
 
 ## Read order for the bot
 
@@ -21,9 +21,9 @@ Ingest MyChron **`.xrk` / `.xrz`** (N10 already MyChron-first). Emit **setup-tag
 
 | Signal | Tune (setup) |
 | --- | --- |
-| Exit RPM low, min speed OK | **+1 rear tooth** (too tall) |
+| Exit RPM low, min speed OK | **+N rear teeth** from data (±1 or ±2+; too tall) |
 | Exit RPM OK, speed soft | Line/chassis — **not** short gear first |
-| Limiter early solo on long straight | **−1 rear tooth** |
+| Limiter early solo on long straight | **−N rear teeth** from data (±1 or ±2+) |
 | Junior living on 6100 + lazy exits | **Restricted-slide gearing** (lengthen) |
 | RPM flare, speed lag | **Clutch late slip** → Health pack |
 | RPM drop on grab / bog | **Clutch early bite** → Health pack |
@@ -37,4 +37,4 @@ Ingest MyChron **`.xrk` / `.xrz`** (N10 already MyChron-first). Emit **setup-tag
 
 ## Product line for MathG
 
-Upload session → bot returns **one** setup card (`tag: setup`) + optional drill. Next session compares the same corner. MIKA reps build the habit; BSC weekends use tire-saving longer ratios when peaks still clean.
+Upload session → bot returns **one category** setup card (`tag: setup`) + optional drill. Next session compares the same corner. MIKA reps build the habit; BSC weekends use tire-saving longer ratios when peaks still clean.

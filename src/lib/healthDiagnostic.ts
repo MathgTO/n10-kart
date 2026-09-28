@@ -13,9 +13,21 @@ export type HealthCard = {
   metrics?: { label: string; value: string }[]
 }
 
+export type OneChangeRecommendation = {
+  tag: 'setup'
+  signal_ids: string[]
+  hypothesis: string
+  one_change_action: string
+  evidence_channels: string[]
+  confidence: 'high' | 'medium' | 'low'
+  source_card: HealthCard['id']
+}
+
 export type HealthDiagnostic = {
   cards: HealthCard[]
   gearAdvice: GearAdvice | null
+  /** Kart Tuner primary: one setup CATEGORY this outing (gear OR clutch OR tires). */
+  oneChange: OneChangeRecommendation | null
 }
 
 /** Briggs Hilliard Inferno Flame — clutch calls require RPM + speed together. */
@@ -134,13 +146,15 @@ function gearCard(
   const exitLabel = exit != null ? `~${Math.round(exit)}` : '—'
   const diagnosis = `Peak ${peakSpeedKmh.toFixed(0)} km/h @ ~${Math.round(peakRpm)} RPM; exit ~${exitLabel} vs ${EXIT_RPM_BAND.lo}–${EXIT_RPM_BAND.hi} band. Est. ratio ~${estimatedCurrentRatio.toFixed(2)} (17T front — verify sprockets).`
 
+  const estNowT = Math.round(estimatedCurrentRatio * GEAR_ASSUMPTIONS.driverTeeth)
+  const bandT = `${suggestedRearTeeth.lo}–${suggestedRearTeeth.hi}T`
   let optimize: string
   if (action === 'plus') {
-    optimize = `Add ${absTeeth} rear tooth (shorter gear) on 17T front — est. now ~${Math.round(estimatedCurrentRatio * GEAR_ASSUMPTIONS.driverTeeth)}T → try ~${suggestedRearTeeth.lo}–${suggestedRearTeeth.hi}T.`
+    optimize = `Add ${absTeeth} rear tooth (shorter gear) on 17T front — est. now ~${estNowT}T → try ~${bandT}.`
   } else if (action === 'minus') {
-    optimize = `Drop ${absTeeth} rear tooth (longer gear) on 17T front — est. now ~${Math.round(estimatedCurrentRatio * GEAR_ASSUMPTIONS.driverTeeth)}T → try ~${suggestedRearTeeth.lo}–${suggestedRearTeeth.hi}T.`
+    optimize = `Drop ${absTeeth} rear tooth (longer gear) on 17T front — est. now ~${estNowT}T → try ~${bandT}.`
   } else {
-    optimize = `Hold current sprockets — already near the ${EXIT_RPM_BAND.lo}–${EXIT_RPM_BAND.hi} band (ideal rear ~${suggestedRearTeeth.lo}–${suggestedRearTeeth.hi}T / 17T).`
+    optimize = `Hold current sprockets — already near the ${EXIT_RPM_BAND.lo}–${EXIT_RPM_BAND.hi} band (ideal rear ~${bandT} / 17T).`
   }
 
   return {
@@ -437,9 +451,112 @@ function clutchCard(scores: DimensionScore[], laps: LapData[]): HealthCard {
   }
 }
 
+function clutchPatternFromCard(card: HealthCard): string {
+  return card.metrics?.find((m) => m.label === 'Pattern')?.value ?? 'ok'
+}
+
+function clutchSignalIds(card: HealthCard): string[] {
+  const pattern = clutchPatternFromCard(card)
+  switch (pattern) {
+    case 'incomplete lock':
+      return ['S8', 'clutch_incomplete_lock']
+    case 'late slip':
+      return ['S6', 'clutch_late_slip']
+    case 'early bite':
+      return ['S7', 'clutch_early_bite']
+    default:
+      return ['clutch_health']
+  }
+}
+
+function cardHadSetupChange(card: HealthCard, gearAdvice: GearAdvice | null): boolean {
+  if (card.id === 'clutch') return card.status === 'fix'
+  if (card.id === 'tire_pressure') return card.status === 'fix'
+  if (card.id === 'gear_ratio') {
+    return gearAdvice != null && (gearAdvice.action === 'plus' || gearAdvice.action === 'minus')
+  }
+  return false
+}
+
+/**
+ * Kart Tuner priority: clutch fix > gear action > tire fix > null.
+ * One CATEGORY per outing — never stack gear+clutch / pressure+width.
+ * Gear magnitude unrestricted within the gear category (full toothDelta).
+ */
+export function pickPrimaryOneChange(
+  cards: HealthCard[],
+  gearAdvice: GearAdvice | null
+): OneChangeRecommendation | null {
+  const clutch = cards.find((c) => c.id === 'clutch')
+  const gear = cards.find((c) => c.id === 'gear_ratio')
+  const tire = cards.find((c) => c.id === 'tire_pressure')
+
+  if (clutch && clutch.status === 'fix') {
+    const pattern = clutchPatternFromCard(clutch)
+    return {
+      tag: 'setup',
+      signal_ids: clutchSignalIds(clutch),
+      hypothesis: clutch.diagnosis,
+      one_change_action: clutch.optimize,
+      evidence_channels: ['rpm', 'speed'],
+      confidence: pattern === 'incomplete lock' ? 'high' : 'high',
+      source_card: 'clutch',
+    }
+  }
+
+  if (
+    gearAdvice &&
+    (gearAdvice.action === 'plus' || gearAdvice.action === 'minus') &&
+    gear
+  ) {
+    return {
+      tag: 'setup',
+      signal_ids: [gearAdvice.action === 'plus' ? 'gear_plus_rear' : 'gear_minus_rear'],
+      hypothesis:
+        gearAdvice.action === 'plus'
+          ? 'Gearing too tall (long) — exit/peak short of band'
+          : 'Gearing too short — peak early / on limiter',
+      one_change_action: gear.optimize,
+      evidence_channels: ['rpm', 'speed'],
+      confidence: 'medium',
+      source_card: 'gear_ratio',
+    }
+  }
+
+  if (tire && tire.status === 'fix') {
+    return {
+      tag: 'setup',
+      signal_ids: ['tire_pressure_session'],
+      hypothesis: tire.diagnosis,
+      one_change_action: tire.optimize,
+      evidence_channels: ['session_scores'],
+      confidence: 'medium',
+      source_card: 'tire_pressure',
+    }
+  }
+
+  return null
+}
+
+/** Non-primary cards that had a shop/gear change → hold this outing, point at the one change. */
+export function applyOneChangeHoldLanguage(
+  cards: HealthCard[],
+  oneChange: OneChangeRecommendation | null,
+  gearAdvice: GearAdvice | null
+): HealthCard[] {
+  if (!oneChange) return cards
+  const hold = `Hold this outing — one setup category already queued: ${oneChange.one_change_action}`
+  return cards.map((card) => {
+    if (card.id === oneChange.source_card) return card
+    if (!cardHadSetupChange(card, gearAdvice)) return card
+    return { ...card, optimize: hold }
+  })
+}
+
 /**
  * Build session Health diagnostic cards: Tire pressure · Gear ratio · Clutch.
  * Setup-tagged; never invents PSI from telemetry.
+ * Synced with Kart Tuning Expert: one category per outing; gear magnitude unrestricted within gear.
  */
 export function buildHealthDiagnostic(input: {
   scores: DimensionScore[]
@@ -456,13 +573,18 @@ export function buildHealthDiagnostic(input: {
     series: input.series,
   })
 
+  const rawCards: HealthCard[] = [
+    tireCard(input.scores, input.series, input.laps.length),
+    gearCard(gearAdvice, input.exitRpm, input.maxRpm, input.maxSpeed),
+    clutchCard(input.scores, input.laps),
+  ]
+  const oneChange = pickPrimaryOneChange(rawCards, gearAdvice)
+  const cards = applyOneChangeHoldLanguage(rawCards, oneChange, gearAdvice)
+
   return {
     gearAdvice,
-    cards: [
-      tireCard(input.scores, input.series, input.laps.length),
-      gearCard(gearAdvice, input.exitRpm, input.maxRpm, input.maxSpeed),
-      clutchCard(input.scores, input.laps),
-    ],
+    oneChange,
+    cards,
   }
 }
 

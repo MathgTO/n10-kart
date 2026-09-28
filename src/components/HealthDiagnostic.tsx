@@ -4,6 +4,7 @@ import {
   CLUTCH_SHOP_CHECKLIST,
   type HealthCard,
   type HealthStatus,
+  type OneChangeRecommendation,
 } from '@/lib/healthDiagnostic'
 
 const STATUS_STYLES: Record<
@@ -28,7 +29,7 @@ const STATUS_STYLES: Record<
 }
 
 export function HealthDiagnostic({ session }: { session: StoredSession }) {
-  const { cards } = buildHealthDiagnosticFromSession(session)
+  const { cards, oneChange } = buildHealthDiagnosticFromSession(session)
 
   return (
     <section className="panel border-teal-500/30">
@@ -40,8 +41,12 @@ export function HealthDiagnostic({ session }: { session: StoredSession }) {
       </div>
       <p className="mt-1 text-sm text-n10-soft">
         Tire pressure · Gear · Clutch — diagnosis + next move from this session. Setup-tagged,
-        never mixed into driver blame.
+        never mixed into driver blame. Synced with Kart Tuning Expert / trackside pack:{' '}
+        <span className="font-semibold text-teal-100">one setup category per outing</span>{' '}
+        (gear OR clutch OR tires — magnitude from data; no stacking categories).
       </p>
+
+      <OneChangePanel oneChange={oneChange} />
 
       <div className="mt-4 space-y-3">
         {cards.map((card) => (
@@ -49,6 +54,56 @@ export function HealthDiagnostic({ session }: { session: StoredSession }) {
         ))}
       </div>
     </section>
+  )
+}
+
+function OneChangePanel({ oneChange }: { oneChange: OneChangeRecommendation | null }) {
+  if (!oneChange) {
+    return (
+      <div className="mt-4 rounded-xl border border-n10-border bg-n10-panel/80 px-4 py-3">
+        <p className="text-xs font-bold uppercase tracking-wide text-teal-200/80">
+          This outing · one setup category
+        </p>
+        <p className="mt-1 text-sm text-n10-soft">
+          No setup category change this outing — re-check after next log.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="mt-4 rounded-xl border border-teal-400/40 bg-teal-500/10 px-4 py-3 shadow-[0_0_0_1px_rgba(45,212,191,0.12)]">
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="text-xs font-bold uppercase tracking-wide text-teal-100">
+          This outing · one setup category
+        </p>
+        <span className="rounded bg-teal-500/25 px-2 py-0.5 text-[10px] font-bold uppercase text-teal-100">
+          {oneChange.tag}
+        </span>
+        <span className="rounded bg-n10-panel px-2 py-0.5 text-[10px] font-bold uppercase text-n10-soft">
+          {oneChange.confidence} confidence
+        </span>
+        <span className="rounded bg-n10-panel px-2 py-0.5 text-[10px] font-semibold text-n10-mute">
+          via {oneChange.source_card.replace('_', ' ')}
+        </span>
+      </div>
+      <p className="mt-2 text-base font-bold text-white leading-relaxed">
+        {oneChange.one_change_action}
+      </p>
+      <p className="mt-2 text-sm text-n10-soft leading-relaxed">
+        <span className="font-semibold text-teal-100/90">Hypothesis:</span> {oneChange.hypothesis}
+      </p>
+      <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
+        <span className="rounded-lg border border-n10-border bg-n10-panel px-2.5 py-1">
+          <span className="text-n10-mute font-semibold uppercase">Signal</span>{' '}
+          <span className="font-bold text-white">{oneChange.signal_ids.join(', ')}</span>
+        </span>
+        <span className="rounded-lg border border-n10-border bg-n10-panel px-2.5 py-1">
+          <span className="text-n10-mute font-semibold uppercase">Evidence</span>{' '}
+          <span className="font-bold text-white">{oneChange.evidence_channels.join(', ')}</span>
+        </span>
+      </div>
+    </div>
   )
 }
 

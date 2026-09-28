@@ -22,7 +22,9 @@
       "evidence_channels",
       "source_urls",
       "confidence"
-    ]
+    ],
+    "one_change_means": "one_category_not_one_increment",
+    "one_change_note": "One CATEGORY per outing (gearing OR clutch OR tires OR chassis). Within that category, magnitude follows best practice + data (gear may be +1 or +2+). Do not stack categories same outing."
   },
   "ingest": {
     "primary_formats": [
@@ -94,7 +96,7 @@
       "low": 5800,
       "high": 6100
     },
-    "power_band_junior_note": "Restricted slides peak earlier than stock. Klaus: unrestricted peak HP ~5600; Green slide peak ~4800 \u2014 gearing past ~5300 can be slower. Yellow .570 sits between stock and green \u2014 confirm dyno; prefer strong mid-band exits over limiter ego.",
+    "power_band_junior_note": "Restricted slides peak earlier than stock. Klaus: unrestricted peak HP ~5600; Green slide peak ~4800 — gearing past ~5300 can be slower. Yellow .570 sits between stock and green — confirm dyno; prefer strong mid-band exits over limiter ego.",
     "klaus_green_example": {
       "peak_hp_rpm": 4800,
       "do_not_gear_past_approx": 5300,
@@ -116,7 +118,7 @@
       "on_19t": 0.05
     },
     "national_min_weight_lb_chart_typical": 300,
-    "min_weight_verify": "Confirm current MIKA Class Structure \u2014 do not assume 300 lb without PDF",
+    "min_weight_verify": "Confirm current MIKA Class Structure — do not assume 300 lb without PDF",
     "home_track": "Mosport Karting Centre",
     "series_near": "MIKA",
     "series_goal": "BSC Ontario"
@@ -141,8 +143,8 @@
       ],
       "tag": "setup",
       "hypothesis": "Gearing too tall (long)",
-      "template_id": "gear_plus_one",
-      "one_change": "Add 1 rear tooth; re-log exit RPM + delta on same corner",
+      "template_id": "gear_plus_rear",
+      "one_change": "Add N rear teeth per RPM+speed / exit analysis (often 1; use 2+ when toothDelta/best practice supports); re-log same corner",
       "channels": [
         "rpm",
         "speed"
@@ -160,16 +162,16 @@
         "min_corner_or_exit_speed_low"
       ],
       "tag": "driving_or_chassis",
-      "hypothesis": "Line / confidence / balance \u2014 not first a shorter gear",
+      "hypothesis": "Line / confidence / balance — not first a shorter gear",
       "template_id": "chassis_before_engine",
-      "one_change": "One drill (later turn-in/width) OR one chassis spacer \u2014 not both; do not add short gear yet",
+      "one_change": "One drill (later turn-in/width) OR one chassis spacer — not both; do not add short gear yet",
       "channels": [
         "rpm",
         "speed",
         "optional_brake",
         "optional_throttle"
       ],
-      "confidence_hint": "medium \u2014 needs notes or video for chassis vs driving",
+      "confidence_hint": "medium — needs notes or video for chassis vs driving",
       "sources": [
         "https://swiftkarting.com/blogs/news/how-to-use-aim-race-studio-lo206-data"
       ]
@@ -181,8 +183,8 @@
       ],
       "tag": "setup",
       "hypothesis": "Gearing too short",
-      "template_id": "gear_minus_one",
-      "one_change": "Remove 1 rear tooth",
+      "template_id": "gear_minus_rear",
+      "one_change": "Remove N rear teeth per RPM+speed analysis (often 1; use 2+ when toothDelta/best practice supports)",
       "channels": [
         "rpm",
         "speed"
@@ -268,7 +270,7 @@
         "incomplete_lock_after_speed_caught"
       ],
       "tag": "setup",
-      "hypothesis": "Clutch incomplete lock \u2014 stop",
+      "hypothesis": "Clutch incomplete lock — stop",
       "template_id": "clutch_health",
       "one_change": "STOP session; full clutch inspection",
       "severity": true,
@@ -281,7 +283,7 @@
         "poor_accel_no_flare"
       ],
       "tag": "setup",
-      "hypothesis": "Power / drag / gear / load \u2014 not classic clutch slip",
+      "hypothesis": "Power / drag / gear / load — not classic clutch slip",
       "template_id": "chassis_before_engine",
       "one_change": "Check throttle opening, brake drag, gearing, load before clutch springs",
       "delegate": "clutch_health.power_or_drag_not_clutch"
@@ -328,7 +330,7 @@
       "tag": "setup",
       "hypothesis": "Tire pressure too high hot",
       "template_id": "tire_pressure_session",
-      "one_change": "Lower next cold start 0.5\u20132 PSI toward hot target; confirm series tire",
+      "one_change": "Lower next cold start 0.5–2 PSI toward hot target; confirm series tire",
       "sources": [
         "https://swiftkarting.com/pages/lo206-tire-pressure-guide-hot-vs-cold-growth"
       ]
@@ -354,9 +356,9 @@
         "peak_rpm_stable"
       ],
       "tag": "setup",
-      "hypothesis": "Grip/pressure/consistency \u2014 not gear first",
+      "hypothesis": "Grip/pressure/consistency — not gear first",
       "template_id": "tire_pressure_session",
-      "one_change": "One pressure step OR consistency drill \u2014 not both",
+      "one_change": "One pressure step OR consistency drill — not both",
       "channels": [
         "speed",
         "rpm"
@@ -370,7 +372,7 @@
       "tag": "setup",
       "hypothesis": "Need more front jack / turn-in",
       "template_id": "chassis_front_wider",
-      "one_change": "Widen front one spacer step OR +caster per chassis chart \u2014 one only",
+      "one_change": "Widen front one spacer step OR +caster per chassis chart — one only",
       "sources": [
         "https://nhka.net/wp-content/uploads/2018/02/crg-setup-guide.pdf"
       ]
@@ -383,7 +385,7 @@
       "tag": "setup",
       "hypothesis": "Too much rear grip / unload issue",
       "template_id": "chassis_rear_narrower",
-      "one_change": "Narrow rear slightly OR small seat/ballast stability move \u2014 one only"
+      "one_change": "Narrow rear slightly OR small seat/ballast stability move — one only"
     },
     {
       "id": "S17",
@@ -392,7 +394,7 @@
         "mosport_t5_type"
       ],
       "tag": "setup",
-      "hypothesis": "Split: low exit RPM \u2192 S1; RPM OK \u2192 driving line",
+      "hypothesis": "Split: low exit RPM → S1; RPM OK → driving line",
       "template_id": "gear_ratio_optimize",
       "one_change": "Apply S1 or S2 rule; Mosport overlay prioritizes exit",
       "channels": [
@@ -409,23 +411,13 @@
       "tag": "setup",
       "hypothesis": "Rotating inertia mismatch for layout",
       "template_id": "sprocket_pair_inertia",
-      "one_change": "Bigger pair for flowing; smaller for tight \u2014 keep same ratio first",
+      "one_change": "Bigger pair for flowing; smaller for tight — keep same ratio first",
       "sources": [
         "https://swiftkarting.com/pages/lo206-gear-ratio-tuning-guide"
       ]
     }
   ],
   "setup_templates": {
-    "gear_plus_one": {
-      "tag": "setup",
-      "action": "Add 1 rear sprocket tooth",
-      "when": "S1, S11, optionally after S4 drag ruled out"
-    },
-    "gear_minus_one": {
-      "tag": "setup",
-      "action": "Remove 1 rear sprocket tooth",
-      "when": "S3; front-row/long-main tire save per Swift"
-    },
     "restricted_slide_gearing": {
       "tag": "setup",
       "action": "Gear for yellow-slide mid-band peak, not 6100 ego",
@@ -434,12 +426,12 @@
     "clutch_health": {
       "tag": "setup",
       "action": "Use clutch-health-diagnostic-v1.json",
-      "when": "S6\u2013S9"
+      "when": "S6–S9"
     },
     "tire_pressure_session": {
       "tag": "setup",
-      "action": "Cold\u2192hot methodology; confirm series tire; no invented Mosport PSI",
-      "when": "S12\u2013S14",
+      "action": "Cold→hot methodology; confirm series tire; no invented Mosport PSI",
+      "when": "S12–S14",
       "methodology_url": "https://swiftkarting.com/pages/lo206-tire-pressure-guide-hot-vs-cold-growth",
       "sourced_growth_psi": {
         "typical_min": 2,
@@ -449,9 +441,9 @@
       "sourced_hot_window_hard_compound_illustrative_psi": {
         "min": 14,
         "max": 18,
-        "note": "Swift illustrative for many hard compounds \u2014 NOT Mosport Junior fact"
+        "note": "Swift illustrative for many hard compounds — NOT Mosport Junior fact"
       },
-      "mosport_junior_psi": "UNKNOWN \u2014 confirm series tire + MIKA/BSC bulletin"
+      "mosport_junior_psi": "UNKNOWN — confirm series tire + MIKA/BSC bulletin"
     },
     "chassis_before_engine": {
       "tag": "setup",
@@ -480,21 +472,33 @@
     },
     "gear_ratio_optimize": {
       "tag": "setup",
-      "action": "Use peak+exit RPM routine to pick \u00b11 tooth",
+      "action": "Use peak+exit RPM routine to pick ±1 tooth",
       "when": "S17 / general"
+    },
+    "gear_plus_rear": {
+      "tag": "setup",
+      "action": "Add N rear teeth per RPM+speed / exit analysis (often 1; use 2+ when toothDelta/best practice supports)",
+      "when": "S1, S11, optionally after S4 drag ruled out"
+    },
+    "gear_minus_rear": {
+      "tag": "setup",
+      "action": "Remove N rear teeth per RPM+speed analysis (often 1; use 2+ when toothDelta/best practice supports)",
+      "when": "S3; front-row/long-main tire save per Swift"
     }
   },
   "one_change_protocol": {
     "steps": [
-      "Select single highest-confidence signal id from largest delta loss",
-      "Emit one setup-tagged action only",
-      "Optional separate driving drill if S2 \u2014 never bundled as same physical change",
+      "Pick the single highest-confidence setup CATEGORY (gearing / clutch / tires / chassis) from largest delta loss",
+      "Within that category apply data-backed magnitude (gear: +1 or +2+ rear teeth per toothDelta / RPM+speed math — no forced ±1 cap)",
+      "Emit one setup-tagged action only for that category",
+      "Optional separate driving drill if S2 — never bundled as same physical change",
       "Re-run; compare reference lap RPM+speed+delta",
-      "Queue next change only after evidence"
+      "Queue next CATEGORY only after evidence"
     ],
     "forbid": [
-      "Gear + clutch springs same outing",
+      "Stacking categories same outing (gear + clutch springs)",
       "Pressure + track width same outing",
+      "Forcing only 1 tooth when toothDelta/best practice supports 2+",
       "Setup language blaming the driver"
     ]
   },

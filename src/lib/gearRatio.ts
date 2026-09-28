@@ -19,6 +19,7 @@ export type GearAdvice = {
   idealRatio: number
   idealBand: { lo: number; hi: number }
   suggestedRearTeeth: { lo: number; hi: number; center: number }
+  /** Recommended rear-tooth magnitude from peak RPM vs speed math (may be ±2/+3). */
   toothDelta: number
   action: 'plus' | 'minus' | 'hold'
   summary: string
@@ -39,6 +40,7 @@ function clamp(n: number, lo: number, hi: number) {
 /**
  * Suggest ideal LO206 ratio band from peak RPM + peak speed.
  * Setup-tagged estimate — verify on scales / tooth count before changing.
+ * One-change = one category (gear); magnitude from peak RPM vs speed math (no ±1 cap).
  */
 export function suggestGearRatio(input: {
   maxRpm?: number
@@ -93,16 +95,18 @@ export function suggestGearRatio(input: {
   }
 
   const curTeeth = Math.round(estimatedCurrentRatio * driverTeeth)
+  const absTeeth = Math.max(1, Math.abs(toothDelta) || 1)
+
   const deltaLabel =
     action === 'plus'
-      ? `Suggest +${Math.max(1, Math.abs(toothDelta) || 1)} rear tooth (shorter) on a ${driverTeeth}T driver`
+      ? `Recommend +${absTeeth} rear tooth (shorter) on a ${driverTeeth}T driver`
       : action === 'minus'
-        ? `Suggest −${Math.max(1, Math.abs(toothDelta) || 1)} rear tooth (longer) on a ${driverTeeth}T driver`
+        ? `Recommend −${absTeeth} rear tooth (longer) on a ${driverTeeth}T driver`
         : 'Hold — peak speed/RPM already near the band'
 
   const summary = `Ideal ratio ~${idealLo.toFixed(2)}–${idealHi.toFixed(2)} (≈ ${suggestedRearTeeth.lo}–${suggestedRearTeeth.hi}T / ${driverTeeth}T). Est. now ~${estimatedCurrentRatio.toFixed(2)} (≈ ${curTeeth}T). ${deltaLabel}.`
 
-  const detail = `At ${peakSpeedKmh.toFixed(0)} km/h peak you saw ~${Math.round(peakRpm)} RPM (exit focus ~${input.exitRpm != null ? Math.round(input.exitRpm) : '—'}). Target ${EXIT_RPM_BAND.lo}–${EXIT_RPM_BAND.hi} on power. Estimate assumes Ø${(tireDiameterM * 1000).toFixed(0)} mm rolling rear + ${driverTeeth}T driver — verify your actual sprockets. Typical LO206 sprint window ${typicalRatioBand.lo}–${typicalRatioBand.hi} (Swift). Junior yellow slide: gear for band peak, not limiter ego.`
+  const detail = `At ${peakSpeedKmh.toFixed(0)} km/h peak you saw ~${Math.round(peakRpm)} RPM (exit focus ~${input.exitRpm != null ? Math.round(input.exitRpm) : '—'}). Target ${EXIT_RPM_BAND.lo}–${EXIT_RPM_BAND.hi} on power. Estimate assumes Ø${(tireDiameterM * 1000).toFixed(0)} mm rolling rear + ${driverTeeth}T driver — verify your actual sprockets. Typical LO206 sprint window ${typicalRatioBand.lo}–${typicalRatioBand.hi} (Swift). Junior yellow slide: gear for band peak, not limiter ego. Junior Light / green-module band is owned by Kart Tuning Expert if class differs.`
 
   return {
     peakSpeedKmh,
