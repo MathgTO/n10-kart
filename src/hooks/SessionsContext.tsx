@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { buildDemoSessions, DEMO_IDS } from '@/data/demos'
 import { getTrack } from '@/data/tracks'
-import { buildCoachingReport, pickBestFlyingLap, refreshStoredSession } from '@/lib/scoring'
+import { buildCoachingReport, pickBestFlyingLap, pickCompareLap, refreshStoredSession, resolveCompareLap } from '@/lib/scoring'
 import {
   loadFavorites,
   loadPrefs,
@@ -9,6 +9,7 @@ import {
   saveFavorites,
   savePrefs,
   saveSessions,
+  DEFAULT_CLASS_LABEL,
   type Prefs,
 } from '@/lib/storage'
 import type { LapData, SeriesTag, StoredSession } from '@/lib/types'
@@ -27,6 +28,8 @@ interface SessionsCtx {
   attachVideo: (sessionId: string, file: File) => void
   deleteSession: (id: string) => void
   getSession: (id: string) => StoredSession | undefined
+  /** True when the last save hit the browser storage quota (library too big). */
+  storageFull: boolean
 }
 
 const Ctx = createContext<SessionsCtx | null>(null)
@@ -36,11 +39,14 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
   const [prefs, setPrefs] = useState<Prefs>(loadPrefs())
   const [favorites, setFavorites] = useState<string[]>(loadFavorites())
   const [ready, setReady] = useState(false)
+  const [storageFull, setStorageFull] = useState(false)
 
   useEffect(() => {
     const existing = loadSessions()
     const LANG_V = 'turn-sector-v1'
-    const REPORT_V = 'na-null-v1'
+    // valid-laps-v1: compare lap = fastest full lap (out/in/partial laps excluded), real-distance
+    // sectors, video never changes the report. Recompute stored sessions once.
+    const REPORT_V = 'valid-laps-v1'
     const needsLang = prefs.langVersion !== LANG_V
     const needsReport = prefs.reportVersion !== REPORT_V
     // First visit / empty library: stay empty until the user explicitly loads demos.
@@ -82,7 +88,8 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!ready) return
-    saveSessions(sessions)
+    // saveSessions never throws: it returns false when storage is full (quota exceeded)
+    setStorageFull(!saveSessions(sessions))
   }, [sessions, ready])
 
   useEffect(() => {
@@ -139,17 +146,15 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
       }
       const track = getTrack(prefs.trackId)
       const bestLapIndex = pickBestFlyingLap(parse.laps)
-      const ordered = parse.laps
-        .map((l, i) => ({ i, t: l.timeMs }))
-        .sort((a, b) => a.t - b.t)
-      const compareLapIndex = ordered[1]?.i ?? bestLapIndex
+      // Fastest full lap other than best; out-laps, in-laps and partial laps never compare.
+      const compareLapIndex = pickCompareLap(parse.laps, bestLapIndex)
       const id = `import-${Date.now()}`
       const series = prefs.series
       const prev = previousFor(sessions)
       const { report, corners } = buildCoachingReport({
         sessionId: id,
         track: track.name,
-        classAssumption: 'LO206 Junior',
+        classAssumption: DEFAULT_CLASS_LABEL,
         series,
         conditions: 'dry',
         laps: parse.laps,
@@ -166,7 +171,7 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
         conditions: 'dry',
         trackId: track.id,
         trackName: track.name,
-        classAssumption: 'LO206 Junior',
+        classAssumption: DEFAULT_CLASS_LABEL,
         sourceFileName: file.name,
         sourceKind: parse.kind === 'unknown' ? 'csv' : parse.kind,
         laps: parse.laps,
@@ -187,6 +192,8 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
     setSessions((list) =>
       list.map((s) => {
         if (s.id !== sessionId) return s
+        // Only full laps other than best can be compared (chips for out/in/partial laps are disabled)
+        const compareIdx = resolveCompareLap(s.laps, lapIndex, s.bestLapIndex)
         const prev = previousFor(list, sessionId)
         const { report, corners } = buildCoachingReport({
           sessionId: s.id,
@@ -195,14 +202,13 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
           series: s.series,
           conditions: s.conditions,
           laps: s.laps,
-          referenceLapIndex: lapIndex,
+          referenceLapIndex: compareIdx,
           cornerNames: getTrack(s.trackId).corners.map((c) => c.name),
-          hasVideo: !!s.videoName,
           previousSession: prev,
         })
         return {
           ...s,
-          referenceLapIndex: lapIndex,
+          referenceLapIndex: compareIdx,
           corners,
           report,
           activePriorityDimensionId: report.priority_dimension_id,
@@ -212,40 +218,17 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
     )
   }, [previousFor])
 
+  /** The clip is only played back next to the data: it is not analyzed and does not change the report. */
   const attachVideo = useCallback((sessionId: string, file: File) => {
     const url = URL.createObjectURL(file)
     setSessions((list) =>
       list.map((s) => {
         if (s.id !== sessionId) return s
-        const prev = previousFor(list, sessionId)
-        const { report, corners } = buildCoachingReport({
-          sessionId: s.id,
-          track: s.trackName,
-          classAssumption: s.classAssumption,
-          series: s.series,
-          conditions: s.conditions,
-          laps: s.laps,
-          referenceLapIndex: s.referenceLapIndex,
-          cornerNames: getTrack(s.trackId).corners.map((c) => c.name),
-          hasVideo: true,
-          previousSession: prev,
-        })
-        return {
-          ...s,
-          videoName: file.name,
-          videoObjectUrl: url,
-          corners,
-          report,
-          activePriorityDimensionId: report.priority_dimension_id,
-          activePriorityDrillId: report.primary_drill.id,
-          videoCueMarkers: report.top_weaknesses.slice(0, 3).map((w, i) => ({
-            t: 30 + i * 25,
-            label: w.cue,
-          })),
-        }
+        if (s.videoObjectUrl) URL.revokeObjectURL(s.videoObjectUrl)
+        return { ...s, videoName: file.name, videoObjectUrl: url, videoCueMarkers: undefined }
       })
     )
-  }, [previousFor])
+  }, [])
 
   const deleteSession = useCallback((id: string) => {
     setSessions((list) => list.filter((s) => s.id !== id))
@@ -270,6 +253,7 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
       attachVideo,
       deleteSession,
       getSession,
+      storageFull,
     }),
     [
       sessions,
@@ -284,6 +268,7 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
       attachVideo,
       deleteSession,
       getSession,
+      storageFull,
     ]
   )
 

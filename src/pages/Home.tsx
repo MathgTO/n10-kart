@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ImportModal } from '@/components/ImportModal'
 import { useSessions } from '@/hooks/SessionsContext'
 import { formatLapTime } from '@/lib/format'
+import { seriesLabel } from '@/lib/labels'
 
 const IOS_TIP_KEY = 'n10-ios-homescreen-tip-dismissed'
 
@@ -76,7 +77,7 @@ export function Home() {
             decoding="async"
           />
           <p className="mt-4 text-base text-n10-soft leading-relaxed">
-            Built for the Briggs LO206. Import your MyChron session and see where the time is: driving, corner by corner, and setup from the data (gear, clutch, tire pressure). Made for your phone, between runs.
+            Built for the Briggs LO206. Import your MyChron session and see where the time is: driving, corner by corner, and setup from the data (gear, clutch, tire pressure). Made for the paddock, between runs.
           </p>
         </div>
         <div className="flex flex-col gap-3 w-full sm:w-auto">
@@ -97,7 +98,7 @@ export function Home() {
       <div className="grid gap-3 sm:grid-cols-3">
         <InfoCard
           title="Reads your MyChron"
-          body=".xrk / .xrz native · Race Studio CSV (Lap, Time, GPS Speed, RPM, Distance; sectors when present) · lap-only CSV OK · onboard video (mp4/mov/webm)"
+          body=".xrk / .xrz native · Race Studio CSV (Lap, Time, GPS Speed, RPM, Distance; sectors when present) · lap-only CSV OK · onboard video (mp4/mov) to play next to the data"
         />
         <InfoCard title="Coach call" body="Driver: where the time is, corner by corner, and which sectors it went in · Tuner: what the data says about exit RPM, gear, clutch and tire pressure" />
         <InfoCard title="Home circuit" body="Mosport Karting Centre · Bowmanville" />
@@ -131,7 +132,7 @@ export function Home() {
                     <Link to={`/session/${s.id}`} className="min-w-0 flex-1 block">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="text-lg font-bold">{s.title}</h3>
-                        <Tag>{s.series}</Tag>
+                        <Tag>{seriesLabel(s.series)}</Tag>
                         {s.isDemo && <Tag>Demo</Tag>}
                       </div>
                       <p className="mt-1 text-sm text-n10-soft">
@@ -172,10 +173,6 @@ export function Home() {
           </ul>
         )}
       </section>
-
-      <p className="text-xs text-n10-mute">
-        Last track/series remembered: {prefs.trackId} · {prefs.series}
-      </p>
 
       <ImportModal open={importOpen} onClose={() => setImportOpen(false)} />
     </div>

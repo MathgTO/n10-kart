@@ -95,12 +95,10 @@ function OneChangePanel({ oneChange }: { oneChange: OneChangeRecommendation | nu
       </p>
       <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
         <span className="rounded-lg border border-n10-border bg-n10-panel px-2.5 py-1">
-          <span className="text-n10-mute font-semibold uppercase">Signal</span>{' '}
-          <span className="font-bold text-white">{oneChange.signal_ids.join(', ')}</span>
-        </span>
-        <span className="rounded-lg border border-n10-border bg-n10-panel px-2.5 py-1">
           <span className="text-n10-mute font-semibold uppercase">Evidence</span>{' '}
-          <span className="font-bold text-white">{oneChange.evidence_channels.join(', ')}</span>
+          <span className="font-bold text-white">
+            {oneChange.evidence_channels.map((c) => (c === 'rpm' ? 'RPM' : c)).join(', ')}
+          </span>
         </span>
       </div>
     </div>

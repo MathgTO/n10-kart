@@ -24,11 +24,12 @@ export function VsLastStrip({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-bold">vs last session</h2>
         <p className="text-sm text-n10-soft">
-          Advance priority when dim ≥{ADVANCE_PRIORITY_AT}
           {priorityAdvanced ? (
-            <span className="ml-2 text-n10-lime font-semibold">· advanced</span>
+            <span className="text-n10-lime font-semibold">Focus moved on: last focus reached {ADVANCE_PRIORITY_AT}/5</span>
           ) : (
-            <span className="ml-2">· holding {priorityDim}</span>
+            <span>
+              Focus stays on {getDimension(priorityDim)?.label ?? 'the same skill'} until it reaches {ADVANCE_PRIORITY_AT}/5
+            </span>
           )}
         </p>
       </div>

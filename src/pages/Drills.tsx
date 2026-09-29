@@ -9,7 +9,7 @@ export function DrillsPage() {
         <h1 className="text-3xl font-black mt-1">Drills</h1>
         <p className="mt-2 text-base text-n10-soft max-w-2xl">
           Driver drills for the LO206. The coach picks <strong className="text-white">one</strong>{' '}
-          primary drill from your worst weighted dimension. Keep it until that dim scores ≥4.
+          primary drill from your weakest skill in the session. Keep it until that skill scores 4 out of 5 or better.
         </p>
       </div>
       <ul className="space-y-3">

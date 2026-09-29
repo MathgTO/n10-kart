@@ -2,11 +2,15 @@ import { useRef, useState } from 'react'
 import type { StoredSession } from '@/lib/types'
 import { useSessions } from '@/hooks/SessionsContext'
 
-const VIDEO_ACCEPT = 'video/mp4,video/quicktime,video/webm,video/*'
+/**
+ * Narrow list: no video/* wildcard and never a `capture` attribute.
+ * (A wildcard or `capture` makes iOS offer the camera, which the app has no permission strings for.)
+ */
+export const VIDEO_ACCEPT = '.mp4,.mov,video/mp4,video/quicktime'
 
 function isVideoFile(file: File): boolean {
   if (file.type.startsWith('video/')) return true
-  return /\.(mp4|mov|webm|m4v|mkv)$/i.test(file.name)
+  return /\.(mp4|mov|m4v)$/i.test(file.name)
 }
 
 export function VideoPanel({
@@ -25,7 +29,7 @@ export function VideoPanel({
     setError(null)
     if (!file) return
     if (!isVideoFile(file)) {
-      setError('Please choose a video file (mp4, mov, or webm).')
+      setError('Please choose an mp4 or mov video file.')
       return
     }
     attachVideo(session.id, file)
@@ -67,7 +71,8 @@ export function VideoPanel({
     <section className="panel" id="session-video">
       <h2 className="text-xl font-bold">Onboard video</h2>
       <p className="text-sm text-n10-soft mt-1">
-        Your kart-cam onboard for this session, next to the data — stays on your device, optional for Coach call.
+        Your kart-cam clip for this session, to watch next to the data. It stays on this device and
+        isn&apos;t analyzed (the coaching comes from your logger file). It isn&apos;t kept after the app closes.
         Replace anytime.
       </p>
       {input}
@@ -85,13 +90,6 @@ export function VideoPanel({
             </button>
             <span className="text-sm text-n10-soft">{session.videoName}</span>
           </div>
-          <ul className="text-sm text-n10-soft">
-            {(session.videoCueMarkers ?? []).map((m) => (
-              <li key={m.t}>
-                @{m.t}s — {m.label}
-              </li>
-            ))}
-          </ul>
         </div>
       )}
     </section>

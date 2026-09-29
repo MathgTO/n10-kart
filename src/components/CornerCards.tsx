@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { CornerCue } from '@/lib/types'
 import { formatDeltaMs } from '@/lib/format'
-import { MOSPORT_BIAS } from '@/lib/rubric'
+import { dimLabel } from '@/lib/rubric'
 import { SECTOR_VS_TURN_HELP } from '@/data/mosportSectors'
 
 export function CornerCards({
@@ -26,8 +26,8 @@ export function CornerCards({
       <h2 className="text-xl font-bold">Sector loss</h2>
       <p className="text-sm text-n10-soft mt-1">{SECTOR_VS_TURN_HELP}</p>
       <p className="text-xs text-n10-mute mt-1">
-        Same S1–S4 as the track map — tap a card or a sector on the map. Mosport bias dims:{' '}
-        {MOSPORT_BIAS.join(', ')}
+        Same S1–S4 as the track map — tap a card or a sector on the map. Time is compared by
+        distance along the lap (compare lap vs best ★).
       </p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         {corners.map((c) => {
@@ -71,7 +71,7 @@ export function CornerCards({
               {c.turns && c.turns.length > 0 && (
                 <p className="mt-0.5 text-xs text-n10-mute">Turns in this split: {c.turns.join(', ')}</p>
               )}
-              <p className="mt-1 text-xs font-semibold uppercase text-n10-mute">{c.dimId}</p>
+              <p className="mt-1 text-xs font-semibold uppercase text-n10-mute">{dimLabel(c.dimId)}</p>
               <p className="mt-2 text-sm">
                 <span className="text-emerald-400 font-semibold">Good:</span>{' '}
                 <span className="text-n10-soft">{c.good}</span>

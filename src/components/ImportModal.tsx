@@ -4,9 +4,26 @@ import { useSessions } from '@/hooks/SessionsContext'
 import { formatLapTime } from '@/lib/format'
 import type { ParseResult } from '@/lib/csv'
 import type { SeriesTag } from '@/lib/types'
+import { SERIES_OPTIONS, seriesLabel } from '@/lib/labels'
 
-/** iOS/iPad greys out unknown types (.xrk/.xrz) if accept is extension-only. Allow all; validate in importFile. */
-const ACCEPT = '*/*'
+/**
+ * Session files only: no wildcard, no image/video types and never a `capture` attribute, so iOS
+ * never offers the camera. `.xrk`/`.xrz` have no registered MIME type in Safari, so
+ * application/octet-stream (generic binary) keeps them selectable instead of greyed out.
+ * importFile still validates the content.
+ */
+export const IMPORT_ACCEPT = [
+  '.xrk',
+  '.xrz',
+  '.csv',
+  'text/csv',
+  'text/comma-separated-values',
+  'application/csv',
+  'application/vnd.ms-excel',
+  'application/octet-stream',
+  'application/x-xrk',
+  'application/x-xrz',
+].join(',')
 
 interface Props {
   open: boolean
@@ -70,22 +87,22 @@ export function ImportModal({ open, onClose }: Props) {
             value={prefs.series}
             onChange={(e) => setSeries(e.target.value as SeriesTag)}
           >
-            <option value="practice">practice</option>
-            <option value="mika">mika</option>
-            <option value="bsc_ontario">bsc_ontario</option>
-            <option value="qualifying">qualifying</option>
-            <option value="race">race</option>
-            <option value="other">other</option>
+            {SERIES_OPTIONS.map((o) => (
+              <option key={o} value={o}>
+                {seriesLabel(o)}
+              </option>
+            ))}
           </select>
         </div>
 
         <input
           ref={inputRef}
           type="file"
-          accept={ACCEPT}
+          accept={IMPORT_ACCEPT}
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0]
+            e.target.value = '' // allow picking the same file again
             if (f) void handleFile(f)
           }}
         />

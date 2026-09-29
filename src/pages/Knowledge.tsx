@@ -1,5 +1,8 @@
 import { Link } from 'react-router-dom'
-import { rubric } from '@/lib/rubric'
+import { linkTitle, rubric } from '@/lib/rubric'
+
+/** Class notes worth showing drivers (skip internal scoring / template notes). */
+const isReaderNote = (o: string) => !/\bD\d{1,2}\b|[a-z]+_[a-z_]+|template/i.test(o)
 
 export function KnowledgePage() {
   const links = rubric.source_linkouts ?? []
@@ -19,10 +22,6 @@ export function KnowledgePage() {
         <p className="mt-2 text-base text-n10-soft">
           {rubric.home_track?.name} · {rubric.home_track?.location} · {rubric.home_track?.club}
         </p>
-        <p className="mt-2 text-sm text-n10-mute">
-          Bias dims: {(rubric.home_track?.circuit_notes?.coaching_bias_dimension_ids ?? []).join(', ')}.
-          No fabricated corner GPS in coaching copy.
-        </p>
       </section>
 
       <section className="panel">
@@ -31,14 +30,16 @@ export function KnowledgePage() {
           {rubric.confirmed_class?.name} · {rubric.confirmed_class?.slide}
         </p>
         <ul className="mt-2 list-disc pl-5 text-sm text-n10-soft space-y-1">
-          {(rubric.confirmed_class?.coaching_overlays ?? []).map((o: string) => (
+          {(rubric.confirmed_class?.coaching_overlays ?? []).filter(isReaderNote).map((o: string) => (
             <li key={o}>{o}</li>
           ))}
+          <li>Turn-in, apex, exit and lap-to-lap consistency count more in the coaching for the restricted slide.</li>
         </ul>
       </section>
 
       <section className="panel">
-        <h2 className="text-xl font-bold">Source linkouts</h2>
+        <h2 className="text-xl font-bold">Further reading</h2>
+        <p className="mt-1 text-sm text-n10-mute">Opens in Safari / your browser.</p>
         <ul className="mt-3 space-y-2">
           {links.map((l: { id?: string; title?: string; label?: string; url: string }, i: number) => (
             <li key={i}>
@@ -48,16 +49,13 @@ export function KnowledgePage() {
                 rel="noreferrer"
                 className="text-n10-lime underline underline-offset-2"
               >
-                {l.title ?? l.label ?? l.id ?? l.url}
+                {linkTitle(l)}
               </a>
             </li>
           ))}
         </ul>
       </section>
 
-      <p className="text-xs text-n10-mute">
-        Rubric schema {rubric.schema_version} · baked from briggs-coach-api
-      </p>
       <Link to="/" className="btn-secondary inline-flex">
         ← Home
       </Link>

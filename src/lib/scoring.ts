@@ -9,6 +9,7 @@ import {
   getDimension,
   getDrill,
   getSetupTemplate,
+  linkTitle,
   rubric,
 } from './rubric'
 import { scoreBand } from './format'
@@ -17,6 +18,9 @@ import {
   computeDelta,
   idealLapMs,
   pickBestFlyingLap,
+  pickCompareLap,
+  resolveCompareLap,
+  samplesInRange,
   sectorLosses,
 } from './telemetry'
 import { MOSPORT_GP_SECTORS, sectorTitle } from '@/data/mosportSectors'
@@ -105,14 +109,44 @@ function isAvailableScore(s: DimensionScore): s is DimensionScore & { score: num
   return s.score != null && Number.isFinite(s.score)
 }
 
+/**
+ * Which driving skill a sector's loss points to, from the data:
+ * lower minimum (corner) speed than the best lap → apex / mid-corner (D3);
+ * otherwise lower speed at the end of the sector → exit commitment (D4).
+ * Without a speed trace there is nothing to attribute, so fall back to consistency (D18).
+ */
+function sectorDimension(
+  i: number,
+  sectors: number,
+  best?: LapData,
+  compare?: LapData
+): DimensionId {
+  if (!best || !compare) return 'D18'
+  const a = i / sectors
+  const b = (i + 1) / sectors
+  const bs = samplesInRange(best.samples, a, b)
+  const cs = samplesInRange(compare.samples, a, b)
+  if (bs.length < 3 || cs.length < 3) return 'D18'
+  const minOf = (xs: typeof bs) => Math.min(...xs.map((x) => x.speed))
+  if (!(minOf(bs) > 0) || !(minOf(cs) > 0)) return 'D18'
+  const tail = (xs: typeof bs) => {
+    const k = Math.max(1, Math.floor(xs.length * 0.25))
+    return average(xs.slice(-k).map((x) => x.speed))
+  }
+  const dMin = minOf(bs) - minOf(cs)
+  const dExit = tail(bs) - tail(cs)
+  return dMin >= dExit ? 'D3' : 'D4'
+}
+
 export function buildCornerCues(
   losses: number[],
-  cornerNames: string[]
+  cornerNames: string[],
+  best?: LapData,
+  compare?: LapData
 ): CornerCue[] {
   const biasSet = new Set(MOSPORT_BIAS)
-  const dimCycle: DimensionId[] = ['D2', 'D4', 'D6', 'D8', 'D1', 'D3']
   return losses.map((lossMs, i) => {
-    const dimId = dimCycle[i % dimCycle.length]
+    const dimId = sectorDimension(i, losses.length, best, compare)
     const dim = getDimension(dimId)
     const sector = MOSPORT_GP_SECTORS[i]
     const name = sector ? sectorTitle(sector) : cornerNames[i] ?? `S${i + 1}`
@@ -147,9 +181,10 @@ function scoreFromTelemetry(
   const ch = channels ?? detectChannels(laps)
   const hasTelemetry = ch.speed || ch.rpm || ch.lapTimes
   const bestIdx = pickBestFlyingLap(laps)
-  const ref = laps[refIdx] ?? laps[bestIdx]
+  const ref = laps[resolveCompareLap(laps, refIdx, bestIdx)] ?? laps[bestIdx]
   const best = laps[bestIdx] ?? ref
-  const losses = sectorLosses(best.samples, ref.samples, 4)
+  // Positive = compare lap slower than best in that sector
+  const losses = sectorLosses(ref.samples, best.samples, 4)
   const maxLoss = Math.max(...losses, 0)
   const exitRpm = best.exitRpmFocus ?? 5500
   const ideal = idealLapMs(laps)
@@ -191,7 +226,7 @@ function scoreFromTelemetry(
         evidence_kind: 'needs_kart_cam' as EvidenceKind,
         evidence_markers: [],
         unavailable_reason: 'needs_cam' as const,
-        notes: 'Needs kart-cam footage to score.',
+        notes: 'Not scored: needs someone watching on track. N10 only reads logger data.',
       }
     }
 
@@ -374,7 +409,7 @@ function buildSetupHypotheses(
     custom.push({
       id: 'tire_pressure_session',
       message:
-        'Tire pressure (setup): D19 soft — log cold→hot PSI; reset cold before next run. See Health diagnostic.',
+        'Tire pressure (setup): tire management is soft — log cold→hot PSI; reset cold before next run. See Health diagnostic.',
     })
   }
 
@@ -444,15 +479,9 @@ export function buildFocus(
   drillInstruction: string
 ): NextRunFocus {
   const best = laps[bestIdx]
-  // Compare lap under the microscope (slower). Fall back to 2nd-best when ref==best.
-  let compareIdx = refIdx
-  if (compareIdx === bestIdx && laps.length > 1) {
-    const ordered = laps
-      .map((l, i) => ({ i, t: l.timeMs }))
-      .sort((a, b) => a.t - b.t)
-    compareIdx = ordered[1]?.i ?? bestIdx
-  }
-  const compare = laps[compareIdx]
+  // Compare lap under the microscope: fastest full lap other than best (out/in/partial laps excluded).
+  const compareIdx = resolveCompareLap(laps, refIdx, bestIdx)
+  const compare = compareIdx !== bestIdx ? laps[compareIdx] : undefined
   const useLosses =
     best && compare ? sectorLosses(compare.samples, best.samples, 4) : [0, 0, 0, 0]
   const sectorIndex = biggestLossSector(useLosses)
@@ -469,7 +498,7 @@ export function buildFocus(
     drillName,
     drillInstruction,
     exitRpm: compare?.exitRpmFocus ?? best?.exitRpmFocus,
-    referenceLapIndex: refIdx,
+    referenceLapIndex: compareIdx,
     bestLapIndex: bestIdx,
   }
 }
@@ -493,13 +522,16 @@ export function buildCoachingReport(input: BuildReportInput): {
   corners: CornerCue[]
 } {
   const bestIdx = pickBestFlyingLap(input.laps)
-  const refIdx = input.referenceLapIndex
+  const refIdx = resolveCompareLap(input.laps, input.referenceLapIndex, bestIdx)
+  // An attached video is only played back next to the data. N10 does not analyze it,
+  // so it must never change scores or cues.
+  const hasVideo = false
   const scores = scoreFromTelemetry(
     input.laps,
     refIdx,
     input.series,
     input.conditions,
-    !!input.hasVideo,
+    hasVideo,
     input.channels
   )
   const composites = computeComposites(scores)
@@ -515,19 +547,13 @@ export function buildCoachingReport(input: BuildReportInput): {
   const names = input.cornerNames ?? DEFAULT_CORNERS
   // Compare lap = referenceLapIndex (the lap under the microscope).
   // Best ★ stays the target. Delta/losses = compare vs best (positive = compare slower).
-  let compareIdx = refIdx
-  if (compareIdx === bestIdx && input.laps.length > 1) {
-    const ordered = input.laps
-      .map((l, i) => ({ i, t: l.timeMs }))
-      .sort((a, b) => a.t - b.t)
-    compareIdx = ordered[1]?.i ?? bestIdx
-  }
-  const compare = input.laps[compareIdx]
+  const compareIdx = refIdx
+  const compare = compareIdx !== bestIdx ? input.laps[compareIdx] : undefined
   const losses =
     best && compare
       ? sectorLosses(compare.samples, best.samples, 4)
       : [0, 0, 0, 0]
-  const corners = buildCornerCues(losses, names)
+  const corners = buildCornerCues(losses, names, best, compare)
   const focus = buildFocus(
     input.laps,
     refIdx,
@@ -545,8 +571,8 @@ export function buildCoachingReport(input: BuildReportInput): {
         d15.score < 3.5
           ? 'Outside usually donates — present earlier or wait a corner. Own inside before turn-in; protect exit.'
           : 'Keep passes planned one corner ahead. Draft, own inside, exit sticks.'
-    } else if (!input.hasVideo) {
-      racecraft_cue = 'Attach kart-cam to score racecraft (D14–D17). Protect exit after every pass.'
+    } else {
+      racecraft_cue = 'Racecraft (drafting, passing, defending) is not scored from logger data. Protect your exit after every pass.'
     }
   }
 
@@ -566,7 +592,7 @@ export function buildCoachingReport(input: BuildReportInput): {
     vs_last: vsLast(scores, input.previousSession?.report.scores),
     focus,
     source_linkouts: (rubric.source_linkouts ?? []).map((l: { id?: string; title?: string; label?: string; url: string }) => ({
-      title: l.title ?? l.label ?? l.id ?? 'Source',
+      title: linkTitle(l),
       url: l.url,
     })),
   }
@@ -590,11 +616,14 @@ export function refreshStoredSession(
     laps: s.laps,
     referenceLapIndex: s.referenceLapIndex,
     cornerNames: names,
-    hasVideo: !!(s.videoName || s.videoObjectUrl),
     previousSession: previousSession ?? null,
   })
+  const bestLapIndex = pickBestFlyingLap(s.laps)
   return {
     ...s,
+    bestLapIndex,
+    referenceLapIndex: resolveCompareLap(s.laps, s.referenceLapIndex, bestLapIndex),
+    videoCueMarkers: undefined,
     corners,
     report,
     activePriorityDimensionId: report.priority_dimension_id,
@@ -602,4 +631,4 @@ export function refreshStoredSession(
   }
 }
 
-export { computeDelta, sectorLosses, pickBestFlyingLap }
+export { computeDelta, sectorLosses, pickBestFlyingLap, pickCompareLap, resolveCompareLap }

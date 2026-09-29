@@ -4,7 +4,7 @@
  * Format notes: libxrk / AIM XRK self-framing messages (<h…> headers, (S)/(G)/(M) data).
  */
 import type { LapData, ParseResult, TelemetrySample } from './types'
-import { synthLap } from './telemetry'
+import { synthLap, withDistanceFromSpeed } from './telemetry'
 
 function zstr(bytes: Uint8Array): string {
   let end = bytes.length
@@ -341,7 +341,8 @@ export async function parseXrkFile(file: File, buf: ArrayBuffer): Promise<ParseR
         index: built.length,
         lapNumber: mark.num,
         timeMs,
-        samples,
+        // Samples are evenly spaced in time; give them a real distance axis from GPS speed
+        samples: hasSpeed ? withDistanceFromSpeed(samples) : samples,
         minSpeed: Math.min(...speeds),
         maxSpeed: Math.max(...speeds),
         maxRpm: Math.max(...rpms),

@@ -41,7 +41,11 @@ export function GearRatioBand({ advice }: { advice: GearAdvice | null }) {
         />
         <Stat
           label="Suggested rear (17T)"
-          value={`${advice.suggestedRearTeeth.lo}–${advice.suggestedRearTeeth.hi}T`}
+          value={
+            advice.suggestedRearTeeth.lo === advice.suggestedRearTeeth.hi
+              ? `${advice.suggestedRearTeeth.lo}T`
+              : `${advice.suggestedRearTeeth.lo}–${advice.suggestedRearTeeth.hi}T`
+          }
         />
       </div>
 
