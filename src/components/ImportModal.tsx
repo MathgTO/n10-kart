@@ -52,9 +52,10 @@ export function ImportModal({ open, onClose }: Props) {
           <div>
             <h2 className="text-xl font-bold text-white">Import session</h2>
             <p className="mt-1 text-sm text-n10-soft">
-              Reads your MyChron: drop a{' '}
+              Reads your MyChron: native{' '}
               <span className="text-n10-lime font-semibold">.xrk</span> /{' '}
-              <span className="text-n10-lime font-semibold">.xrz</span> or Race Studio CSV
+              <span className="text-n10-lime font-semibold">.xrz</span>, or Race Studio CSV with
+              Lap / Time / Speed / RPM / Distance (sector columns recognized when present).
             </p>
           </div>
           <button type="button" className="text-n10-mute text-2xl leading-none" onClick={onClose}>
@@ -114,20 +115,39 @@ export function ImportModal({ open, onClose }: Props) {
             {busy ? 'Importing…' : 'Choose or drop file'}
           </span>
           <span className="mt-2 block text-sm text-n10-soft">
-            .xrk / .xrz / .csv · on iPad use Browse → Files (all files selectable)
+            .xrk / .xrz / .csv · metadata rows above the table are fine · lap-only CSV still works
+            (synthetic charts) · on iPad use Browse → Files
           </span>
         </button>
 
         {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
 
-        {parse && parse.ok && parse.laps.length > 0 && (
-          <div className="mt-3 rounded-xl border border-n10-lime/30 bg-n10-lime/5 p-3 text-sm">
-            <p className="font-semibold text-n10-lime">Import OK</p>
-            <p className="text-n10-soft mt-1">
-              {parse.laps.length} laps · best{' '}
-              {formatLapTime(Math.min(...parse.laps.map((l) => l.timeMs)))} · speed{' '}
-              {parse.channels.speed ? 'yes' : 'no'} · RPM {parse.channels.rpm ? 'yes' : 'no'}
-            </p>
+        {parse && (
+          <div
+            className={`mt-3 rounded-xl border p-3 text-sm ${
+              parse.ok && parse.laps.length > 0
+                ? 'border-n10-lime/30 bg-n10-lime/5'
+                : 'border-n10-border bg-black/40'
+            }`}
+          >
+            {parse.ok && parse.laps.length > 0 ? (
+              <>
+                <p className="font-semibold text-n10-lime">Import OK</p>
+                <p className="text-n10-soft mt-1">
+                  {parse.laps.length} laps · best{' '}
+                  {formatLapTime(Math.min(...parse.laps.map((l) => l.timeMs)))} · speed{' '}
+                  {parse.channels.speed ? 'yes' : 'no'} · RPM {parse.channels.rpm ? 'yes' : 'no'}
+                </p>
+              </>
+            ) : (
+              <p className="font-semibold text-n10-soft">Parse notes</p>
+            )}
+            <p className="text-n10-mute mt-1 text-xs leading-relaxed">{parse.message}</p>
+            {parse.unmappedColumns && parse.unmappedColumns.length > 0 && (
+              <p className="text-amber-300/90 mt-1 text-xs">
+                Unmapped columns: {parse.unmappedColumns.join(', ')}
+              </p>
+            )}
           </div>
         )}
       </div>

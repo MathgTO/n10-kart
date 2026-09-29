@@ -43,23 +43,20 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
     const REPORT_V = 'na-null-v1'
     const needsLang = prefs.langVersion !== LANG_V
     const needsReport = prefs.reportVersion !== REPORT_V
-    // First visit / empty library: auto-seed Mosport demos so Home is never blank
+    // First visit / empty library: stay empty until the user explicitly loads demos.
     if (existing.length === 0) {
-      const demos = buildDemoSessions()
-      setSessions(demos)
+      setSessions([])
       setPrefs((p) => ({
         ...p,
-        demosLoaded: true,
+        demosLoaded: false,
         langVersion: LANG_V,
         reportVersion: REPORT_V,
       }))
     } else if (needsLang || needsReport) {
-      // Refresh demos on lang change; always recompute stored reports when scoring schema bumps
-      // so old localStorage numeric cam/channel fakes become null N/A without re-import.
-      const demos = buildDemoSessions()
-      const without = existing.filter((s) => !DEMO_IDS.includes(s.id as (typeof DEMO_IDS)[number]))
+      // Recompute reports for stored sessions when scoring or coach vocabulary changes.
+      // Keep any demos already stored, but do not inject them automatically.
       // Sort oldest→newest so previousSession chain is stable, then restore newest-first.
-      const chrono = [...without].sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+      const chrono = [...existing].sort((a, b) => a.createdAt.localeCompare(b.createdAt))
       const refreshed: StoredSession[] = []
       for (const s of chrono) {
         const prev = refreshed.length ? refreshed[refreshed.length - 1] : null
@@ -67,10 +64,12 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
         refreshed.push(refreshStoredSession(s, prev, names))
       }
       refreshed.reverse()
-      setSessions([...demos, ...refreshed])
+      setSessions(refreshed)
       setPrefs((p) => ({
         ...p,
-        demosLoaded: true,
+        demosLoaded: existing.some((s) =>
+          DEMO_IDS.includes(s.id as (typeof DEMO_IDS)[number])
+        ),
         langVersion: LANG_V,
         reportVersion: REPORT_V,
       }))

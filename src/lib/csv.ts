@@ -36,9 +36,94 @@ export async function parseSessionFile(
   return parseCsvText(text, name)
 }
 
+const LAP_ALIASES = ['lap number', 'lap_number', 'lapnumber', 'lap #', 'lap#', 'lap']
+const LAP_TIME_ALIASES = [
+  'lap time',
+  'lap_time',
+  'laptime',
+  'total time',
+  'totaltime',
+  'lap time (s)',
+]
+const SESSION_TIME_ALIASES = ['time (s)', 'time']
+const SPEED_ALIASES = [
+  'gps speed',
+  'gps_speed',
+  'gpsspeed',
+  'vehicle speed',
+  'vehiclespeed',
+  'velocity',
+  'speed',
+  'spd',
+]
+const RPM_ALIASES = ['engine rpm', 'engine_rpm', 'enginerpm', 'rpm']
+const DIST_ALIASES = [
+  'gps distance',
+  'gps_distance',
+  'distance',
+  'dist',
+  'meters',
+  'metres',
+]
+/** Sector / split timing — recognized; used on lap-summary rows when present */
+const SECTOR_ALIASES = [
+  'sector 1',
+  'sector 2',
+  'sector 3',
+  'sector 4',
+  'sector1',
+  'sector2',
+  'sector3',
+  'sector4',
+  'split 1',
+  'split 2',
+  'split 3',
+  'split 4',
+  's1',
+  's2',
+  's3',
+  's4',
+]
+/** Temp / misc channels N10 does not coach on — recognized so they are not “silently dropped” */
+const UNUSED_ALIASES = [
+  'water temp',
+  'water_temp',
+  'watert',
+  'water t',
+  'egt',
+  'cht',
+  'oilp',
+  'oil p',
+  'oil pressure',
+  'oil temp',
+  'thrpos',
+  'throttle',
+  'brake',
+  'gear',
+  'lonacc',
+  'latacc',
+  'gps latitude',
+  'gps longitude',
+  'gps lat',
+  'gps lon',
+  'altitude',
+]
+
+const ALL_MAPPED_ALIAS_GROUPS = [
+  LAP_ALIASES,
+  LAP_TIME_ALIASES,
+  SESSION_TIME_ALIASES,
+  SPEED_ALIASES,
+  RPM_ALIASES,
+  DIST_ALIASES,
+  SECTOR_ALIASES,
+  UNUSED_ALIASES,
+]
+
 export function parseCsvText(text: string, fileName = 'session.csv'): ParseResult {
-  const lines = text.split(/\r?\n/).filter((l) => l.trim().length)
-  if (lines.length < 2) {
+  const rawLines = text.split(/\r?\n/)
+  const lines = rawLines.filter((l) => l.trim().length)
+  if (lines.length < 1) {
     return {
       ok: false,
       kind: 'csv',
@@ -49,12 +134,56 @@ export function parseCsvText(text: string, fileName = 'session.csv'): ParseResul
     }
   }
 
-  const header = splitCsvLine(lines[0]).map((h) => h.toLowerCase().trim())
-  const lapIdx = findCol(header, ['lap', 'lap_number', 'lapnumber', 'lap #'])
-  const timeIdx = findCol(header, ['laptime', 'lap_time', 'time', 'lap time', 'totaltime'])
-  const speedIdx = findCol(header, ['speed', 'gps_speed', 'velocity', 'spd'])
-  const rpmIdx = findCol(header, ['rpm', 'engine_rpm', 'enginerpm'])
-  const distIdx = findCol(header, ['distance', 'dist', 'gps_distance', 'meters'])
+  const headerInfo = findHeaderRow(lines)
+  if (!headerInfo) {
+    // Path C fallback: bare list of lap times (no header)
+    const bare = tryBareLapTimes(lines, fileName)
+    if (bare) return bare
+    return {
+      ok: false,
+      kind: 'csv',
+      laps: [],
+      channels: { speed: false, rpm: false, lapTimes: false },
+      message:
+        'Could not find a CSV header row. Export Race Studio CSV with Lap/Time/Speed/RPM/Distance columns (metadata rows above the table are OK).',
+      fileName,
+      needsCsvFallback: true,
+    }
+  }
+
+  const { headerLineIndex, header, originalHeaders } = headerInfo
+  const dataLines = lines.slice(headerLineIndex + 1).filter((l) => !isUnitsRow(splitCsvLine(l)))
+
+  const lapIdx = findCol(header, LAP_ALIASES)
+  const lapTimeIdx = findCol(header, LAP_TIME_ALIASES)
+  const sessionTimeIdx =
+    lapTimeIdx >= 0 ? findColExcluding(header, SESSION_TIME_ALIASES, [lapTimeIdx]) : findCol(header, SESSION_TIME_ALIASES)
+  const timeIdx = lapTimeIdx >= 0 ? lapTimeIdx : sessionTimeIdx
+  const speedIdx = findCol(header, SPEED_ALIASES)
+  const rpmIdx = findCol(header, RPM_ALIASES)
+  const distIdx = findCol(header, DIST_ALIASES)
+  const sectorCols = findSectorCols(header, originalHeaders)
+  const recognizedUnused = findRecognizedUnused(header, originalHeaders, [
+    lapIdx,
+    timeIdx,
+    sessionTimeIdx,
+    speedIdx,
+    rpmIdx,
+    distIdx,
+    ...sectorCols.map((s) => s.idx),
+  ])
+  const mappedIdx = new Set(
+    [lapIdx, lapTimeIdx, sessionTimeIdx, speedIdx, rpmIdx, distIdx, ...sectorCols.map((s) => s.idx)].filter(
+      (i) => i >= 0
+    )
+  )
+  // Also mark unused-recognized as mapped (not unmapped)
+  for (const u of recognizedUnused) mappedIdx.add(u.idx)
+
+  const unmappedColumns = originalHeaders
+    .map((name, i) => ({ name, i }))
+    .filter(({ name, i }) => name.trim() && !mappedIdx.has(i) && !isBlankish(name))
+    .map(({ name }) => name.trim())
 
   const channels = {
     speed: speedIdx >= 0,
@@ -62,16 +191,37 @@ export function parseCsvText(text: string, fileName = 'session.csv'): ParseResul
     lapTimes: timeIdx >= 0 || lapIdx >= 0,
   }
 
-  // Path A: one row per lap with lap times
+  const unusedNames = recognizedUnused.map((u) => u.name)
+  const sectorNames = sectorCols.map((s) => s.name)
+
+  function annotate(msg: string): { message: string; unmappedColumns?: string[]; recognizedUnused?: string[] } {
+    const bits: string[] = [msg]
+    if (sectorNames.length) bits.push(`sectors recognized: ${sectorNames.join(', ')}`)
+    if (unusedNames.length) bits.push(`noted (not coached): ${unusedNames.join(', ')}`)
+    if (unmappedColumns.length) bits.push(`unmapped columns: ${unmappedColumns.join(', ')}`)
+    return {
+      message: bits.join(' · '),
+      unmappedColumns: unmappedColumns.length ? unmappedColumns : undefined,
+      recognizedUnused: unusedNames.length ? unusedNames : undefined,
+    }
+  }
+
+  // Path A: one row per lap with lap times (no speed stream)
   if (timeIdx >= 0 && speedIdx < 0) {
     const laps: LapData[] = []
-    lines.slice(1).forEach((line, i) => {
+    dataLines.forEach((line, i) => {
       const cols = splitCsvLine(line)
       const raw = cols[timeIdx]
       const ms = parseLapTimeToMs(raw)
       if (ms != null && ms > 1000) {
         const lap = synthLap(ms, i + 1)
         lap.index = laps.length
+        if (sectorCols.length) {
+          const sectors = sectorCols
+            .map((s) => parseLapTimeToMs(cols[s.idx]))
+            .filter((v): v is number => v != null && v > 0)
+          if (sectors.length) lap.sectorLossMs = sectors
+        }
         laps.push(lap)
       }
     })
@@ -81,70 +231,84 @@ export function parseCsvText(text: string, fileName = 'session.csv'): ParseResul
         kind: 'csv',
         laps,
         channels: { ...channels, speed: true, rpm: true },
-        message: `Parsed ${laps.length} laps from lap-time CSV (synthetic speed/RPM for charts).`,
         fileName,
+        ...annotate(
+          `Parsed ${laps.length} laps from lap-time CSV (synthetic speed/RPM for charts).`
+        ),
       }
     }
   }
 
-  // Path B: sample stream with lap markers
+  // Path B: sample stream with lap markers (AiM Race Studio channels-vs-time)
   if (speedIdx >= 0 || rpmIdx >= 0) {
     const byLap = new Map<number, TelemetrySample[]>()
     let autoLap = 1
     let lastLap = -1
-    lines.slice(1).forEach((line, row) => {
+    let lastDist: number | null = null
+    dataLines.forEach((line, row) => {
       const cols = splitCsvLine(line)
       let lapNo = lapIdx >= 0 ? parseNum(cols[lapIdx]) : null
-      if (lapNo == null) {
-        // detect lap reset via distance drop
+      if (lapNo == null || !Number.isFinite(lapNo)) {
         lapNo = autoLap
-      }
-      if (lapNo !== lastLap && lastLap >= 0 && distIdx >= 0) {
-        const d = parseNum(cols[distIdx])
-        if (d != null && d < 20) autoLap++
+        if (distIdx >= 0) {
+          const d = parseNum(cols[distIdx])
+          if (d != null && lastDist != null && d < 20 && lastDist > 50) {
+            autoLap++
+            lapNo = autoLap
+          }
+          if (d != null) lastDist = d
+        }
+      } else if (lapNo !== lastLap && lastLap >= 0) {
+        // lap column advanced
       }
       lastLap = lapNo
+
       const speed = speedIdx >= 0 ? parseNum(cols[speedIdx]) ?? 0 : 60
       const rpm = rpmIdx >= 0 ? parseNum(cols[rpmIdx]) ?? 5000 : 5000
-      const dist =
-        distIdx >= 0
-          ? Math.min(1, Math.max(0, (parseNum(cols[distIdx]) ?? row) / 1500))
-          : 0
+      const distRaw = distIdx >= 0 ? parseNum(cols[distIdx]) : null
+      const sessionT =
+        sessionTimeIdx >= 0 ? parseNum(cols[sessionTimeIdx]) : lapTimeIdx < 0 && timeIdx >= 0 ? parseNum(cols[timeIdx]) : null
+
       const arr = byLap.get(lapNo) ?? []
-      const t = arr.length ? arr[arr.length - 1].t + 0.1 : 0
+      const t =
+        sessionT != null
+          ? sessionT
+          : arr.length
+            ? arr[arr.length - 1].t + 0.1
+            : 0
       arr.push({
         t,
-        dist: distIdx >= 0 ? dist : arr.length,
+        dist: distRaw != null ? distRaw : arr.length,
         speed,
         rpm,
       })
       byLap.set(lapNo, arr)
     })
 
-    // normalize dist 0..1 per lap & compute time
     const laps: LapData[] = []
-    for (const [, samples] of [...byLap.entries()].sort((a, b) => a[0] - b[0])) {
+    for (const [lapNo, samples] of [...byLap.entries()].sort((a, b) => a[0] - b[0])) {
       if (samples.length < 5) continue
-      const maxD = Math.max(...samples.map((s) => s.dist), 1)
-      const norm = samples.map((s, i) => ({
+      const t0 = samples[0].t
+      const withRelT = samples.map((s) => ({ ...s, t: Math.max(0, s.t - t0) }))
+      const maxD = Math.max(...withRelT.map((s) => s.dist), 1)
+      const norm = withRelT.map((s, i) => ({
         ...s,
-        dist: distIdx >= 0 ? s.dist / maxD : i / (samples.length - 1),
-        t: s.t || i * 0.1,
+        dist: distIdx >= 0 ? s.dist / maxD : i / Math.max(1, withRelT.length - 1),
       }))
-      // rescale t so last sample matches rough duration
       const duration = norm[norm.length - 1].t
-      const timeMs = duration > 20 ? duration * 1000 : duration * 1000
-      // if duration looks like index*0.1 only, estimate from count
       const finalMs =
-        duration < 20 ? Math.round((norm.length / 180) * 62000) : Math.round(timeMs)
+        duration >= 20
+          ? Math.round(duration * 1000)
+          : Math.round((norm.length / 180) * 62000)
       const scaled = norm.map((s) => ({
         ...s,
-        t: (s.dist) * (finalMs / 1000),
+        t: duration >= 20 ? s.t : s.dist * (finalMs / 1000),
       }))
       const rpms = scaled.map((s) => s.rpm)
       const speeds = scaled.map((s) => s.speed)
       laps.push({
         index: laps.length,
+        lapNumber: lapNo,
         timeMs: finalMs,
         samples: scaled,
         minSpeed: Math.min(...speeds),
@@ -160,13 +324,31 @@ export function parseCsvText(text: string, fileName = 'session.csv'): ParseResul
         kind: 'csv',
         laps,
         channels,
-        message: `Parsed ${laps.length} laps · speed ${channels.speed ? 'yes' : 'no'} · RPM ${channels.rpm ? 'yes' : 'no'}.`,
         fileName,
+        ...annotate(
+          `Parsed ${laps.length} laps · speed ${channels.speed ? 'yes' : 'no'} · RPM ${channels.rpm ? 'yes' : 'no'}.`
+        ),
       }
     }
   }
 
-  // Path C: bare list of lap times
+  const bare = tryBareLapTimes(lines, fileName)
+  if (bare) return bare
+
+  return {
+    ok: false,
+    kind: 'csv',
+    laps: [],
+    channels,
+    fileName,
+    needsCsvFallback: true,
+    ...annotate(
+      'Could not find lap times or speed/RPM columns. Export a Race Studio 3 CSV with Lap/Time/Speed/RPM/Distance.'
+    ),
+  }
+}
+
+function tryBareLapTimes(lines: string[], fileName: string): ParseResult | null {
   const times: number[] = []
   lines.forEach((line) => {
     const ms = parseLapTimeToMs(line.trim())
@@ -187,21 +369,134 @@ export function parseCsvText(text: string, fileName = 'session.csv'): ParseResul
       fileName,
     }
   }
+  return null
+}
 
-  return {
-    ok: false,
-    kind: 'csv',
-    laps: [],
-    channels,
-    message: 'Could not find lap times or speed/RPM columns. Export a Race Studio 3 CSV with Lap/Time/Speed/RPM.',
-    fileName,
-    needsCsvFallback: true,
+function findHeaderRow(
+  lines: string[]
+): { headerLineIndex: number; header: string[]; originalHeaders: string[] } | null {
+  for (let i = 0; i < lines.length; i++) {
+    const originalHeaders = splitCsvLine(lines[i]).map((h) => h.trim())
+    if (originalHeaders.length < 2) continue
+    if (looksLikeMetadata(lines[i], originalHeaders)) continue
+    if (isUnitsRow(originalHeaders)) continue
+    const header = originalHeaders.map((h) => h.toLowerCase().trim())
+    const hits = countAliasHits(header)
+    if (hits >= 2) {
+      // Prefer a following data/units row that is not another metadata blob
+      return { headerLineIndex: i, header, originalHeaders }
+    }
+    // Single strong hit (e.g. only "Lap Time") can still be a lap-summary header
+    if (hits === 1 && (findCol(header, LAP_TIME_ALIASES) >= 0 || findCol(header, SPEED_ALIASES) >= 0)) {
+      return { headerLineIndex: i, header, originalHeaders }
+    }
   }
+  return null
+}
+
+function countAliasHits(header: string[]): number {
+  let n = 0
+  for (const group of ALL_MAPPED_ALIAS_GROUPS) {
+    if (findCol(header, group) >= 0) n++
+  }
+  return n
+}
+
+function looksLikeMetadata(line: string, cols: string[]): boolean {
+  const lower = line.toLowerCase()
+  if (/^(file\s*type|aim\s+race|vehicle\s*:|driver\s*:|track\s*:|date\s*:|session\s*:)/i.test(line.trim())) {
+    return true
+  }
+  if (cols.length <= 2 && /:/.test(line) && !/lap|speed|rpm|time/i.test(lower)) return true
+  // "Vehicle: Kart, Driver: Sam, Track: Mosport, Date: ..." single-row metadata
+  if (/vehicle\s*:|driver\s*:|track\s*:|beacon\s*:/i.test(line) && findCol(cols.map((c) => c.toLowerCase()), SPEED_ALIASES) < 0) {
+    return true
+  }
+  return false
+}
+
+function isUnitsRow(cols: string[]): boolean {
+  const nonEmpty = cols.filter((c) => c.trim())
+  if (nonEmpty.length < 2) return false
+  const unitish = nonEmpty.filter((c) => {
+    const t = c.trim().toLowerCase().replace(/^\(|\)$/g, '')
+    return (
+      /^(s|ms|min|sec|seconds?|km\/h|mph|m\/s|rpm|m|ft|km|deg|°c|°f|c|f|%|g|bar|psi|v|on\/off|unitless)$/i.test(
+        t
+      ) || /^\([^)]+\)$/.test(c.trim())
+    )
+  })
+  return unitish.length >= Math.ceil(nonEmpty.length * 0.6)
+}
+
+function isBlankish(name: string): boolean {
+  return !name.trim() || /^column\s*\d+$/i.test(name.trim())
+}
+
+function findSectorCols(
+  header: string[],
+  original: string[]
+): { idx: number; name: string }[] {
+  const out: { idx: number; name: string }[] = []
+  const seen = new Set<number>()
+  for (const a of SECTOR_ALIASES) {
+    const i = findCol(header, [a])
+    if (i >= 0 && !seen.has(i)) {
+      seen.add(i)
+      out.push({ idx: i, name: original[i] || a })
+    }
+  }
+  // Also match /^s\d+$/ or /^sector\s*\d+/ exactly on header cells
+  header.forEach((h, i) => {
+    if (seen.has(i)) return
+    if (/^(s|sector|split)\s*\d+$/i.test(h.replace(/[_\-]/g, ' ').trim())) {
+      seen.add(i)
+      out.push({ idx: i, name: original[i] || h })
+    }
+  })
+  return out.sort((a, b) => a.idx - b.idx)
+}
+
+function findRecognizedUnused(
+  header: string[],
+  original: string[],
+  already: number[]
+): { idx: number; name: string }[] {
+  const taken = new Set(already.filter((i) => i >= 0))
+  const out: { idx: number; name: string }[] = []
+  for (const a of UNUSED_ALIASES) {
+    const i = findCol(header, [a])
+    if (i >= 0 && !taken.has(i)) {
+      taken.add(i)
+      out.push({ idx: i, name: original[i] || a })
+    }
+  }
+  return out
 }
 
 function findCol(header: string[], aliases: string[]): number {
+  // Prefer exact match, then includes
   for (const a of aliases) {
-    const i = header.findIndex((h) => h === a || h.includes(a))
+    const exact = header.findIndex((h) => h === a || h.replace(/\s*\([^)]*\)\s*/g, '').trim() === a)
+    if (exact >= 0) return exact
+  }
+  for (const a of aliases) {
+    const i = header.findIndex((h) => h.includes(a))
+    if (i >= 0) return i
+  }
+  return -1
+}
+
+function findColExcluding(header: string[], aliases: string[], exclude: number[]): number {
+  const skip = new Set(exclude)
+  for (const a of aliases) {
+    const exact = header.findIndex(
+      (h, i) => !skip.has(i) && (h === a || h.replace(/\s*\([^)]*\)\s*/g, '').trim() === a)
+    )
+    if (exact >= 0) return exact
+  }
+  for (const a of aliases) {
+    const i = header.findIndex((h, idx) => !skip.has(idx) && h.includes(a))
     if (i >= 0) return i
   }
   return -1
@@ -244,7 +539,6 @@ export function parseLapTimeToMs(raw: string | undefined): number | null {
     const min = Number(m[1])
     const sec = Number(m[2])
     let frac = m[3]
-    // normalize to 3 digits (fix 1:01.1000 → 1:01.100)
     if (frac.length > 3) frac = frac.slice(0, 3)
     while (frac.length < 3) frac += '0'
     return min * 60000 + sec * 1000 + Number(frac)
