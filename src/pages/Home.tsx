@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ImportModal } from '@/components/ImportModal'
 import { useSessions } from '@/hooks/SessionsContext'
 import { formatLapTime } from '@/lib/format'
+import { fetchSampleFile, REAL_SAMPLES } from '@/lib/samples'
+import { isNative } from '@/native/platform'
 
 const IOS_TIP_KEY = 'n10-ios-homescreen-tip-dismissed'
 
@@ -19,6 +21,7 @@ function IosHomeScreenTip() {
 
   useEffect(() => {
     try {
+      if (isNative) return // already an installed app
       if (!isIosDevice()) return
       if (window.matchMedia('(display-mode: standalone)').matches) return
       if (localStorage.getItem(IOS_TIP_KEY) === '1') return
@@ -56,8 +59,33 @@ function IosHomeScreenTip() {
 }
 
 export function Home() {
-  const { sessions, loadDemos, prefs, deleteSession } = useSessions()
+  const { sessions, loadDemos, prefs, deleteSession, importFile } = useSessions()
   const [importOpen, setImportOpen] = useState(false)
+  const nav = useNavigate()
+  const [sampleBusy, setSampleBusy] = useState(false)
+  const [sampleError, setSampleError] = useState<string | null>(null)
+
+  /** Loads a real MyChron .xrk from Mosport (bundled in public/samples) through the normal import path. */
+  async function tryRealSession() {
+    setSampleBusy(true)
+    setSampleError(null)
+    try {
+      // Alternate between the two bundled sessions so a second tap gives the other one.
+      const already = new Set(sessions.map((s) => s.sourceFileName))
+      const sample = REAL_SAMPLES.find((s) => !already.has(s.displayName)) ?? REAL_SAMPLES[0]
+      const file = await fetchSampleFile(sample)
+      const result = await importFile(file, { trackId: sample.trackId })
+      if (!result.session) {
+        setSampleError(result.parse.message || 'Could not read the sample session.')
+        return
+      }
+      nav(`/session/${result.session.id}`)
+    } catch (e) {
+      setSampleError(e instanceof Error ? e.message : 'Could not load the sample session.')
+    } finally {
+      setSampleBusy(false)
+    }
+  }
 
   return (
     <div className="space-y-8 pb-8">
@@ -88,9 +116,18 @@ export function Home() {
           >
             Import session
           </button>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => void tryRealSession()}
+            disabled={sampleBusy}
+          >
+            {sampleBusy ? 'Reading .xrk…' : 'Try a real Mosport session'}
+          </button>
           <button type="button" className="btn-secondary" onClick={() => loadDemos()}>
             Try sample sessions
           </button>
+          {sampleError && <p className="text-sm text-red-300 max-w-xs">{sampleError}</p>}
         </div>
       </section>
 

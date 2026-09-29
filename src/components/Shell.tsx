@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet } from 'react-router-dom'
 import { TrackPicker } from './TrackPicker'
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
@@ -36,6 +36,16 @@ export function Shell() {
           <p>
             N10 is independent and not affiliated with or endorsed by Briggs &amp; Stratton. LO206
             and Briggs &amp; Stratton are trademarks of their owners.
+          </p>
+          <p>
+            N10 is not affiliated with or endorsed by AiM Sportline. AiM, MyChron and Race Studio are
+            trademarks of their owners.
+          </p>
+          <p>
+            <Link to="/privacy" className="underline underline-offset-2 hover:text-white">
+              Privacy
+            </Link>{' '}
+            · N10 collects no data. Your sessions stay on this device.
           </p>
         </div>
       </footer>

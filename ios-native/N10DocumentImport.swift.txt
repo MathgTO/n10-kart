@@ -1,0 +1,51 @@
+/// N10: stages documents handed over by other apps ("Open in N10", AirDrop, Files, share sheet)
+/// at Documents/Imports/<file name> so the web layer can read them with @capacitor/filesystem.
+/// Files outside the sandbox are security-scoped: only native code can open them, so we copy
+/// them here (coordinated read, so iCloud Drive / File Provider files are materialized first).
+/// Files already in our Documents folder (except the system Inbox) are read in place by JS.
+enum N10DocumentImport {
+    static let importableExtensions: Set<String> = ["xrk", "xrz", "csv"]
+
+    static func stage(_ url: URL) {
+        guard url.isFileURL, importableExtensions.contains(url.pathExtension.lowercased()) else { return }
+        let fm = FileManager.default
+        guard let docs = fm.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
+        let docsPath = docs.resolvingSymlinksInPath().path
+        let srcPath = url.resolvingSymlinksInPath().path
+        let inboxPath = docs.appendingPathComponent("Inbox").resolvingSymlinksInPath().path
+        let isInbox = srcPath.hasPrefix(inboxPath + "/")
+        if srcPath.hasPrefix(docsPath + "/") && !isInbox { return }
+
+        let importsDir = docs.appendingPathComponent("Imports", isDirectory: true)
+        let target = importsDir.appendingPathComponent(url.lastPathComponent)
+        let scoped = url.startAccessingSecurityScopedResource()
+        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+        do {
+            try fm.createDirectory(at: importsDir, withIntermediateDirectories: true)
+            if fm.fileExists(atPath: target.path) {
+                try fm.removeItem(at: target) // never import a stale copy with the same name
+            }
+            if isInbox {
+                try fm.moveItem(at: url, to: target) // iOS-made Inbox copy: tidy it into Imports
+                return
+            }
+            var coordinationError: NSError?
+            var copyError: Error?
+            NSFileCoordinator().coordinate(readingItemAt: url, options: .withoutChanges, error: &coordinationError) { readURL in
+                do {
+                    try fm.copyItem(at: readURL, to: target)
+                } catch {
+                    copyError = error
+                }
+            }
+            if let e = coordinationError {
+                NSLog("[N10] document import coordination failed: \(e.localizedDescription)")
+            }
+            if let e = copyError {
+                NSLog("[N10] document import copy failed: \(e.localizedDescription)")
+            }
+        } catch {
+            NSLog("[N10] document import failed: \(error.localizedDescription)")
+        }
+    }
+}

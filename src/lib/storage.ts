@@ -1,4 +1,5 @@
 import type { SeriesTag, StoredSession } from './types'
+import { mirror } from '@/native/mirror'
 
 const SESSIONS_KEY = 'n10-kart-sessions-v3'
 const PREFS_KEY = 'n10-kart-prefs-v3'
@@ -27,7 +28,9 @@ export function loadSessions(): StoredSession[] {
 export function saveSessions(sessions: StoredSession[]) {
   // Strip video object URLs before persist
   const safe = sessions.map(({ videoObjectUrl, ...rest }) => rest)
-  localStorage.setItem(SESSIONS_KEY, JSON.stringify(safe))
+  const json = JSON.stringify(safe)
+  mirror(SESSIONS_KEY, json) // iOS shell only (no-op on web); queued before setItem so a quota error can't skip it
+  localStorage.setItem(SESSIONS_KEY, json)
 }
 
 export function loadPrefs(): Prefs {
@@ -39,7 +42,9 @@ export function loadPrefs(): Prefs {
 }
 
 export function savePrefs(p: Prefs) {
-  localStorage.setItem(PREFS_KEY, JSON.stringify(p))
+  const json = JSON.stringify(p)
+  mirror(PREFS_KEY, json)
+  localStorage.setItem(PREFS_KEY, json)
 }
 
 export function loadFavorites(): string[] {
@@ -51,5 +56,7 @@ export function loadFavorites(): string[] {
 }
 
 export function saveFavorites(ids: string[]) {
-  localStorage.setItem(FAV_KEY, JSON.stringify(ids))
+  const json = JSON.stringify(ids)
+  mirror(FAV_KEY, json)
+  localStorage.setItem(FAV_KEY, json)
 }

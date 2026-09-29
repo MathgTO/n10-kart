@@ -22,7 +22,7 @@ interface SessionsCtx {
   setSeries: (s: SeriesTag) => void
   toggleFavorite: (id: string) => void
   loadDemos: () => void
-  importFile: (file: File) => Promise<{ session: StoredSession | null; parse: ParseResult }>
+  importFile: (file: File, opts?: { trackId?: string }) => Promise<{ session: StoredSession | null; parse: ParseResult }>
   updateReferenceLap: (sessionId: string, lapIndex: number) => void
   attachVideo: (sessionId: string, file: File) => void
   deleteSession: (id: string) => void
@@ -125,7 +125,7 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
   )
 
   const importFile = useCallback(
-    async (file: File) => {
+    async (file: File, opts?: { trackId?: string }) => {
       const lower = file.name.toLowerCase()
       let payload: string | ArrayBuffer
       if (lower.endsWith('.csv') || lower.endsWith('.txt')) {
@@ -137,7 +137,7 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
       if (!parse.ok || !parse.laps.length) {
         return { session: null, parse }
       }
-      const track = getTrack(prefs.trackId)
+      const track = getTrack(opts?.trackId ?? prefs.trackId)
       const bestLapIndex = pickBestFlyingLap(parse.laps)
       const ordered = parse.laps
         .map((l, i) => ({ i, t: l.timeMs }))
