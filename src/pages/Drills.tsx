@@ -8,8 +8,8 @@ export function DrillsPage() {
         <p className="text-sm font-bold uppercase text-n10-lime">One change rule</p>
         <h1 className="text-3xl font-black mt-1">Drills</h1>
         <p className="mt-2 text-base text-n10-soft max-w-2xl">
-          Session coach picks <strong className="text-white">one</strong> primary drill from the worst
-          weighted dimension. Keep it until that dim scores ≥4.
+          Driver drills for the LO206. The coach picks <strong className="text-white">one</strong>{' '}
+          primary drill from your worst weighted dimension. Keep it until that dim scores ≥4.
         </p>
       </div>
       <ul className="space-y-3">

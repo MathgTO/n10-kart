@@ -9,7 +9,7 @@ export function KnowledgePage() {
         <p className="text-sm font-bold uppercase text-n10-lime">LO206 Junior · Mosport / MIKA → BSC</p>
         <h1 className="text-3xl font-black mt-1">Knowledge</h1>
         <p className="mt-2 text-base text-n10-soft max-w-2xl">
-          Momentum sport. Protect exit RPM ~5800–6100. Junior yellow slide: gear for restricted peak,
+          LO206 notes for drivers and tuners. Momentum class. Protect exit RPM ~5800–6100. Junior yellow slide: gear for restricted peak,
           not limiter. Setup hypotheses stay tagged — never “try harder” for a gearing problem.
         </p>
       </div>

@@ -65,8 +65,8 @@ export function Home() {
 
       <section className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-xl">
-          <p className="text-sm font-bold uppercase tracking-wider text-n10-lime">Next run</p>
-          <h1 className="sr-only">N10 — The next tenth. This session.</h1>
+          <p className="text-sm font-bold uppercase tracking-wider text-n10-lime">The LO206 coach · Drivers + tuners</p>
+          <h1 className="sr-only">N10 — The LO206 coach. For drivers and tuners.</h1>
           <img
             src={`${import.meta.env.BASE_URL}n10-logo.jpg`}
             alt="N10 — The next tenth. This session."
@@ -76,8 +76,7 @@ export function Home() {
             decoding="async"
           />
           <p className="mt-4 text-base text-n10-soft leading-relaxed">
-            Import a Race Studio session. Pick the reference. Get the Coach call — brake, apex, exit
-            — for the next run.
+            Built for the Briggs LO206. Import your MyChron session, get one driving fix and one setup change for the next run. Made for your phone, between runs.
           </p>
         </div>
         <div className="flex flex-col gap-3 w-full sm:w-auto">
@@ -96,8 +95,11 @@ export function Home() {
       </section>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <InfoCard title="Formats" body="Race Studio .xrk / .xrz / CSV — pick a file from disk" />
-        <InfoCard title="Coach call" body="One turn to fix · sectors show where time went" />
+        <InfoCard
+          title="Reads your MyChron"
+          body=".xrk / .xrz native · Race Studio CSV (Lap, Time, GPS Speed, RPM, Distance; sectors when present) · lap-only CSV OK · onboard video (mp4/mov/webm)"
+        />
+        <InfoCard title="Coach call" body="Driver: one turn to fix, sectors show where time went · Tuner: exit RPM, gear, clutch, tire pressure — one change per outing" />
         <InfoCard title="Home circuit" body="Mosport Karting Centre · Bowmanville" />
       </div>
 
@@ -109,10 +111,11 @@ export function Home() {
 
         {sessions.length === 0 ? (
           <div className="mt-4 panel text-center py-10">
-            <p className="text-lg font-semibold">No sessions yet</p>
+            <p className="text-lg font-semibold">No LO206 sessions yet</p>
             <p className="mt-2 text-n10-soft">
-              Use <span className="text-n10-lime font-semibold">Import session</span> above, or try
-              sample sessions to see Coach call.
+              Use <span className="text-n10-lime font-semibold">Import session</span> to load your
+              MyChron file, or try sample sessions to see a Coach call and setup change. Open a
+              session to upload race video.
             </p>
           </div>
         ) : (

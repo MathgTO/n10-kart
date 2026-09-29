@@ -6,25 +6,115 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <title>N10 — The next tenth. This session.</title>
+    <title>N10 — The LO206 coach for drivers and tuners</title>
     <meta
       name="description"
-      content="N10 MyChron coach for LO206 Junior @ Mosport — next-run focus, delta, exit RPM."
+      content="The coaching app built for the Briggs LO206, for drivers and tuners. Reads your MyChron .xrk. One driving fix by corner and one setup change — gear, clutch or tire pressure — for the next run."
     />
+    <meta
+      name="keywords"
+      content="LO206, Briggs LO206, LO206 coach, LO206 coaching app, LO206 data, LO206 gear ratio, LO206 clutch, LO206 tire pressure, MyChron LO206, MyChron xrk, kart tuning, junior karting"
+    />
+    <link rel="canonical" href="https://n10kart.com/" />
+    <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#0a0a0a" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="N10" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="application-name" content="N10" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://n10kart.com/" />
+    <meta property="og:site_name" content="N10" />
+    <meta property="og:title" content="N10 — The LO206 coach for drivers and tuners" />
+    <meta property="og:description" content="The coaching app built for the Briggs LO206, for drivers and tuners. Reads your MyChron .xrk. One driving fix by corner and one setup change — gear, clutch or tire pressure — for the next run." />
+    <meta property="og:image" content="https://n10kart.com/n10-wordmark.png" />
+    <meta property="og:image:alt" content="N10 — The next tenth. This session." />
+    <meta property="og:locale" content="en_CA" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="N10 — The LO206 coach for drivers and tuners" />
+    <meta name="twitter:description" content="The coaching app built for the Briggs LO206, for drivers and tuners. Reads your MyChron .xrk. One driving fix by corner and one setup change — gear, clutch or tire pressure — for the next run." />
+    <meta name="twitter:image" content="https://n10kart.com/n10-wordmark.png" />
+
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="icon" type="image/png" sizes="128x128" href="/n10-mark.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://n10kart.com/#website",
+          "url": "https://n10kart.com/",
+          "name": "N10",
+          "description": "The coaching app built for the Briggs LO206, for drivers and tuners. Reads your MyChron .xrk. One driving fix by corner and one setup change — gear, clutch or tire pressure — for the next run.",
+          "inLanguage": "en"
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://n10kart.com/#app",
+          "name": "N10",
+          "url": "https://n10kart.com/",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "description": "The coaching app built for the Briggs LO206, for drivers and tuners. Reads your MyChron .xrk. One driving fix by corner and one setup change — gear, clutch or tire pressure — for the next run.",
+          "featureList": [
+            "Coaching built for the Briggs LO206 — drivers and tuners",
+            "Reads your MyChron .xrk / .xrz and Race Studio CSV — on phone or Mac",
+            "One driving fix by corner (Coach call)",
+            "One setup change per outing — gear ratio, clutch or tire pressure",
+            "Lap times and sector / delta vs reference",
+            "GPS speed and RPM overlay",
+            "Onboard video attach (mp4/mov/webm, client-side)",
+            "LO206 exit RPM band and gear ratio band"
+          ],
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "CAD"
+          },
+          "browserRequirements": "Requires a modern web browser",
+          "isAccessibleForFree": true
+        }
+      ]
+    }
+    </script>
   </head>
   <body class="bg-black text-white">
     <div id="root"></div>
+
+    <!-- Crawler-visible SEO content (SPA #root is empty until JS). -->
+    <noscript>
+      <main style="max-width:42rem;margin:2rem auto;padding:1.5rem;font-family:system-ui,sans-serif;line-height:1.5;color:#fff;background:#0a0a0a">
+        <h1>N10 — The LO206 coach for drivers and tuners</h1>
+        <p>
+          The coaching app built for the Briggs LO206, for drivers and tuners. Reads your MyChron
+          .xrk. One driving fix by corner and one setup change — gear, clutch or tire pressure — for
+          the next run.
+        </p>
+        <p><a href="https://n10kart.com/" style="color:#c8ff00">Open N10</a></p>
+      </main>
+    </noscript>
+    <div
+      id="n10-seo"
+      style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0"
+    >
+      <h1>N10 — The LO206 coach for drivers and tuners</h1>
+      <p>
+        The coaching app built for the Briggs LO206, for drivers and tuners. Reads your MyChron
+        .xrk. One driving fix by corner and one setup change — gear, clutch or tire pressure — for
+        the next run.
+      </p>
+    </div>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

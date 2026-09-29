@@ -52,9 +52,9 @@ export function ImportModal({ open, onClose }: Props) {
           <div>
             <h2 className="text-xl font-bold text-white">Import session</h2>
             <p className="mt-1 text-sm text-n10-soft">
-              Drop a Race Studio{' '}
+              Reads your MyChron: drop a{' '}
               <span className="text-n10-lime font-semibold">.xrk</span> /{' '}
-              <span className="text-n10-lime font-semibold">.xrz</span> or CSV
+              <span className="text-n10-lime font-semibold">.xrz</span> or Race Studio CSV
             </p>
           </div>
           <button type="button" className="text-n10-mute text-2xl leading-none" onClick={onClose}>

@@ -81,7 +81,7 @@ export function SessionPage() {
             <div>
               <p className="text-base font-black text-n10-lime uppercase tracking-wide">Race video</p>
               <p className="text-sm text-n10-soft mt-0.5">
-                Upload onboard / kart-cam (mp4, mov, webm). Stays on this device — optional for coaching.
+                Add your LO206 onboard / kart-cam (mp4, mov, webm) to watch next to the data. Stays on this device — optional for coaching.
               </p>
             </div>
             <VideoPanel session={session} compact />

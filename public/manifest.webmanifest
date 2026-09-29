@@ -1,7 +1,7 @@
 {
-  "name": "N10 — Kart Coach",
+  "name": "N10 \u2014 LO206 Coach",
   "short_name": "N10",
-  "description": "The next tenth. This session. MyChron coach for LO206.",
+  "description": "The LO206 coach for drivers and tuners. Built for the Briggs LO206: reads your MyChron .xrk, gives one driving fix and one setup change for the next run.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -9,7 +9,11 @@
   "theme_color": "#0a0a0a",
   "background_color": "#000000",
   "lang": "en",
-  "categories": ["sports", "productivity"],
+  "categories": [
+    "sports",
+    "education",
+    "productivity"
+  ],
   "icons": [
     {
       "src": "icons/icon-192.png",

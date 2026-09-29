@@ -22,7 +22,7 @@ export function SetupBox({ items }: { items: CoachingReport['setup_hypotheses'] 
         <h2 className="text-xl font-bold">Setup hypotheses</h2>
       </div>
       <p className="mt-1 text-sm text-n10-soft">
-        Tire pressure + gear ratio flags — tagged separately, never mixed into driver blame.
+        For tuners: tire pressure + gear ratio flags — tagged separately, never mixed into driver blame.
       </p>
 
       {items.length === 0 ? (

@@ -67,7 +67,7 @@ export function VideoPanel({
     <section className="panel" id="session-video">
       <h2 className="text-xl font-bold">Onboard video</h2>
       <p className="text-sm text-n10-soft mt-1">
-        Kart-cam video for this session — stays on your device, optional for Coach call.
+        Your kart-cam onboard for this session, next to the data — stays on your device, optional for Coach call.
         Replace anytime.
       </p>
       {input}

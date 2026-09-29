@@ -40,8 +40,8 @@ export function HealthDiagnostic({ session }: { session: StoredSession }) {
         <h2 className="text-xl font-bold">Health diagnostic</h2>
       </div>
       <p className="mt-1 text-sm text-n10-soft">
-        Tire pressure · Gear · Clutch — diagnosis + next move from this session. Setup-tagged,
-        never mixed into driver blame. Synced with Kart Tuning Expert / trackside pack:{' '}
+        For tuners: tire pressure · gear · clutch — diagnosis + next move from this session.
+        Setup-tagged, never mixed into driver blame. N10 rule:{' '}
         <span className="font-semibold text-teal-100">one setup category per outing</span>{' '}
         (gear OR clutch OR tires — magnitude from data; no stacking categories).
       </p>
