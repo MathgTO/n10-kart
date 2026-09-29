@@ -1,5 +1,5 @@
 import type { CoachingReport, StoredSession } from '@/lib/types'
-import { formatDeltaMs, formatLapTime, formatRpm } from '@/lib/format'
+import { formatDeltaMs, formatLapLabel, formatLapTime, formatRpm } from '@/lib/format'
 import { EXIT_RPM_BAND } from '@/lib/rubric'
 
 export function FocusHero({ session }: { session: StoredSession }) {
@@ -11,8 +11,8 @@ export function FocusHero({ session }: { session: StoredSession }) {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-bold uppercase tracking-wider text-n10-lime">Coach call · Next run</p>
         <p className="text-sm text-n10-soft">
-          Compare L{session.referenceLapIndex + 1} {formatLapTime(refLap?.timeMs)} · Best ★{' '}
-          {formatLapTime(bestLap?.timeMs)}
+          Compare {formatLapLabel(refLap, session.referenceLapIndex)} {formatLapTime(refLap?.timeMs)} · Best ★{' '}
+          {formatLapLabel(bestLap, session.bestLapIndex)} {formatLapTime(bestLap?.timeMs)}
         </p>
       </div>
       <h1 className="mt-2 text-2xl sm:text-3xl font-black text-white leading-tight">

@@ -28,3 +28,9 @@ export function formatRpm(n: number | undefined): string {
   if (n == null || !Number.isFinite(n)) return '—'
   return `${Math.round(n).toLocaleString('en-US')}`
 }
+
+/** MyChron lap number when known; else 1-based array index. */
+export function formatLapLabel(lap: { lapNumber?: number; index?: number } | null | undefined, fallbackIndex: number): string {
+  const n = lap?.lapNumber ?? (lap?.index != null ? lap.index + 1 : fallbackIndex + 1)
+  return `L${n}`
+}

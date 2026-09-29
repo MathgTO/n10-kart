@@ -15,6 +15,8 @@ export interface TelemetrySample {
 
 export interface LapData {
   index: number
+  /** MyChron / CSV lap number when known (prefer over index+1 in UI). */
+  lapNumber?: number
   timeMs: number
   samples: TelemetrySample[]
   sectorLossMs?: number[]
@@ -150,4 +152,8 @@ export interface ParseResult {
   message: string
   needsCsvFallback?: boolean
   fileName: string
+  /** Headers present in the file that N10 did not map to coached channels */
+  unmappedColumns?: string[]
+  /** Headers recognized (sector/temp/etc.) but not used for coaching charts */
+  recognizedUnused?: string[]
 }

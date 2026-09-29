@@ -339,6 +339,7 @@ export async function parseXrkFile(file: File, buf: ArrayBuffer): Promise<ParseR
       const rpms = samples.map((s) => s.rpm)
       built.push({
         index: built.length,
+        lapNumber: mark.num,
         timeMs,
         samples,
         minSpeed: Math.min(...speeds),
@@ -349,6 +350,7 @@ export async function parseXrkFile(file: File, buf: ArrayBuffer): Promise<ParseR
     } else {
       const lap = synthLap(timeMs, li + 1)
       lap.index = built.length
+      lap.lapNumber = mark.num
       built.push(lap)
     }
   }

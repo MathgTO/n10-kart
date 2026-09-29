@@ -588,15 +588,42 @@ export function buildHealthDiagnostic(input: {
   }
 }
 
+/**
+ * Peak GPS/wheel speed across the session, paired with RPM at that sample.
+ * Prefer this over beacon-"best" lap peaks: GPS-only MyChron logs can corrupt
+ * lap stamps, so the starred lap is not authoritative for gear math.
+ */
+function rpmAtPeakSpeed(laps: LapData[]): { maxSpeed?: number; rpmAtPeak?: number } {
+  let maxSpeed = -1
+  let rpmAtPeak: number | undefined
+  for (const lap of laps) {
+    for (const s of lap.samples) {
+      if (
+        Number.isFinite(s.speed) &&
+        Number.isFinite(s.rpm) &&
+        s.speed > maxSpeed &&
+        s.speed >= 20 &&
+        s.rpm >= 3000
+      ) {
+        maxSpeed = s.speed
+        rpmAtPeak = s.rpm
+      }
+    }
+  }
+  if (maxSpeed < 0 || rpmAtPeak == null) return {}
+  return { maxSpeed, rpmAtPeak }
+}
+
 /** Convenience: build from a stored session. */
 export function buildHealthDiagnosticFromSession(session: StoredSession): HealthDiagnostic {
   const best = session.laps[session.bestLapIndex]
+  const peak = rpmAtPeakSpeed(session.laps)
   return buildHealthDiagnostic({
     scores: session.report.scores,
     series: session.series,
     laps: session.laps,
     exitRpm: session.report.focus.exitRpm ?? best?.exitRpmFocus,
-    maxRpm: best?.maxRpm,
-    maxSpeed: best?.maxSpeed,
+    maxRpm: peak.rpmAtPeak ?? best?.maxRpm,
+    maxSpeed: peak.maxSpeed ?? best?.maxSpeed,
   })
 }
