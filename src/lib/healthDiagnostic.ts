@@ -143,11 +143,14 @@ function gearCard(
   else if (farOff) status = 'fix'
   else status = 'watch'
 
-  const exitLabel = exit != null ? `~${Math.round(exit)}` : '—'
+  const exitLabel = exit != null ? `${Math.round(exit)}` : '—'
   const diagnosis = `Peak ${peakSpeedKmh.toFixed(0)} km/h @ ~${Math.round(peakRpm)} RPM; exit ~${exitLabel} vs ${EXIT_RPM_BAND.lo}–${EXIT_RPM_BAND.hi} band. Est. ratio ~${estimatedCurrentRatio.toFixed(2)} (17T front — verify sprockets).`
 
   const estNowT = Math.round(estimatedCurrentRatio * GEAR_ASSUMPTIONS.driverTeeth)
-  const bandT = `${suggestedRearTeeth.lo}–${suggestedRearTeeth.hi}T`
+  const bandT =
+    suggestedRearTeeth.lo === suggestedRearTeeth.hi
+      ? `${suggestedRearTeeth.lo}T`
+      : `${suggestedRearTeeth.lo}–${suggestedRearTeeth.hi}T`
   let optimize: string
   if (action === 'plus') {
     optimize = `Add ${absTeeth} rear tooth (shorter gear) on 17T front — est. now ~${estNowT}T → try ~${bandT}.`
@@ -168,7 +171,7 @@ function gearCard(
       { label: 'Ideal band', value: `${idealBand.lo.toFixed(2)}–${idealBand.hi.toFixed(2)}` },
       {
         label: 'Suggested rear (17T)',
-        value: `${suggestedRearTeeth.lo}–${suggestedRearTeeth.hi}T`,
+        value: bandT,
       },
     ],
   }

@@ -12,6 +12,8 @@ import { VideoPanel } from '@/components/VideoPanel'
 import { VsLastStrip } from '@/components/VsLastStrip'
 import { useSessions } from '@/hooks/SessionsContext'
 import { formatLapLabel, formatLapTime } from '@/lib/format'
+import { SAFETY_LINE, seriesLabel } from '@/lib/labels'
+import { lapValidity } from '@/lib/telemetry'
 import { getTrack } from '@/data/tracks'
 import { MOSPORT_GP_SECTORS } from '@/data/mosportSectors'
 
@@ -43,6 +45,8 @@ export function SessionPage() {
   const ref = session.laps[session.referenceLapIndex]
   const track = getTrack(session.trackId)
   const cornerLabels = MOSPORT_GP_SECTORS.map((s) => ({ name: s.code, at: s.midFrac }))
+  const validity = lapValidity(session.laps)
+  const hasCompare = session.referenceLapIndex !== session.bestLapIndex
 
   return (
     <div className="space-y-6 pb-28">
@@ -51,10 +55,23 @@ export function SessionPage() {
           <Link to="/" className="text-sm text-n10-lime font-semibold">
             ← Sessions
           </Link>
-          <h1 className="text-2xl font-black mt-1">{session.title}</h1>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl font-black">{session.title}</h1>
+            {session.isDemo && (
+              <span className="rounded-full border border-amber-300/60 bg-amber-300/10 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-200">
+                Demo session
+              </span>
+            )}
+          </div>
           <p className="text-base text-n10-soft">
-            {session.classAssumption} · {session.trackName} · {session.series}
+            {session.classAssumption} · {session.trackName} · {seriesLabel(session.series)}
           </p>
+          {session.isDemo && (
+            <p className="text-sm text-amber-200/90">
+              Demo data generated for illustration, not a real recording. Import your own file to see your laps.
+            </p>
+          )}
+          <p className="mt-1 text-sm font-semibold text-white">{SAFETY_LINE}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button type="button" className="btn-secondary" onClick={() => setImportOpen(true)}>
@@ -81,7 +98,8 @@ export function SessionPage() {
             <div>
               <p className="text-base font-black text-n10-lime uppercase tracking-wide">Race video</p>
               <p className="text-sm text-n10-soft mt-0.5">
-                Add your LO206 onboard / kart-cam (mp4, mov, webm) to watch next to the data. Stays on this device — optional for coaching.
+                Add your onboard / kart-cam clip (mp4 or mov) to watch next to the data. It stays on this
+                device and isn&apos;t analyzed; the coaching comes from your logger file.
               </p>
             </div>
             <VideoPanel session={session} compact />
@@ -95,27 +113,41 @@ export function SessionPage() {
       <section className="panel">
         <h2 className="text-lg font-bold">Compare lap</h2>
         <p className="text-sm text-n10-soft mt-1">
-          <span className="text-n10-lime font-semibold">Best ★</span> is the fastest flying lap
+          <span className="text-n10-lime font-semibold">Best ★</span> is the fastest full lap
           (target). Tap a <span className="text-white font-semibold">slower</span> lap to compare
-          — delta and Coach call show where that lap lost vs best.
+          — delta and Coach call show where that lap lost vs best. Out-laps, in-laps and partial
+          laps are greyed out and never compared.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
-          {session.laps.map((lap, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => updateReferenceLap(session.id, i)}
-              className={`rounded-lg px-3 py-2 text-sm font-semibold border ${
-                i === session.referenceLapIndex
-                  ? 'border-sky-400 bg-sky-400 text-black'
-                  : 'border-n10-border bg-n10-card text-n10-soft'
-              }`}
-            >
-              {formatLapLabel(lap, i)} {formatLapTime(lap.timeMs)}
-              {i === session.bestLapIndex ? ' ★ best' : ''}
-              {i === session.referenceLapIndex && i !== session.bestLapIndex ? ' · compare' : ''}
-            </button>
-          ))}
+          {session.laps.map((lap, i) => {
+            const v = validity[i]
+            const isBest = i === session.bestLapIndex
+            const isCompare = hasCompare && i === session.referenceLapIndex
+            const disabled = v !== 'ok' || isBest
+            return (
+              <button
+                key={i}
+                type="button"
+                disabled={disabled}
+                title={v === 'partial' ? 'Partial lap (not compared)' : v === 'slow' ? 'Out-lap or in-lap (not compared)' : undefined}
+                onClick={() => updateReferenceLap(session.id, i)}
+                className={`rounded-lg px-3 py-2 text-sm font-semibold border ${
+                  isCompare
+                    ? 'border-sky-400 bg-sky-400 text-black'
+                    : isBest
+                      ? 'border-n10-lime/60 bg-n10-lime/10 text-n10-lime'
+                      : v !== 'ok'
+                        ? 'border-n10-border/50 bg-transparent text-n10-mute/60 cursor-not-allowed'
+                        : 'border-n10-border bg-n10-card text-n10-soft'
+                }`}
+              >
+                {formatLapLabel(lap, i)} {formatLapTime(lap.timeMs)}
+                {isBest ? ' ★ best' : ''}
+                {isCompare ? ' · compare' : ''}
+                {v === 'partial' ? ' · partial' : v === 'slow' ? ' · out/in' : ''}
+              </button>
+            )
+          })}
         </div>
       </section>
 
@@ -148,7 +180,7 @@ export function SessionPage() {
         priorityDim={session.report.priority_dimension_id}
       />
       <HealthDiagnostic session={session} />
-      <ScorePanel report={session.report} hasVideo={!!(session.videoName || session.videoObjectUrl)} />
+      <ScorePanel report={session.report} />
 
       {session.report.racecraft_cue && (
         <section className="panel">

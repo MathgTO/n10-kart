@@ -17,7 +17,7 @@ export function isUnavailableScore(s: DimensionScore, hasVideo?: boolean): boole
 }
 
 function evidenceLabel(s: DimensionScore): string {
-  if (s.unavailable_reason === 'needs_cam' || s.evidence_kind === 'needs_kart_cam') return 'needs cam'
+  if (s.unavailable_reason === 'needs_cam' || s.evidence_kind === 'needs_kart_cam') return 'not from data'
   if (s.unavailable_reason === 'needs_channels') return 'needs channels'
   if (MYCHRON_HONEST.has(s.dimension_id)) return 'MyChron'
   if (NEEDS_KART_CAM.has(s.dimension_id)) {
@@ -60,17 +60,10 @@ export function ScorePanel({
             return (
               <div
                 key={s.dimension_id}
-                className={`grid grid-cols-[3rem_1fr_3rem] gap-2 items-center text-sm ${
+                className={`grid grid-cols-[1fr_3rem] gap-2 items-center text-sm ${
                   na ? 'opacity-50' : ''
                 }`}
               >
-                <span
-                  className={`font-mono ${
-                    na ? 'text-neutral-500' : bias ? 'text-n10-lime' : 'text-n10-mute'
-                  }`}
-                >
-                  {s.dimension_id}
-                </span>
                 <div>
                   <div className="flex justify-between gap-2">
                     <span className={`font-medium ${na ? 'text-neutral-400' : ''}`}>
@@ -95,7 +88,7 @@ export function ScorePanel({
                         (s.unavailable_reason === 'needs_channels' ||
                         (MYCHRON_HONEST.has(s.dimension_id) && s.evidence_kind !== 'mychron')
                           ? 'Needs MyChron channels.'
-                          : 'Needs kart-cam footage to score.')}
+                          : 'Not scored from logger data.')}
                     </p>
                   )}
                 </div>
@@ -111,13 +104,13 @@ export function ScorePanel({
           <div className="pt-3 border-t border-n10-border">
             <p className="label-lg mb-2">Top 3 weaknesses</p>
             {report.top_weaknesses.filter((w) => Number.isFinite(w.score)).length === 0 ? (
-              <p className="text-sm text-n10-mute">No scored weaknesses yet — attach cam or channels.</p>
+              <p className="text-sm text-n10-mute">No scored weaknesses yet — this file has no speed or RPM channel.</p>
             ) : (
               report.top_weaknesses
                 .filter((w) => Number.isFinite(w.score))
                 .map((w) => (
                   <p key={w.dimension_id} className="text-sm text-n10-soft py-1">
-                    <span className="text-white font-semibold">{w.dimension_id}</span> ({w.score}) —{' '}
+                    <span className="text-white font-semibold">{getDimension(w.dimension_id)?.label ?? 'Skill'}</span> ({w.score}) —{' '}
                     {w.cue} <span className="text-n10-mute">[{w.marker}]</span>
                   </p>
                 ))

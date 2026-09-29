@@ -6,20 +6,34 @@ export function FocusHero({ session }: { session: StoredSession }) {
   const f = session.report.focus
   const refLap = session.laps[session.referenceLapIndex]
   const bestLap = session.laps[session.bestLapIndex]
+  const hasCompare = session.referenceLapIndex !== session.bestLapIndex
   return (
     <section className="panel border-n10-lime/30 bg-gradient-to-b from-n10-lime/10 to-transparent">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-bold uppercase tracking-wider text-n10-lime">Coach call · Next run</p>
         <p className="text-sm text-n10-soft">
-          Compare {formatLapLabel(refLap, session.referenceLapIndex)} {formatLapTime(refLap?.timeMs)} · Best ★{' '}
-          {formatLapLabel(bestLap, session.bestLapIndex)} {formatLapTime(bestLap?.timeMs)}
+          {hasCompare && (
+            <>
+              Compare {formatLapLabel(refLap, session.referenceLapIndex)} {formatLapTime(refLap?.timeMs)} ·{' '}
+            </>
+          )}
+          Best ★ {formatLapLabel(bestLap, session.bestLapIndex)} {formatLapTime(bestLap?.timeMs)}
         </p>
       </div>
-      <h1 className="mt-2 text-2xl sm:text-3xl font-black text-white leading-tight">
-        {f.cornerName}
-        <span className="ml-2 text-n10-lime">{formatDeltaMs(f.lossMs)} vs best</span>
-      </h1>
-      {f.sectorLabel && (
+      {hasCompare ? (
+        <h2 className="mt-2 text-2xl sm:text-3xl font-black text-white leading-tight">
+          {f.cornerName}
+          <span className="ml-2 text-n10-lime">{formatDeltaMs(f.lossMs)} vs best</span>
+        </h2>
+      ) : (
+        <h2 className="mt-2 text-2xl sm:text-3xl font-black text-white leading-tight">
+          Only one full lap in this session
+          <span className="block mt-1 text-base font-semibold text-n10-soft">
+            Run at least two full laps to see where the time went.
+          </span>
+        </h2>
+      )}
+      {hasCompare && f.sectorLabel && (
         <p className="mt-1 text-sm text-n10-soft">
           Biggest time loss in timing sector{' '}
           <span className="font-semibold text-white">{f.sectorLabel}</span>
@@ -62,7 +76,8 @@ export function StickyFocusBar({ report }: { report: CoachingReport }) {
       <p className="text-xs font-bold uppercase text-n10-lime">Next run</p>
       <p className="text-sm font-semibold truncate">
         {f.cornerName}
-        {f.sectorLabel ? ` · ${f.sectorLabel}` : ''} · {formatDeltaMs(f.lossMs)} ·{' '}
+        {f.sectorLabel ? ` · ${f.sectorLabel}` : ''}
+        {f.referenceLapIndex !== f.bestLapIndex ? ` · ${formatDeltaMs(f.lossMs)}` : ''} ·{' '}
         {report.primary_drill.name}
       </p>
     </div>

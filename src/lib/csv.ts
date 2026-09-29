@@ -1,6 +1,6 @@
 import type { LapData, ParseResult, TelemetrySample } from './types'
 export type { ParseResult }
-import { synthLap } from './telemetry'
+import { synthLap, withDistanceFromSpeed } from './telemetry'
 import { parseXrkFile } from './xrk'
 
 function parseNum(v: string): number | null {
@@ -306,11 +306,12 @@ export function parseCsvText(text: string, fileName = 'session.csv'): ParseResul
       }))
       const rpms = scaled.map((s) => s.rpm)
       const speeds = scaled.map((s) => s.speed)
+      const withDist = distIdx < 0 && speedIdx >= 0 && duration >= 20 ? withDistanceFromSpeed(scaled) : scaled
       laps.push({
         index: laps.length,
         lapNumber: lapNo,
         timeMs: finalMs,
-        samples: scaled,
+        samples: withDist,
         minSpeed: Math.min(...speeds),
         maxSpeed: Math.max(...speeds),
         maxRpm: Math.max(...rpms),

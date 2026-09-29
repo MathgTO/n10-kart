@@ -5,6 +5,30 @@ const SESSIONS_KEY = 'n10-kart-sessions-v3'
 const PREFS_KEY = 'n10-kart-prefs-v3'
 const FAV_KEY = 'n10-kart-fav-tracks-v2'
 
+/** Class label for imported sessions (N10 has no per-session class picker yet). */
+export const DEFAULT_CLASS_LABEL = 'LO206'
+
+function isQuotaError(e: unknown): boolean {
+  if (!(e instanceof DOMException)) return false
+  return (
+    e.name === 'QuotaExceededError' ||
+    e.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+    e.code === 22 ||
+    e.code === 1014
+  )
+}
+
+/** setItem that never throws (a thrown quota error inside a React effect blanks the whole app). */
+function safeSet(key: string, value: string): boolean {
+  try {
+    localStorage.setItem(key, value)
+    return true
+  } catch (e) {
+    console.warn(isQuotaError(e) ? '[n10] storage full' : '[n10] storage write failed', key, e)
+    return false
+  }
+}
+
 export interface Prefs {
   trackId: string
   series: SeriesTag
@@ -15,22 +39,29 @@ export interface Prefs {
   reportVersion?: string
 }
 
+type StoredVideoFields = Pick<StoredSession, 'videoName' | 'videoObjectUrl' | 'videoCueMarkers'>
+
+/** The video clip itself is never stored, so don't keep its name either (it would outlive the clip). */
+function withoutVideo<T extends StoredVideoFields>(s: T): Omit<T, keyof StoredVideoFields> {
+  const { videoName: _n, videoObjectUrl: _u, videoCueMarkers: _m, ...rest } = s
+  return rest
+}
+
 export function loadSessions(): StoredSession[] {
   try {
     const raw = localStorage.getItem(SESSIONS_KEY)
     if (!raw) return []
-    return JSON.parse(raw) as StoredSession[]
+    return (JSON.parse(raw) as StoredSession[]).map((s) => withoutVideo(s) as StoredSession)
   } catch {
     return []
   }
 }
 
-export function saveSessions(sessions: StoredSession[]) {
-  // Strip video object URLs before persist
-  const safe = sessions.map(({ videoObjectUrl, ...rest }) => rest)
-  const json = JSON.stringify(safe)
+/** Returns false (instead of throwing) when storage is full. */
+export function saveSessions(sessions: StoredSession[]): boolean {
+  const json = JSON.stringify(sessions.map(withoutVideo))
   mirror(SESSIONS_KEY, json) // iOS shell only (no-op on web); queued before setItem so a quota error can't skip it
-  localStorage.setItem(SESSIONS_KEY, json)
+  return safeSet(SESSIONS_KEY, json)
 }
 
 export function loadPrefs(): Prefs {
@@ -41,10 +72,10 @@ export function loadPrefs(): Prefs {
   return { trackId: 'mosport', series: 'practice', demosLoaded: false }
 }
 
-export function savePrefs(p: Prefs) {
+export function savePrefs(p: Prefs): boolean {
   const json = JSON.stringify(p)
   mirror(PREFS_KEY, json)
-  localStorage.setItem(PREFS_KEY, json)
+  return safeSet(PREFS_KEY, json)
 }
 
 export function loadFavorites(): string[] {
@@ -55,8 +86,8 @@ export function loadFavorites(): string[] {
   return ['mosport']
 }
 
-export function saveFavorites(ids: string[]) {
+export function saveFavorites(ids: string[]): boolean {
   const json = JSON.stringify(ids)
   mirror(FAV_KEY, json)
-  localStorage.setItem(FAV_KEY, json)
+  return safeSet(FAV_KEY, json)
 }
