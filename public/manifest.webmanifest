@@ -1,7 +1,7 @@
 {
   "name": "N10 \u2014 LO206 Coach",
   "short_name": "N10",
-  "description": "The LO206 coach for drivers and tuners. Built for the Briggs LO206: reads your MyChron .xrk, gives one driving fix and one setup change for the next run.",
+  "description": "The LO206 coach for drivers and tuners. Built for the Briggs LO206: reads your MyChron .xrk and shows where the time is, corner by corner, and what the data says about gear, clutch and tire pressure.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

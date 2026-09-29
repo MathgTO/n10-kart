@@ -76,7 +76,7 @@ export function Home() {
             decoding="async"
           />
           <p className="mt-4 text-base text-n10-soft leading-relaxed">
-            Built for the Briggs LO206. Import your MyChron session, get one driving fix and one setup change for the next run. Made for your phone, between runs.
+            Built for the Briggs LO206. Import your MyChron session and see where the time is: driving, corner by corner, and setup from the data (gear, clutch, tire pressure). Made for your phone, between runs.
           </p>
         </div>
         <div className="flex flex-col gap-3 w-full sm:w-auto">
@@ -99,7 +99,7 @@ export function Home() {
           title="Reads your MyChron"
           body=".xrk / .xrz native · Race Studio CSV (Lap, Time, GPS Speed, RPM, Distance; sectors when present) · lap-only CSV OK · onboard video (mp4/mov/webm)"
         />
-        <InfoCard title="Coach call" body="Driver: one turn to fix, sectors show where time went · Tuner: exit RPM, gear, clutch, tire pressure — one change per outing" />
+        <InfoCard title="Coach call" body="Driver: where the time is, corner by corner, and which sectors it went in · Tuner: what the data says about exit RPM, gear, clutch and tire pressure" />
         <InfoCard title="Home circuit" body="Mosport Karting Centre · Bowmanville" />
       </div>
 
@@ -114,7 +114,7 @@ export function Home() {
             <p className="text-lg font-semibold">No LO206 sessions yet</p>
             <p className="mt-2 text-n10-soft">
               Use <span className="text-n10-lime font-semibold">Import session</span> to load your
-              MyChron file, or try sample sessions to see a Coach call and setup change. Open a
+              MyChron file, or try sample sessions to see the coaching and setup read. Open a
               session to upload race video.
             </p>
           </div>
