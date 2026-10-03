@@ -4,6 +4,7 @@ import { ImportModal } from '@/components/ImportModal'
 import { useSessions } from '@/hooks/SessionsContext'
 import { formatLapTime } from '@/lib/format'
 import { seriesLabel } from '@/lib/labels'
+import { FAQ_TITLE, HOME_FAQ, WORKS_WITH_BODY, WORKS_WITH_TITLE } from '@/data/homeFaq'
 
 const IOS_TIP_KEY = 'n10-ios-homescreen-tip-dismissed'
 
@@ -67,8 +68,7 @@ export function Home() {
       <section className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-xl">
           <p className="text-sm font-bold uppercase tracking-wider text-n10-lime">The LO206 coach · Drivers + tuners</p>
-          <h1 className="sr-only">N10 — The LO206 coach. For drivers and tuners.</h1>
-          <img
+                    <img
             src={`${import.meta.env.BASE_URL}n10-logo.jpg`}
             alt="N10 — The next tenth. This session."
             className="mt-2 w-full max-w-md rounded-xl border border-n10-border object-contain shadow-lg shadow-black/40"
@@ -76,8 +76,9 @@ export function Home() {
             height={280}
             decoding="async"
           />
-          <p className="mt-4 text-base text-n10-soft leading-relaxed">
-            Built for the Briggs LO206. Import your MyChron session and see where the time is: driving, corner by corner, and setup from the data (gear, clutch, tire pressure). Made for the paddock, between runs.
+          <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">Shave the Next Tenth</h1>
+          <p className="mt-2 text-base text-n10-soft leading-relaxed">
+            Import the session. Get the coaching note and the setup note. Walk back to the grid knowing exactly what to change. Built for phone, between runs — when Windows Race Studio can wait.
           </p>
         </div>
         <div className="flex flex-col gap-3 w-full sm:w-auto">
@@ -93,6 +94,13 @@ export function Home() {
             Try sample sessions
           </button>
         </div>
+      </section>
+
+      <section aria-labelledby="works-with-heading" className="panel">
+        <h2 id="works-with-heading" className="text-lg font-bold uppercase tracking-wide text-n10-lime">
+          {WORKS_WITH_TITLE}
+        </h2>
+        <p className="mt-2 text-base text-n10-soft leading-relaxed">{WORKS_WITH_BODY}</p>
       </section>
 
       <div className="grid gap-3 sm:grid-cols-3">
@@ -172,6 +180,20 @@ export function Home() {
             })}
           </ul>
         )}
+      </section>
+
+      <section aria-labelledby="faq-heading">
+        <h2 id="faq-heading" className="text-lg font-bold uppercase tracking-wide text-n10-soft">
+          {FAQ_TITLE}
+        </h2>
+        <div className="mt-4 space-y-3">
+          {HOME_FAQ.map((f) => (
+            <div key={f.q} className="rounded-2xl border border-n10-border bg-n10-panel p-4">
+              <h3 className="text-base font-bold text-white">{f.q}</h3>
+              <p className="mt-2 text-base text-n10-soft leading-relaxed">{f.a}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       <ImportModal open={importOpen} onClose={() => setImportOpen(false)} />
