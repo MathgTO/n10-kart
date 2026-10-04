@@ -128,6 +128,8 @@ export interface StoredSession {
   report: CoachingReport
   activePriorityDimensionId: DimensionId
   activePriorityDrillId: DrillId
+  /** Sprockets run this session (teeth). Rear unknown → gear advice shows ratio change only. */
+  gearing?: { rearTeeth?: number; frontTeeth?: number }
   videoObjectUrl?: string
   videoName?: string
   videoCueMarkers?: { t: number; label: string }[]

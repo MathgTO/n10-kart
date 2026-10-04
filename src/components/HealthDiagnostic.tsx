@@ -1,4 +1,7 @@
+import { useEffect, useState } from 'react'
 import type { StoredSession } from '@/lib/types'
+import { useSessions } from '@/hooks/SessionsContext'
+import { GEAR_DEFAULTS, isValidTeeth } from '@/lib/gearRatio'
 import {
   buildHealthDiagnosticFromSession,
   CLUTCH_SHOP_CHECKLIST,
@@ -46,6 +49,8 @@ export function HealthDiagnostic({ session }: { session: StoredSession }) {
         (gear OR clutch OR tires — magnitude from data; no stacking categories).
       </p>
 
+      <GearingFields session={session} />
+
       <OneChangePanel oneChange={oneChange} />
 
       <div className="mt-4 space-y-3">
@@ -54,6 +59,79 @@ export function HealthDiagnostic({ session }: { session: StoredSession }) {
         ))}
       </div>
     </section>
+  )
+}
+
+/** Per-session sprockets (Health · setup). Saved with the session; last entry = default for new imports. */
+function GearingFields({ session }: { session: StoredSession }) {
+  const { updateGearing } = useSessions()
+  const rear = session.gearing?.rearTeeth
+  const front = session.gearing?.frontTeeth
+  const [rearText, setRearText] = useState(rear != null ? String(rear) : '')
+  const [frontText, setFrontText] = useState(front != null ? String(front) : '')
+  useEffect(() => {
+    setRearText(rear != null ? String(rear) : '')
+    setFrontText(front != null ? String(front) : '')
+  }, [session.id, rear, front])
+
+  const commit = (nextRear: string, nextFront: string) => {
+    const r = nextRear.trim() === '' ? undefined : Number(nextRear)
+    const f = nextFront.trim() === '' ? undefined : Number(nextFront)
+    const rOk = r === undefined || isValidTeeth(r, 'rear')
+    const fOk = f === undefined || isValidTeeth(f, 'front')
+    if (rOk && fOk && (r !== rear || f !== front)) updateGearing(session.id, { rearTeeth: r, frontTeeth: f })
+  }
+  const rearBad = rearText.trim() !== '' && !isValidTeeth(Number(rearText), 'rear')
+  const frontBad = frontText.trim() !== '' && !isValidTeeth(Number(frontText), 'front')
+  const input =
+    'mt-1 w-28 rounded-lg border bg-n10-panel px-3 py-2 text-lg font-bold text-white focus:outline-none focus:ring-2 focus:ring-teal-400/60'
+
+  return (
+    <div className="mt-4 rounded-xl border border-amber-500/30 bg-n10-panel/70 px-4 py-3">
+      <p className="text-xs font-bold uppercase tracking-wide text-amber-200/90">Setup · gearing this session</p>
+      <div className="mt-2 flex flex-wrap items-end gap-4">
+        <label className="block text-sm font-semibold text-n10-soft">
+          Rear sprocket (teeth)
+          <input
+            type="number"
+            inputMode="numeric"
+            min={GEAR_DEFAULTS.minTeeth.rear}
+            max={GEAR_DEFAULTS.maxTeeth.rear}
+            placeholder="e.g. 69"
+            aria-label="Rear sprocket (teeth)"
+            className={`${input} block ${rearBad ? 'border-rose-400' : 'border-n10-border'}`}
+            value={rearText}
+            onChange={(e) => {
+              setRearText(e.target.value)
+              commit(e.target.value, frontText)
+            }}
+          />
+        </label>
+        <label className="block text-sm font-semibold text-n10-soft">
+          Front / clutch sprocket (teeth)
+          <input
+            type="number"
+            inputMode="numeric"
+            min={GEAR_DEFAULTS.minTeeth.front}
+            max={GEAR_DEFAULTS.maxTeeth.front}
+            placeholder={`${GEAR_DEFAULTS.frontTeeth} (assumed)`}
+            aria-label="Front / clutch sprocket (teeth)"
+            className={`${input} block ${frontBad ? 'border-rose-400' : 'border-n10-border'}`}
+            value={frontText}
+            onChange={(e) => {
+              setFrontText(e.target.value)
+              commit(rearText, e.target.value)
+            }}
+          />
+        </label>
+      </div>
+      <p className="mt-2 text-xs text-n10-mute leading-snug">
+        Saved with this session; your last entry becomes the default for new imports. Tooth advice uses the
+        rear count only (RPM scales 1:1 with rear teeth). Front blank = assumed {GEAR_DEFAULTS.frontTeeth}T
+        (LO206 Junior #219 driver — what your logged RPM/speed fits).
+        {rear == null && ' Rear blank = N10 shows the ratio change only, never a tooth guess.'}
+      </p>
+    </div>
   )
 }
 
@@ -117,6 +195,12 @@ function Card({ card }: { card: HealthCard }) {
           {style.label}
         </span>
       </div>
+
+      {card.headline && (
+        <p className="mt-2 text-lg font-black text-white" data-testid={`${card.id}-headline`}>
+          {card.headline}
+        </p>
+      )}
 
       <div className="mt-3">
         <p className="text-xs font-bold uppercase tracking-wide text-teal-200/80">Diagnosis</p>

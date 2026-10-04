@@ -12,22 +12,32 @@ export interface BundledSample {
   /** Short context shown under the label. */
   note: string
   trackId: string
+  /** Real sprockets run that session (owner-confirmed). Front unknown → app default. */
+  gearing: { rearTeeth: number; frontTeeth?: number }
 }
 
-const sample = (file: string, label: string, note: string): BundledSample => ({
+const sample = (file: string, label: string, note: string, rearTeeth: number): BundledSample => ({
   file,
   label,
   displayName: `${label}.xrk`,
   note,
   trackId: 'mosport',
+  gearing: { rearTeeth },
 })
 
 /** Newest first. */
 export const REAL_SAMPLES: BundledSample[] = [
-  sample('2026-10-03_mosport_150240_best-110909.xrk', 'Mosport · Oct 3 2026 · 15:02', 'Best 1:10.909 · 69T rear (was 67T) · GPS speed'),
-  sample('2026-09-25_mosport_163712_best-108294.xrk', 'Mosport · Sep 25 2026 · 16:37', 'Best 1:08.294 · 67T rear'),
-  sample('2026-09-25_mosport_143726_best-108241.xrk', 'Mosport · Sep 25 2026 · 14:37', 'Best 1:08.241 · 67T rear'),
+  sample('2026-10-03_mosport_150240_best-110909.xrk', 'Mosport · Oct 3 2026 · 15:02', 'Best 1:10.909 · 69T rear (was 67T) · GPS speed', 69),
+  sample('2026-09-25_mosport_163712_best-108294.xrk', 'Mosport · Sep 25 2026 · 16:37', 'Best 1:08.294 · 67T rear', 67),
+  sample('2026-09-25_mosport_143726_best-108241.xrk', 'Mosport · Sep 25 2026 · 14:37', 'Best 1:08.241 · 67T rear', 67),
 ]
+
+/** Real gearing for a bundled sample, by imported display name or raw file name. */
+export function sampleGearing(fileName?: string): BundledSample['gearing'] | undefined {
+  if (!fileName) return undefined
+  const s = REAL_SAMPLES.find((x) => x.displayName === fileName || x.file === fileName)
+  return s ? { ...s.gearing } : undefined
+}
 
 export async function fetchSampleFile(s: BundledSample): Promise<File> {
   // BASE_URL is '/n10-kart/' (GitHub Pages staging) or '/' (Netlify).

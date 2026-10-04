@@ -1,5 +1,5 @@
 import { EXIT_RPM_BAND } from './rubric'
-import { suggestGearRatio, GEAR_ASSUMPTIONS, type GearAdvice } from './gearRatio'
+import { suggestGearRatio, GEAR_DEFAULTS, type GearAdvice, type Gearing } from './gearRatio'
 import type { DimensionScore, LapData, SeriesTag, StoredSession } from './types'
 
 export type HealthStatus = 'healthy' | 'watch' | 'fix'
@@ -8,6 +8,8 @@ export type HealthCard = {
   id: 'tire_pressure' | 'gear_ratio' | 'clutch'
   title: string
   status: HealthStatus
+  /** Short verdict line (gear card). */
+  headline?: string
   diagnosis: string
   optimize: string
   metrics?: { label: string; value: string }[]
@@ -111,69 +113,58 @@ function gearCard(
   gearAdvice: GearAdvice | null,
   exitRpm?: number,
   maxRpm?: number,
-  maxSpeed?: number
+  maxSpeed?: number,
+  gearing?: Gearing
 ): HealthCard {
   if (!gearAdvice) {
+    const rear = gearing?.rearTeeth
     return {
       id: 'gear_ratio',
       title: 'Gear ratio',
       status: 'watch',
-      diagnosis:
-        'Need peak speed + peak RPM to estimate current gear vs the 5,800–6,100 band.',
+      diagnosis: `Need peak speed + peak RPM to check gearing vs the ${EXIT_RPM_BAND.lo}–${EXIT_RPM_BAND.hi} band.`,
       optimize: 'Import MyChron/CSV with RPM + speed, then re-check this card.',
       metrics: [
+        { label: 'Gearing', value: rear ? `${rear}T / ${gearing?.frontTeeth ?? GEAR_DEFAULTS.frontTeeth}T` : 'rear not set' },
         { label: 'Peak RPM', value: maxRpm != null ? String(Math.round(maxRpm)) : '—' },
         { label: 'Peak km/h', value: maxSpeed != null ? maxSpeed.toFixed(0) : '—' },
-        {
-          label: 'Exit RPM',
-          value: exitRpm != null ? String(Math.round(exitRpm)) : '—',
-        },
+        { label: 'Exit RPM', value: exitRpm != null ? String(Math.round(exitRpm)) : '—' },
       ],
     }
   }
 
-  const { action, toothDelta, peakSpeedKmh, peakRpm, estimatedCurrentRatio, idealBand, suggestedRearTeeth } =
-    gearAdvice
-  const exit = exitRpm ?? gearAdvice.exitRpm
-  const absTeeth = Math.max(1, Math.abs(toothDelta) || 1)
-  const farOff = Math.abs(toothDelta) >= 2 || (exit != null && (exit < EXIT_RPM_BAND.lo - 150 || peakRpm >= 6080))
+  const a = gearAdvice
+  let status: HealthStatus
+  if (a.action === 'hold') status = a.verdict === 'ok' && a.dataCheck !== 'mismatch' ? 'healthy' : 'watch'
+  else status = Math.abs(a.toothDelta) >= 2 || Math.abs(a.ratioChangePct) >= 0.025 ? 'fix' : 'watch'
 
-  let status: HealthStatus = 'healthy'
-  if (action === 'hold') status = 'healthy'
-  else if (farOff) status = 'fix'
-  else status = 'watch'
-
-  const exitLabel = exit != null ? `${Math.round(exit)}` : '—'
-  const diagnosis = `Peak ${peakSpeedKmh.toFixed(0)} km/h @ ~${Math.round(peakRpm)} RPM; exit ~${exitLabel} vs ${EXIT_RPM_BAND.lo}–${EXIT_RPM_BAND.hi} band. Est. ratio ~${estimatedCurrentRatio.toFixed(2)} (17T front — verify sprockets).`
-
-  const estNowT = Math.round(estimatedCurrentRatio * GEAR_ASSUMPTIONS.driverTeeth)
-  const bandT =
-    suggestedRearTeeth.lo === suggestedRearTeeth.hi
-      ? `${suggestedRearTeeth.lo}T`
-      : `${suggestedRearTeeth.lo}–${suggestedRearTeeth.hi}T`
-  let optimize: string
-  if (action === 'plus') {
-    optimize = `Add ${absTeeth} rear tooth (shorter gear) on 17T front — est. now ~${estNowT}T → try ~${bandT}.`
-  } else if (action === 'minus') {
-    optimize = `Drop ${absTeeth} rear tooth (longer gear) on 17T front — est. now ~${estNowT}T → try ~${bandT}.`
-  } else {
-    optimize = `Hold current sprockets — already near the ${EXIT_RPM_BAND.lo}–${EXIT_RPM_BAND.hi} band (ideal rear ~${bandT} / 17T).`
+  const optimize = a.summary
+  const metrics: { label: string; value: string }[] = [
+    {
+      label: 'Gearing',
+      value: a.rearTeeth != null ? `${a.rearTeeth}T / ${a.frontTeeth}T${a.frontAssumed ? '*' : ''}` : 'rear not set',
+    },
+    { label: a.ratioIsEstimate ? 'Est. ratio' : 'Ratio', value: a.ratio.toFixed(2) },
+    { label: 'Exit RPM', value: a.exitRpm != null ? String(Math.round(a.exitRpm)) : '—' },
+    { label: 'Peak RPM', value: String(Math.round(a.peakRpm)) },
+  ]
+  if (a.action !== 'hold') {
+    metrics.push(
+      a.suggestedRearTeeth != null
+        ? { label: 'Try', value: `${a.suggestedRearTeeth}T (${a.toothDelta > 0 ? '+' : '−'}${Math.abs(a.toothDelta)})` }
+        : { label: 'Ratio change', value: `${a.ratioChangePct > 0 ? '+' : '−'}${Math.abs(a.ratioChangePct * 100).toFixed(1)}%` }
+    )
   }
+  if (a.dataCheck) metrics.push({ label: 'Data check', value: a.dataCheck === 'match' ? 'RPM/speed ✓' : 'recount sprockets' })
 
   return {
     id: 'gear_ratio',
     title: 'Gear ratio',
     status,
-    diagnosis,
+    headline: a.headline,
+    diagnosis: `${a.detail}${a.frontAssumed && a.rearTeeth != null ? ' *Front assumed — edit it above if different.' : ''}`,
     optimize,
-    metrics: [
-      { label: 'Est. ratio', value: estimatedCurrentRatio.toFixed(2) },
-      { label: 'Ideal band', value: `${idealBand.lo.toFixed(2)}–${idealBand.hi.toFixed(2)}` },
-      {
-        label: 'Suggested rear (17T)',
-        value: bandT,
-      },
-    ],
+    metrics,
   }
 }
 
@@ -517,8 +508,8 @@ export function pickPrimaryOneChange(
       signal_ids: [gearAdvice.action === 'plus' ? 'gear_plus_rear' : 'gear_minus_rear'],
       hypothesis:
         gearAdvice.action === 'plus'
-          ? 'Gearing too tall (long) — exit/peak short of band'
-          : 'Gearing too short — peak early / on limiter',
+          ? `Gearing too tall — ${gearAdvice.exitRpm != null ? `exit ~${Math.round(gearAdvice.exitRpm)}` : `peak ~${Math.round(gearAdvice.peakRpm)}`} below the ${EXIT_RPM_BAND.lo}–${EXIT_RPM_BAND.hi} band`
+          : `Gearing too short — ${gearAdvice.exitRpm != null ? `exit ~${Math.round(gearAdvice.exitRpm)}` : `peak ~${Math.round(gearAdvice.peakRpm)}`} above the ${EXIT_RPM_BAND.lo}–${EXIT_RPM_BAND.hi} band`,
       one_change_action: gear.optimize,
       evidence_channels: ['rpm', 'speed'],
       confidence: 'medium',
@@ -568,17 +559,22 @@ export function buildHealthDiagnostic(input: {
   exitRpm?: number
   maxRpm?: number
   maxSpeed?: number
+  gearing?: Gearing
+  rpmPerKmh?: number
 }): HealthDiagnostic {
   const gearAdvice = suggestGearRatio({
     maxRpm: input.maxRpm,
     maxSpeedKmh: input.maxSpeed,
     exitRpm: input.exitRpm,
     series: input.series,
+    rearTeeth: input.gearing?.rearTeeth,
+    frontTeeth: input.gearing?.frontTeeth,
+    rpmPerKmh: input.rpmPerKmh,
   })
 
   const rawCards: HealthCard[] = [
     tireCard(input.scores, input.series, input.laps.length),
-    gearCard(gearAdvice, input.exitRpm, input.maxRpm, input.maxSpeed),
+    gearCard(gearAdvice, input.exitRpm, input.maxRpm, input.maxSpeed, input.gearing),
     clutchCard(input.scores, input.laps),
   ]
   const oneChange = pickPrimaryOneChange(rawCards, gearAdvice)
@@ -596,7 +592,7 @@ export function buildHealthDiagnostic(input: {
  * Prefer this over beacon-"best" lap peaks: GPS-only MyChron logs can corrupt
  * lap stamps, so the starred lap is not authoritative for gear math.
  */
-function rpmAtPeakSpeed(laps: LapData[]): { maxSpeed?: number; rpmAtPeak?: number } {
+export function rpmAtPeakSpeed(laps: LapData[]): { maxSpeed?: number; rpmAtPeak?: number; rpmPerKmh?: number } {
   // RPM pickup dropouts (e.g. 88 km/h @ ~3000 RPM for a few samples) must not drive gear math:
   // skip samples whose RPM/speed is far off the session's median at speed (clutch locked).
   const ratios: number[] = []
@@ -626,8 +622,8 @@ function rpmAtPeakSpeed(laps: LapData[]): { maxSpeed?: number; rpmAtPeak?: numbe
       }
     }
   }
-  if (maxSpeed < 0 || rpmAtPeak == null) return {}
-  return { maxSpeed, rpmAtPeak }
+  if (maxSpeed < 0 || rpmAtPeak == null) return { rpmPerKmh: medianRatio }
+  return { maxSpeed, rpmAtPeak, rpmPerKmh: medianRatio }
 }
 
 /** Convenience: build from a stored session. */
@@ -641,5 +637,7 @@ export function buildHealthDiagnosticFromSession(session: StoredSession): Health
     exitRpm: session.report.focus.exitRpm ?? best?.exitRpmFocus,
     maxRpm: peak.rpmAtPeak ?? best?.maxRpm,
     maxSpeed: peak.maxSpeed ?? best?.maxSpeed,
+    gearing: session.gearing,
+    rpmPerKmh: peak.rpmPerKmh,
   })
 }

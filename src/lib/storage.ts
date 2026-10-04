@@ -36,6 +36,8 @@ export interface Prefs {
   langVersion?: string
   /** Bumps when scoring schema changes (e.g. null N/A dims) — recomputes stored reports */
   reportVersion?: string
+  /** Last gearing the owner entered — default for new imports. */
+  lastGearing?: { rearTeeth?: number; frontTeeth?: number }
 }
 
 type StoredVideoFields = Pick<StoredSession, 'videoName' | 'videoObjectUrl' | 'videoCueMarkers'>

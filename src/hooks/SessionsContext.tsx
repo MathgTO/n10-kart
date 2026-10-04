@@ -14,6 +14,15 @@ import {
 } from '@/lib/storage'
 import type { LapData, SeriesTag, StoredSession } from '@/lib/types'
 import { parseSessionFile, type ParseResult } from '@/lib/csv'
+import { sampleGearing } from '@/lib/samples'
+import { isValidTeeth, type Gearing } from '@/lib/gearRatio'
+
+/** Bundled real samples always know their sprockets (Sep 25 = 67T, Oct 3 = 69T). */
+function withSampleGearing(s: StoredSession): StoredSession {
+  if (s.gearing?.rearTeeth) return s
+  const g = sampleGearing(s.sourceFileName)
+  return g ? { ...s, gearing: { ...s.gearing, ...g } } : s
+}
 
 interface SessionsCtx {
   sessions: StoredSession[]
@@ -25,6 +34,8 @@ interface SessionsCtx {
   loadDemos: () => void
   importFile: (file: File, opts?: { trackId?: string }) => Promise<{ session: StoredSession | null; parse: ParseResult }>
   updateReferenceLap: (sessionId: string, lapIndex: number) => void
+  /** Edit this session's sprockets; also remembered as the default for new imports. */
+  updateGearing: (sessionId: string, gearing: Gearing) => void
   attachVideo: (sessionId: string, file: File) => void
   deleteSession: (id: string) => void
   getSession: (id: string) => StoredSession | undefined
@@ -42,7 +53,7 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
   const [storageFull, setStorageFull] = useState(false)
 
   useEffect(() => {
-    const existing = loadSessions()
+    const existing = loadSessions().map(withSampleGearing)
     const LANG_V = 'turn-sector-v1'
     // valid-laps-v1: compare lap = fastest full lap (out/in/partial laps excluded), real-distance
     // sectors, video never changes the report. Recompute stored sessions once.
@@ -163,8 +174,11 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
         channels: parse.channels,
         previousSession: prev,
       })
+      // Gearing: bundled sample → its real sprockets; otherwise the last gearing the owner entered.
+      const gearing: Gearing | undefined = sampleGearing(file.name) ?? (prefs.lastGearing ? { ...prefs.lastGearing } : undefined)
       const session: StoredSession = {
         id,
+        gearing,
         createdAt: new Date().toISOString(),
         title: file.name.replace(/\.(csv|xrz|xrk)$/i, ''),
         series,
@@ -185,7 +199,7 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
       setSessions((prevList) => [session, ...prevList])
       return { session, parse }
     },
-    [prefs.trackId, prefs.series, sessions, previousFor]
+    [prefs.trackId, prefs.series, prefs.lastGearing, sessions, previousFor]
   )
 
   const updateReferenceLap = useCallback((sessionId: string, lapIndex: number) => {
@@ -217,6 +231,15 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
       })
     )
   }, [previousFor])
+
+  const updateGearing = useCallback((sessionId: string, gearing: Gearing) => {
+    const clean: Gearing = {
+      rearTeeth: isValidTeeth(gearing.rearTeeth, 'rear') ? gearing.rearTeeth : undefined,
+      frontTeeth: isValidTeeth(gearing.frontTeeth, 'front') ? gearing.frontTeeth : undefined,
+    }
+    setSessions((list) => list.map((s) => (s.id === sessionId ? { ...s, gearing: clean } : s)))
+    setPrefs((p) => ({ ...p, lastGearing: clean }))
+  }, [])
 
   /** The clip is only played back next to the data: it is not analyzed and does not change the report. */
   const attachVideo = useCallback((sessionId: string, file: File) => {
@@ -250,6 +273,7 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
       loadDemos,
       importFile,
       updateReferenceLap,
+      updateGearing,
       attachVideo,
       deleteSession,
       getSession,
@@ -265,6 +289,7 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
       loadDemos,
       importFile,
       updateReferenceLap,
+      updateGearing,
       attachVideo,
       deleteSession,
       getSession,
