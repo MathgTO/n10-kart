@@ -15,6 +15,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const EXPECT: Record<string, number> = {
   '2026-09-25_mosport_143726_best-108241.xrk': 68241,
   '2026-09-25_mosport_163712_best-108294.xrk': 68294,
+  '2026-10-03_mosport_150240_best-110909.xrk': 70909,
 }
 const files = [...Object.keys(EXPECT).map((f) => join(root, 'public/samples', f)), ...process.argv.slice(2)]
 let failed = 0
@@ -38,6 +39,7 @@ for (const f of files) {
   const lbl = (i: number) => `L${laps[i].lapNumber ?? i + 1} ${(laps[i].timeMs / 1000).toFixed(3)}`
   console.log(`\n${name}\n  ${laps.map((l, i) => `L${l.lapNumber}=${(l.timeMs / 1000).toFixed(3)}${v[i] === 'ok' ? '' : `(${v[i]})`}`).join(' ')}`)
   if (EXPECT[name]) check(laps[best].timeMs === EXPECT[name], `best ${lbl(best)} (expected ${EXPECT[name]} ms)`)
+  else console.log(`     best ${lbl(best)}`)
   check(cmp !== best && v[cmp] === 'ok', `compare ${lbl(cmp)} is a full lap other than best`)
   check(v[best] === 'ok', 'best is a full lap')
   check(Math.round(report.focus.lossMs) !== 0, `coach call ${report.focus.cornerName} +${Math.round(report.focus.lossMs)} ms (not 0 ms)`)

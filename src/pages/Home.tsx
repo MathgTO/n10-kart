@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ImportModal } from '@/components/ImportModal'
 import { useSessions } from '@/hooks/SessionsContext'
 import { formatLapTime } from '@/lib/format'
+import { fetchSampleFile, REAL_SAMPLES, type BundledSample } from '@/lib/samples'
 import { seriesLabel } from '@/lib/labels'
 import { FAQ_TITLE, HOME_FAQ, WORKS_WITH_BODY, WORKS_WITH_TITLE } from '@/data/homeFaq'
 
@@ -58,8 +59,36 @@ function IosHomeScreenTip() {
 }
 
 export function Home() {
-  const { sessions, loadDemos, prefs, deleteSession } = useSessions()
+  const { sessions, loadDemos, prefs, deleteSession, importFile } = useSessions()
   const [importOpen, setImportOpen] = useState(false)
+  const nav = useNavigate()
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [sampleBusy, setSampleBusy] = useState<string | null>(null)
+  const [sampleError, setSampleError] = useState<string | null>(null)
+
+  /** Loads a real MyChron .xrk from Mosport (bundled in public/samples) through the normal import path. */
+  async function openRealSession(sample: BundledSample) {
+    setSampleError(null)
+    const existing = sessions.find((s) => s.sourceFileName === sample.displayName)
+    if (existing) {
+      nav(`/session/${existing.id}`)
+      return
+    }
+    setSampleBusy(sample.file)
+    try {
+      const file = await fetchSampleFile(sample)
+      const result = await importFile(file, { trackId: sample.trackId })
+      if (!result.session) {
+        setSampleError(result.parse.message || 'Could not read the sample session.')
+        return
+      }
+      nav(`/session/${result.session.id}`)
+    } catch (e) {
+      setSampleError(e instanceof Error ? e.message : 'Could not load the sample session.')
+    } finally {
+      setSampleBusy(null)
+    }
+  }
 
   return (
     <div className="space-y-8 pb-8">
@@ -90,9 +119,37 @@ export function Home() {
           >
             Import session
           </button>
+          <button
+            type="button"
+            className="btn-secondary"
+            aria-expanded={pickerOpen}
+            onClick={() => setPickerOpen((v) => !v)}
+          >
+            Try a real Mosport session
+          </button>
+          {pickerOpen && (
+            <ul className="flex flex-col gap-2" aria-label="Real Mosport sessions">
+              {REAL_SAMPLES.map((s) => (
+                <li key={s.file}>
+                  <button
+                    type="button"
+                    className="w-full rounded-xl border border-n10-border bg-n10-panel px-4 py-3 text-left hover:border-n10-lime disabled:opacity-60"
+                    onClick={() => void openRealSession(s)}
+                    disabled={sampleBusy != null}
+                  >
+                    <span className="block font-semibold text-white">
+                      {sampleBusy === s.file ? 'Reading .xrk…' : s.label}
+                    </span>
+                    <span className="block text-sm text-n10-mute">{s.note}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
           <button type="button" className="btn-secondary" onClick={() => loadDemos()}>
             Try sample sessions
           </button>
+          {sampleError && <p className="text-sm text-red-300 max-w-xs">{sampleError}</p>}
         </div>
       </section>
 

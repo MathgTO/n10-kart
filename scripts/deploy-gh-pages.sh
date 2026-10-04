@@ -3,7 +3,8 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
-npm run build
+# Staging lives under /n10-kart/ (main's default base is '/' for Netlify).
+N10_BASE=/n10-kart/ npm run build
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 cp -a dist/. "$TMP/"

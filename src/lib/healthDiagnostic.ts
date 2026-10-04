@@ -597,6 +597,18 @@ export function buildHealthDiagnostic(input: {
  * lap stamps, so the starred lap is not authoritative for gear math.
  */
 function rpmAtPeakSpeed(laps: LapData[]): { maxSpeed?: number; rpmAtPeak?: number } {
+  // RPM pickup dropouts (e.g. 88 km/h @ ~3000 RPM for a few samples) must not drive gear math:
+  // skip samples whose RPM/speed is far off the session's median at speed (clutch locked).
+  const ratios: number[] = []
+  for (const lap of laps) {
+    for (const s of lap.samples) {
+      if (Number.isFinite(s.speed) && Number.isFinite(s.rpm) && s.speed >= 60 && s.rpm >= 3000) ratios.push(s.rpm / s.speed)
+    }
+  }
+  ratios.sort((a, b) => a - b)
+  const medianRatio = ratios.length >= 20 ? ratios[Math.floor(ratios.length / 2)] : undefined
+  const plausible = (rpm: number, speed: number) =>
+    medianRatio == null || Math.abs(rpm / speed / medianRatio - 1) <= 0.12
   let maxSpeed = -1
   let rpmAtPeak: number | undefined
   for (const lap of laps) {
@@ -606,7 +618,8 @@ function rpmAtPeakSpeed(laps: LapData[]): { maxSpeed?: number; rpmAtPeak?: numbe
         Number.isFinite(s.rpm) &&
         s.speed > maxSpeed &&
         s.speed >= 20 &&
-        s.rpm >= 3000
+        s.rpm >= 3000 &&
+        plausible(s.rpm, s.speed)
       ) {
         maxSpeed = s.speed
         rpmAtPeak = s.rpm
