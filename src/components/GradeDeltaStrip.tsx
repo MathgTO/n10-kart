@@ -12,7 +12,7 @@ const BUCKETS: Bucket[] = [
   { id: 'tires', label: 'Tire management', ids: ['D19'] }, // D19 — strip label Tire management (not Setup/Tires)
   { id: 'drive', label: 'Drive', ids: ['D2', 'D3', 'D4'] },
   { id: 'pace', label: 'Pace', ids: ['D10'] },
-  { id: 'cons', label: 'Cons.', ids: ['D18'] },
+  { id: 'cons', label: 'Consistency', ids: ['D18'] },
   { id: 'race', label: 'Race', ids: ['D14', 'D15', 'D16', 'D17'] },
 ]
 
