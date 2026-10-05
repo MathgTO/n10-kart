@@ -8,7 +8,6 @@ import {
   type TrackLayout,
 } from '@/lib/mosportLayouts'
 import {
-  createNamedLayout,
   geometryIdFor,
   layoutDisplayName,
   layoutLengthHint,
@@ -108,29 +107,20 @@ export function TrackMap({
 
   const commitRename = () => {
     const name = draftName.trim()
-    if (!name) {
+    if (!name || !layoutIdProp) {
       setRenaming(false)
       return
     }
-    if (layoutIdProp) {
-      const rec = renameLayout(trackId, layoutIdProp, name)
-      if (rec) onLayoutChange?.(rec.id)
-    } else {
-      const rec = createNamedLayout(trackId, name)
-      onLayoutChange?.(rec.id)
-    }
+    const rec = renameLayout(trackId, layoutIdProp, name)
+    if (rec) onLayoutChange?.(rec.id)
     setRenaming(false)
   }
 
   const onSelect = (value: string) => {
     setSelectValue(value)
     if (value === '__rename__') {
+      if (!layoutIdProp) return
       setDraftName(label === 'Layout?' ? '' : label)
-      setRenaming(true)
-      return
-    }
-    if (value === '__new__') {
-      setDraftName('')
       setRenaming(true)
       return
     }
@@ -162,8 +152,7 @@ export function TrackMap({
                   {r.displayName}
                 </option>
               ))}
-              <option value="__rename__">Rename…</option>
-              <option value="__new__">Other…</option>
+              {layoutIdProp && <option value="__rename__">Rename…</option>}
             </select>
           </label>
           {renaming && (
