@@ -9,6 +9,7 @@ import { CLASS_OPTIONS, getClassConfig, TIRE_CHOICES, TIRE_MANDATED } from '@/li
 import { initial, serialTail } from '@/lib/drivers'
 import { distanceM } from '@/lib/geo'
 import { createTrackFromDetection, prefillSetup, previousFor } from '@/lib/pipeline'
+import { withoutClutch } from '@/lib/setupVerdict'
 import { canonicalLabel, sessionLocal } from '@/lib/sessionLabel'
 import { deviceZone, fromLocalInput, isValidZone, loggerDateLabel, toLocalInput } from '@/lib/sessionTime'
 import { pickLayout } from '@/lib/trackDetect'
@@ -226,7 +227,7 @@ export function SetupStepPage() {
 
   useEffect(() => {
     if (!s) return
-    setSetup(s.setup ?? prefillSetup(s, sessions, drivers).prefill)
+    setSetup(withoutClutch(s.setup ?? prefillSetup(s, sessions, drivers).prefill))
     setClassId(s.classId ?? 'junior_light')
     setWeather(s.weather ?? null)
     setFrontOpen(s.setup?.frontTeeth != null)
@@ -261,7 +262,7 @@ export function SetupStepPage() {
 
   const save = (sameAsLast?: boolean) => {
     const st = sameAsLast && prevSetup ? { ...prevSetup, hotPsi: undefined, intentionalChange: 'none' as IntentionalChange, notes: undefined } : setup
-    saveSetup(s.id, st, { classId, weather })
+    saveSetup(s.id, withoutClutch(st), { classId, weather })
     nav(`/session/${s.id}`, { replace: true })
   }
 
@@ -563,25 +564,9 @@ export function SetupStepPage() {
         </details>
       </Card>
 
-      <Card title="Clutch">
-        <label className="block text-sm font-semibold text-n10-soft">
-          Engagement RPM (optional)
-          <input
-            inputMode="numeric"
-            className="mt-1 block min-h-[48px] w-40 rounded-lg border border-n10-border bg-black px-3 text-base text-white"
-            value={setup.clutchEngagementRpm ?? ''}
-            placeholder="unchanged"
-            onChange={(e) => {
-              const n = Number(e.target.value)
-              set({ clutchEngagementRpm: e.target.value === '' || !Number.isFinite(n) ? undefined : n })
-            }}
-          />
-        </label>
-      </Card>
-
       <Card title="What did you change on purpose?">
         <div className="flex flex-wrap gap-2">
-          {(['none', 'gearing', 'clutch', 'tires', 'chassis'] as IntentionalChange[]).map((c) => (
+          {(['none', 'gearing', 'tires', 'chassis'] as IntentionalChange[]).map((c) => (
             <Chip key={c} on={(setup.intentionalChange ?? 'none') === c} onClick={() => set({ intentionalChange: c })}>
               {c === 'none' ? 'Nothing' : c[0].toUpperCase() + c.slice(1)}
             </Chip>

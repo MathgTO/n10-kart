@@ -72,8 +72,14 @@ function fmtPsi(p: number): string {
   return Number.isInteger(p) ? String(p) : p.toFixed(1)
 }
 
+/** Clutch is no longer part of round setup — drop legacy clutch fields so they never carry over or drive a verdict. */
+export function withoutClutch(setup: SessionSetup): SessionSetup {
+  const { clutchEngagementRpm: _rpm, clutchId: _id, ...rest } = setup
+  return rest.intentionalChange === 'clutch' ? { ...rest, intentionalChange: undefined } : rest
+}
+
 export function setupOf(s: StoredSession): SessionSetup {
-  return s.setup ?? { rearTeeth: s.gearing?.rearTeeth, frontTeeth: s.gearing?.frontTeeth }
+  return s.setup ? withoutClutch(s.setup) : { rearTeeth: s.gearing?.rearTeeth, frontTeeth: s.gearing?.frontTeeth }
 }
 
 /** Fields that differ from the previous session's setup. */
@@ -82,7 +88,6 @@ export function changedFields(cur: SessionSetup, prev?: SessionSetup): string[] 
   const out: string[] = []
   if (cur.rearTeeth != null && prev.rearTeeth != null && cur.rearTeeth !== prev.rearTeeth) out.push('rearTeeth')
   if (cur.frontTeeth != null && prev.frontTeeth != null && cur.frontTeeth !== prev.frontTeeth) out.push('frontTeeth')
-  if ((cur.clutchEngagementRpm ?? null) !== (prev.clutchEngagementRpm ?? null) && cur.clutchEngagementRpm != null) out.push('clutchEngagementRpm')
   if (cur.tireCompound && prev.tireCompound && cur.tireCompound !== prev.tireCompound) out.push('tireCompound')
   const cp = coldPsiRear(cur)
   const pp = coldPsiRear(prev)
@@ -92,7 +97,6 @@ export function changedFields(cur: SessionSetup, prev?: SessionSetup): string[] 
 
 export function categoryOfField(f: string): SetupCategory {
   if (f === 'rearTeeth' || f === 'frontTeeth') return 'gearing'
-  if (f.startsWith('clutch')) return 'clutch'
   if (f === 'tireCompound' || f === 'coldPsi') return 'tires'
   return 'chassis'
 }
@@ -156,7 +160,6 @@ export function buildSetupVerdict(s: StoredSession, prev: StoredSession | null, 
   const cold = coldPsiRear(setup)
   if (cold == null) blanks.push('Cold PSI unknown — no start-pressure number')
   if (!setup.hotPsi || avg(Object.values(setup.hotPsi)) == null) blanks.push('Hot PSI not logged')
-  if (!setup.clutchId && setup.clutchEngagementRpm == null) blanks.push('Clutch unknown')
   if (!s.weather) blanks.push('Weather unavailable — no temp-based PSI nudge')
 
   // Prior change verdict — only when a real previous library session exists AND something changed.
