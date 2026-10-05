@@ -78,10 +78,11 @@ export function buildReportCardPdf(summary: DriverSummary, opts?: ReportPdfOpts)
     doc.setTextColor(LIME_BRIGHT[0], LIME_BRIGHT[1], LIME_BRIGHT[2])
     {
       const { base, suffix } = splitLetter(summary.overall)
-      const suffixW = 7 // mm reserved for +/− so bases share one x
+      const pdfSuffix = suffix === '+' ? '+' : suffix ? '-' : ''
+      const suffixW = 7 // mm reserved so bases share one x
       const letterRight = pageW - margin - suffixW
       doc.text(base, letterRight, nameY + 14, { align: 'right' })
-      if (suffix) doc.text(suffix, letterRight + 1.2, nameY + 14, { align: 'left' })
+      if (pdfSuffix) doc.text(pdfSuffix, letterRight + 1.2, nameY + 14, { align: 'left' })
     }
   }
   y = nameY + 16
@@ -108,11 +109,12 @@ export function buildReportCardPdf(summary: DriverSummary, opts?: ReportPdfOpts)
     doc.text('YOUR BEST LAP', margin + 5, y + 5)
     doc.setFontSize(18)
     doc.setTextColor(INK[0], INK[1], INK[2])
-    const lapStr = summary.bestLap.text.replace(/\s*L\d+$/, '')
+    const lapStr = summary.bestLap.text.replace(/\s*L\d+$/, '').trim()
     doc.text(lapStr, margin + 5, y + 12)
+    const lapW = doc.getTextWidth(lapStr) // measure at 18pt before shrinking
     doc.setFontSize(10)
     doc.setTextColor(SOFT[0], SOFT[1], SOFT[2])
-    doc.text(`L${summary.bestLap.lapNumber}`, margin + 5 + doc.getTextWidth(lapStr) + 3, y + 11.5)
+    doc.text(`L${summary.bestLap.lapNumber}`, margin + 5 + lapW + 3, y + 11.5)
     y += 18
   }
 
@@ -197,7 +199,7 @@ export function buildReportCardPdf(summary: DriverSummary, opts?: ReportPdfOpts)
     doc.text(`SKILLS · THIS SESSION${cls}`.toUpperCase(), margin, y)
     y += 5
 
-    const colW = (maxW - 8) / 2
+    const colW = (maxW - 10) / 2
     const rowH = 11
     let col = 0
     let rowY = y
@@ -211,34 +213,43 @@ export function buildReportCardPdf(summary: DriverSummary, opts?: ReportPdfOpts)
         rowY = y
         col = 0
       }
-      const x = margin + col * (colW + 8)
+      const gutter = 10
+      const gradeStrip = 12 // reserved so left-col grades never sit on right-col labels
+      const x = margin + col * (colW + gutter)
+      const textW = colW - gradeStrip
       const desc = KID_DESCS[r.dimId] ?? r.why ?? ''
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(9.5)
       doc.setTextColor(INK[0], INK[1], INK[2])
-      doc.text(r.label, x, rowY + 3.5)
+      const labelLines = doc.splitTextToSize(r.label, textW) as string[]
+      doc.text(labelLines[0] ?? '', x, rowY + 3.5)
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(7.5)
       doc.setTextColor(SOFT[0], SOFT[1], SOFT[2])
-      const dLines = doc.splitTextToSize(desc, colW - 16) as string[]
+      const dLines = doc.splitTextToSize(desc, textW) as string[]
       doc.text(dLines[0] ?? '', x, rowY + 7.5)
 
+      // Helvetica cannot draw U+2212; use ASCII - so we never get a " glyph
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(12)
       doc.setTextColor(LIME_INK[0], LIME_INK[1], LIME_INK[2])
+      const gradeRight = x + colW
       if (!r.letter) {
-        doc.text('N/A', x + colW, rowY + 4.5, { align: 'right' })
+        doc.text('N/A', gradeRight, rowY + 4.5, { align: 'right' })
       } else {
         const { base, suffix } = splitLetter(r.letter)
+        const pdfSuffix = suffix === '+' ? '+' : suffix ? '-' : ''
+        // Fixed letter slot so C and C- share the same letter center; +/- hangs in suffix slot
         const suffixW = 3.2
-        const letterRight = x + colW - suffixW
-        doc.text(base, letterRight, rowY + 4.5, { align: 'right' })
-        if (suffix) doc.text(suffix, letterRight + 0.6, rowY + 4.5, { align: 'left' })
+        const letterSlot = 4.5
+        const letterCenter = gradeRight - suffixW - letterSlot / 2
+        doc.text(base, letterCenter, rowY + 4.5, { align: 'center' })
+        if (pdfSuffix) doc.text(pdfSuffix, gradeRight - suffixW + 0.4, rowY + 4.5, { align: 'left' })
       }
       if (r.estimate && r.letter) {
         doc.setFontSize(6.5)
         doc.setTextColor(MUTE[0], MUTE[1], MUTE[2])
-        doc.text('est.', x + colW, rowY + 8.5, { align: 'right' })
+        doc.text('est.', gradeRight, rowY + 8.5, { align: 'right' })
       }
 
       col += 1
