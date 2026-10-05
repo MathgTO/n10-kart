@@ -58,6 +58,30 @@ export const ADULT_LABELS: Record<string, string> = {
   D20: 'Wet driving',
 }
 
+
+/** One-line plain “what this is” under each skill (PDF + school card). */
+export const KID_DESCS: Record<string, string> = {
+  D1: 'Using the full width — not leaving unused track.',
+  D2: 'Starting the turn at the right time — not too early.',
+  D3: 'Right spot at mid-corner so you keep speed through the middle.',
+  D4: 'Drive off the slow corners onto the next straight.',
+  D5: 'Firm stop on the straight before you turn in.',
+  D6: 'Easing off the brake clean so the kart rotates.',
+  D7: 'Same braking marker lap after lap — no inventing a new spot.',
+  D8: 'One clean turn of the wheel — not sawing.',
+  D9: 'Quiet hands — no extra wiggles mid-corner.',
+  D10: 'Rolling on the gas clean out of corners — not in steps.',
+  D11: 'Getting the kart rotated so it points at the exit.',
+  D12: 'Eyes up — looking where you want to go.',
+  D13: 'Sitting still so the kart stays planted.',
+  D14: 'Using the tow without bumping.',
+  D15: 'Clean passes — own the inside, keep the exit.',
+  D16: 'Defending without weaving or blocking.',
+  D17: 'First lap composure off the start.',
+  D18: 'Keeping flying laps close to your best — not bouncing around.',
+  D20: 'Wet marks and patience when the track is slick.',
+}
+
 const RACECRAFT = new Set(['D14', 'D15', 'D16', 'D17'])
 
 export interface Subject {
@@ -236,46 +260,77 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
   const lowOverall = overall != null && ['C+', 'C', 'C−', 'D'].includes(overall)
   const badDay = lowOverall || (!!slower && overall == null)
 
-  // Keep doing: 1–2 best measured subjects + why
+  // Keep doing: strengths ≥4, else best shown — serious you-voice.
   const strengths = [...shown].sort((a, b) => (b.score ?? 0) - (a.score ?? 0)).slice(0, 2)
-  const keepSubject = strengths[0]
+  const keepSubject = strengths.find((g) => (g.score ?? 0) >= 4) ?? strengths[0]
   let keepText = keepSubject ? keepSubject.why : close ? `Building early — close by lap ${close}.` : kid ? 'You kept pushing all session.' : 'Steady effort through the session.'
   if (strengths[1] && (strengths[1].score ?? 0) >= 3.5 && strengths[1].why && strengths[1].why !== keepText) keepText += ` ${strengths[1].why}`
   if (badDay && !keepSubject) keepText = close ? `Building early — close by lap ${close}.` : kid ? 'You kept working all session — that effort counts.' : 'Effort and the build-up were there.'
 
-  // Start doing: the turn with the biggest loss (craft only), drill from the priority.
+  // Start doing / Next focus: active priority. Prefer EXIT commitment on corner loss unless priority is truly D3.
   const corner = turnPhrase(report.focus.cornerName)
   const drill = getDrill(report.primary_drill.id)
   const priorityId = report.priority_dimension_id
   const startSubject = shown.find((g) => g.dimId === priorityId) ?? face.find((g) => g.dimId === 'D4')
   const focusIsCorner = report.focus.referenceLapIndex !== report.focus.bestLapIndex && report.focus.lossMs > 40
-  const exitsWork = focusIsCorner
-  const startText = exitsWork
-    ? kid
-      ? `${corner.title} — wait a beat to turn, then throttle earlier and push all the way out.`
+  const exitsWork = focusIsCorner && priorityId !== 'D3'
+  const briggsStart: Partial<Record<string, string>> = {
+    D4: 'Get on the gas earlier out of the slow corners. The blue slide rewards exit, not living on 6150.',
+    D2: 'Wait one kart length longer before you turn. Late apex = faster onto the straight.',
+    D8: 'One clean turn of the wheel. Sawing scrub costs you more than a faster driver in this class.',
+    D9: 'One clean turn of the wheel. Sawing scrub costs you more than a faster driver in this class.',
+    D14: "Close up for the tow, but don't bump. A push gets a 5-second bumper penalty.",
+    D15: 'Own the inside before turn-in, and keep the exit. Contact that costs someone a spot is a bad pass — officials can drop you behind them.',
+    D3: 'Commit to the apex. One clean hit mid-corner unlocks the exit — no early stab.',
+  }
+  let startText: string
+  if (kid && briggsStart[priorityId]) {
+    startText = exitsWork && priorityId !== 'D4'
+      ? `Get on the gas earlier out of the slow corners. The blue slide rewards exit, not living on 6150.`
+      : briggsStart[priorityId]!
+    // Corner-loss sessions: lock EXIT unless priority is truly apex (D3).
+    if (exitsWork) {
+      startText = `${corner.title} exit — get on the gas earlier. The blue slide rewards exit, not living on 6150.`
+    } else if (priorityId === 'D3') {
+      startText = briggsStart.D3!
+    }
+  } else if (exitsWork) {
+    startText = kid
+      ? `${corner.title} exit — get on the gas earlier and push all the way out. The blue slide rewards exit, not living on 6150.`
       : `${corner.title}: turn in a touch later, get to full throttle earlier and use all the exit.`
-    : kid
+  } else {
+    startText = kid
       ? `${drill?.name ?? 'Pick your marks'} — ${drill?.instruction ?? 'same marks every lap.'}`
       : `${drill?.name ?? 'Reference points'}: ${drill?.instruction ?? 'repeat your marks every lap.'}`
+  }
   const drillText = exitsWork
     ? `${corner.title} exit: same entry, wait to turn, earlier throttle`
-    : drill?.name ?? 'Same marks every lap'
+    : priorityId === 'D2'
+      ? 'Wait one kart length longer before you turn — then commit'
+      : drill?.name ?? 'Same marks every lap'
 
-  // Stop doing: one habit to drop (never "try harder").
+  // Stop doing: contact / weaving / bump-draft when race; else one habit to cut.
   const losses = s.corners.map((c) => Math.max(0, c.lossMs ?? 0))
   const totalLoss = losses.reduce((a, b) => a + b, 0)
   const concentrated = focusIsCorner && totalLoss > 0 && report.focus.lossMs / totalLoss >= 0.4
-  const stopText = concentrated
-    ? 'Reinventing the whole lap when one corner is the issue. Same entry; only change the exit.'
-    : priorityId === 'D7'
-      ? 'Moving your braking marker around. Pick one board and stick to it.'
-      : 'Changing your line every lap. Pick your marks and repeat them.'
+  const stopText = race
+    ? "Don't bump-draft or weave. A push gets a bumper penalty — close up for the tow, keep it clean."
+    : concentrated
+      ? 'Reinventing the whole lap when one corner is the issue. Same entry; only change the exit.'
+      : priorityId === 'D7'
+        ? 'Moving your braking marker around. Pick one board and stick to it.'
+        : 'Changing your line every lap. Pick your marks and repeat them.'
 
+  // Overall: serious craft lock — no "homework", no soft pride fluff.
   const overallSentence = overall
-    ? `${badDay ? 'Tough day, real effort' : 'Strong build'}, clear homework: ${
-        exitsWork ? `${badDay ? 'next focus is' : 'lock'} the ${corner.short} exit next round` : `${(drill?.name ?? 'your marks').toLowerCase()} next round`
-      }.${kid ? ' Dad owns the kart checklist.' : ''}`
-    : `Not enough measured skills to summarize the outing yet.${kid ? ' Dad owns the kart checklist.' : ''}`
+    ? kid
+      ? `${badDay ? 'Tough outing — you stayed in it' : 'Solid build'}. Lock ${
+          exitsWork ? `the ${corner.short} exit` : (drill?.name ?? 'your marks').toLowerCase()
+        } next round and the tenths come with you.`
+      : `${badDay ? 'Tough outing, real effort' : 'Solid build'}. Lock ${
+          exitsWork ? `the ${corner.short} exit` : (drill?.name ?? 'your marks').toLowerCase()
+        } next round.`
+    : `Not enough measured skills to summarize the outing yet.${kid ? " Dad owns the kart checklist." : ''}`
 
   // ---- driver voice (~45 s, RCA style) ----
   const v: string[] = [`${name}.`]
@@ -289,13 +344,17 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
         tenths >= 1 ? `, about ${tenths === 1 ? 'a tenth' : `${numberWords(tenths)}-tenths`} versus your own best` : ''
       }.`
     )
-    v.push(`Next round, one job: same entry into ${corner.text}, then wait a beat, commit earlier on the throttle and push the kart out to the exit.`)
+    v.push(`Next round, one job: get on the gas earlier out of ${corner.text}. Same entry, wait a beat, then commit — the blue slide rewards exit, not living on the limiter.`)
+  } else if (priorityId === 'D2') {
+    v.push('Next round, one job: wait one kart length longer before you turn. Late apex means faster onto the straight.')
+  } else if (priorityId === 'D8' || priorityId === 'D9') {
+    v.push('Next round, one job: one clean turn of the wheel. Sawing scrub costs you more than a faster driver in this class.')
   } else {
     v.push(`Next round, one job: ${drill?.instruction ?? 'same marks every lap.'}`)
   }
   if (concentrated) v.push("Don't reinvent the rest of the lap.")
   if (exitsNote) v.push(kid ? "On exits, the kart side may be part of it — Dad's on that." : 'On exits, the kart may be part of it — check with the tuner.')
-  v.push(exitsWork ? `Lock that exit, and the time comes with it.${kid ? ' Proud of you.' : ''}` : kid ? 'Proud of you.' : 'Good work.')
+  v.push(exitsWork ? 'Lock that exit, and the time comes with it.' : 'Lock the marks next round.')
   const voiceScript = v.join(' ')
 
   // ---- share: PDF report card only (native share sheet attaches the file; no plain-text SMS/email body)

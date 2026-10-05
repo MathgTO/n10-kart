@@ -1,12 +1,26 @@
 import { Link } from 'react-router-dom'
+import { VoicePlayer } from './VoicePlayer'
 import type { SetupVerdict } from '@/lib/setupVerdict'
 
 /** Teal tuner card (Dad's job) — one setup category per outing, from the setup verdict. */
-export function SetupCard({ verdict, sessionId, confirmed, kid }: { verdict: SetupVerdict; sessionId: string; confirmed: boolean; kid: boolean }) {
+export function SetupCard({
+  verdict,
+  sessionId,
+  confirmed,
+  kid,
+  showTunerVoice,
+}: {
+  verdict: SetupVerdict
+  sessionId: string
+  confirmed: boolean
+  kid: boolean
+  /** Coach view / explicit request — never on Kid by default. */
+  showTunerVoice?: boolean
+}) {
   return (
     <section className="rounded-2xl border border-n10-teal/40 bg-n10-teal/5 p-4 sm:p-5 print-card">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-bold uppercase tracking-wide text-n10-teal">⚙ Setup · {kid ? 'Dad’s job' : 'tuner'}</p>
+        <p className="text-sm font-bold uppercase tracking-wide text-n10-teal">⚙ Setup · {kid ? "Dad’s job" : 'tuner'}</p>
         <Link to={`/session/${sessionId}/setup`} className="btn-secondary min-h-[44px] no-print">
           Edit setup
         </Link>
@@ -47,6 +61,11 @@ export function SetupCard({ verdict, sessionId, confirmed, kid }: { verdict: Set
         {verdict.blanks.length > 0 && <p className="text-sm text-n10-mute">Missing: {verdict.blanks.join(' · ')}</p>}
         <p className="text-sm text-n10-mute">{verdict.preCheck}</p>
       </div>
+      {showTunerVoice && (
+        <div className="mt-3 no-print">
+          <VoicePlayer label="Voice for tuner" script={verdict.voiceScript} tone="teal" />
+        </div>
+      )}
     </section>
   )
 }

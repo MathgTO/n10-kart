@@ -129,6 +129,8 @@ export interface StoredSession {
   notes?: string
   isDemo?: boolean
   sourceFileName?: string
+  /** SHA-256 of the imported file bytes (dedupe). */
+  importHash?: string
   sourceKind?: 'csv' | 'xrz' | 'xrk' | 'demo'
   laps: LapData[]
   referenceLapIndex: number

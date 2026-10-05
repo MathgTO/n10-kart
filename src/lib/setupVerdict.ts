@@ -141,8 +141,10 @@ function refFrom(prev: StoredSession | null, baseline?: DriverBaseline): RefPoin
 export function buildSetupVerdict(s: StoredSession, prev: StoredSession | null, baseline?: DriverBaseline): SetupVerdict {
   const cls = getClassConfig(s.classId)
   const setup = setupOf(s)
-  const ref = refFrom(prev, baseline)
-  const prevSetup = ref?.setup
+  // Library previous session only for "Last change" / "vs Sep 26" — baselines never invent a prior outing.
+  const prevRef = prev ? refFrom(prev, undefined) : null
+  const gearRef = refFrom(prev, baseline) // RPM / gear evidence may still use baseline
+  const prevSetup = prevRef?.setup
   const gpsOnly = s.sourceKind === 'xrk' || s.sourceKind === 'xrz'
   const health = buildHealthDiagnosticFromSession(s)
   const peak = rpmAtPeakSpeed(s.laps)
@@ -157,18 +159,18 @@ export function buildSetupVerdict(s: StoredSession, prev: StoredSession | null, 
   if (!setup.clutchId && setup.clutchEngagementRpm == null) blanks.push('Clutch unknown')
   if (!s.weather) blanks.push('Weather unavailable — no temp-based PSI nudge')
 
-  // Prior change verdict
+  // Prior change verdict — only when a real previous library session exists AND something changed.
   let priorChange: SetupVerdict['priorChange']
   const changed = changedFields(setup, prevSetup)
   const declared = setup.intentionalChange
-  if (prevSetup && (changed.length || (declared && declared !== 'none'))) {
+  if (prev && prevSetup && (changed.length || (declared && declared !== 'none'))) {
     const cat: SetupCategory = declared && declared !== 'none' ? declared : categoryOfField(changed[0])
     if (cat === 'gearing' && setup.rearTeeth != null && prevSetup.rearTeeth != null && setup.rearTeeth !== prevSetup.rearTeeth) {
       const expected = setup.rearTeeth / prevSetup.rearTeeth - 1
       let applied: boolean | null = null
       let evidence: string | undefined
-      if (peak.rpmPerKmh && ref?.rpmPerKmh) {
-        const measured = peak.rpmPerKmh / ref.rpmPerKmh - 1
+      if (peak.rpmPerKmh && gearRef?.rpmPerKmh) {
+        const measured = peak.rpmPerKmh / gearRef.rpmPerKmh - 1
         applied = Math.abs(measured - expected) <= 0.01 && Math.sign(measured) === Math.sign(expected)
         evidence = `${measured >= 0 ? '+' : '−'}${Math.abs(measured * 100).toFixed(1)}% revs per km/h`
       }
@@ -199,15 +201,21 @@ export function buildSetupVerdict(s: StoredSession, prev: StoredSession | null, 
     limiterSpoken = cls.limiterSpoken ? `${underLimiter ? "you're still under" : "you're on"} the ${cls.limiterSpoken} limiter` : undefined
   }
 
-  // vs last session (same driver + track + class) or the driver's baseline
+  // vs last: same ref as gearing (library prev, or newer baseline). Label baseline when no library prev.
   let vsLast: SetupVerdict['vsLast']
-  if (ref?.bestMs && best) {
-    vsLast = { prevBestMs: ref.bestMs, deltaMs: best.timeMs - ref.bestMs, prevDate: ref.dateLabel, prevDateSpoken: ref.dateSpoken }
+  if (gearRef?.bestMs && best) {
+    const baselineOnly = !prev
+    vsLast = {
+      prevBestMs: gearRef.bestMs,
+      deltaMs: best.timeMs - gearRef.bestMs,
+      prevDate: baselineOnly ? `baseline · ${gearRef.dateLabel}` : gearRef.dateLabel,
+      prevDateSpoken: baselineOnly ? 'your baseline' : gearRef.dateSpoken,
+    }
   }
 
   // Weather vs last
   const airNow = s.weather?.airC
-  const airPrev = ref?.airC
+  const airPrev = gearRef?.airC
   const coolerBy = airNow != null && airPrev != null ? airPrev - airNow : undefined
   let weatherLine: string | undefined
   if (s.weather) {

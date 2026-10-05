@@ -144,6 +144,7 @@ export function SetupStepPage() {
   const [trackOpen, setTrackOpen] = useState(false)
   const [driverPrompt, setDriverPrompt] = useState<null | 'unknown' | 'wrong'>(null)
   const [timeEdit, setTimeEdit] = useState(false)
+  const [changeSomething, setChangeSomething] = useState(false)
 
   useEffect(() => {
     if (!s) return
@@ -184,6 +185,42 @@ export function SetupStepPage() {
     const st = sameAsLast && prevSetup ? { ...prevSetup, hotPsi: undefined, intentionalChange: 'none' as IntentionalChange, notes: undefined } : setup
     saveSetup(s.id, st, { classId, weather })
     nav(`/session/${s.id}`, { replace: true })
+  }
+
+  const sameAsLastGate = !!(firstTime && prevSetup && !changeSomething)
+
+  if (sameAsLastGate) {
+    const teeth = prevSetup.rearTeeth
+    const psi = prevSetup.coldPsi
+    const psiNote =
+      psi && (psi.rl != null || psi.rr != null)
+        ? ` · cold ~${psi.rl ?? psi.rr}/${psi.rr ?? psi.rl} psi`
+        : ''
+    return (
+      <div className="mx-auto max-w-3xl space-y-4 pb-32">
+        <header>
+          <p className="text-sm text-n10-mute">After import · Round setup</p>
+          <h1 className="text-2xl font-black">Same kart as last round?</h1>
+          <p className="mt-2 text-n10-soft">
+            {label}
+            {teeth != null ? ` · ${teeth}T` : ''}
+            {psiNote}
+          </p>
+        </header>
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-n10-border bg-black/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur">
+          <div className="mx-auto flex max-w-3xl flex-col gap-2">
+            <button type="button" className="btn-primary min-h-[52px] w-full text-lg" onClick={() => save(true)}>
+              Same as last round
+            </button>
+            <button type="button" className="btn-secondary min-h-[48px] w-full" onClick={() => setChangeSomething(true)}>
+              Change something
+            </button>
+          </div>
+        </div>
+        <TrackSheet open={trackOpen} onClose={() => setTrackOpen(false)} s={s} />
+        {driverPrompt && <DriverPrompt open onClose={() => setDriverPrompt(null)} session={s} reason={driverPrompt} />}
+      </div>
+    )
   }
 
   return (

@@ -54,6 +54,8 @@ export function ImportModal({ open, onClose }: Props) {
   const [busy, setBusy] = useState(false)
   const [parse, setParse] = useState<ParseResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+  const [optionsOpen, setOptionsOpen] = useState(false)
 
   if (!open) return null
 
@@ -61,12 +63,20 @@ export function ImportModal({ open, onClose }: Props) {
     setBusy(true)
     setError(null)
     setParse(null)
+    setNotice(null)
     try {
       const result = await importFile(file)
       setParse(result.parse)
       if (!result.session) {
         setError(result.parse.message)
         setBusy(false)
+        return
+      }
+      if (result.alreadyImported) {
+        setNotice('Already imported — opening the existing session.')
+        setBusy(false)
+        onClose()
+        nav(result.session.setupConfirmed === false ? `/session/${result.session.id}/setup` : `/session/${result.session.id}`)
         return
       }
       onClose()
@@ -111,23 +121,7 @@ export function ImportModal({ open, onClose }: Props) {
           </button>
         </div>
 
-        <div className="mt-4">
-          <label className="label-lg">Session type</label>
-          <select
-            className="mt-1 min-h-[48px] w-full rounded-lg border border-n10-border bg-black px-3 py-2 text-base"
-            value={prefs.series}
-            onChange={(e) => setSeries(e.target.value as SeriesTag)}
-          >
-            {SERIES_OPTIONS.map((o) => (
-              <option key={o} value={o}>
-                {seriesLabel(o)}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* A real <label> wrapping a visually-hidden (not display:none) input is the most reliable
-            picker across desktop Safari, Chrome, Firefox and iPad: no programmatic click needed. */}
+        {/* File picker first */}
         <label
           className={`mt-4 block w-full cursor-pointer rounded-xl border-2 border-dashed px-4 py-8 text-center transition ${
             busy ? 'pointer-events-none opacity-60' : ''
@@ -145,7 +139,7 @@ export function ImportModal({ open, onClose }: Props) {
             disabled={busy}
             onChange={(e) => {
               const f = e.target.files?.[0]
-              e.target.value = '' // allow picking the same file again
+              e.target.value = ''
               if (f) void handleFile(f)
             }}
           />
@@ -157,6 +151,26 @@ export function ImportModal({ open, onClose }: Props) {
           </span>
         </label>
 
+        {/* Series tucked under Options */}
+        <details className="mt-3 rounded-xl border border-n10-border bg-n10-card/40 p-3" open={optionsOpen} onToggle={(e) => setOptionsOpen((e.target as HTMLDetailsElement).open)}>
+          <summary className="min-h-[40px] cursor-pointer font-semibold text-n10-soft">Options</summary>
+          <div className="mt-2">
+            <label className="label-lg">Session type</label>
+            <select
+              className="mt-1 min-h-[48px] w-full rounded-lg border border-n10-border bg-black px-3 py-2 text-base"
+              value={prefs.series}
+              onChange={(e) => setSeries(e.target.value as SeriesTag)}
+            >
+              {SERIES_OPTIONS.map((o) => (
+                <option key={o} value={o}>
+                  {seriesLabel(o)}
+                </option>
+              ))}
+            </select>
+          </div>
+        </details>
+
+        {notice && <p className="mt-3 text-sm text-n10-lime">{notice}</p>}
         {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
 
         {parse && (

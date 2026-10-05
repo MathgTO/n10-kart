@@ -6,7 +6,6 @@ import { getClassConfig } from '@/lib/classConfig'
 import { initial } from '@/lib/drivers'
 import { formatLapTime } from '@/lib/format'
 import { dayHeader, labelParts, sessionLocal } from '@/lib/sessionLabel'
-import { loggerDateLabel } from '@/lib/sessionTime'
 import type { StoredSession } from '@/lib/types'
 
 const IOS_TIP_KEY = 'n10-ios-homescreen-tip-dismissed'
@@ -61,7 +60,7 @@ function IosHomeScreenTip() {
 }
 
 export function Home() {
-  const { sessions, drivers, loadDemos, deleteSession } = useSessions()
+  const { sessions, drivers, loadDemos } = useSessions()
   const [importOpen, setImportOpen] = useState(false)
   const [driverFilter, setDriverFilter] = useState<string>('all')
 
@@ -106,9 +105,11 @@ export function Home() {
           <button type="button" className="btn-primary min-h-[48px]" onClick={() => setImportOpen(true)}>
             Import
           </button>
-          <button type="button" className="btn-secondary min-h-[48px]" onClick={() => loadDemos()}>
-            Demo sessions
-          </button>
+          {!sessions.some((s) => !s.isDemo) && (
+            <button type="button" className="btn-secondary min-h-[48px]" onClick={() => loadDemos()}>
+              Demo sessions
+            </button>
+          )}
         </div>
       </section>
 
@@ -142,7 +143,7 @@ export function Home() {
             </div>
             <ul className="space-y-2">
               {g.items.map((s) => (
-                <SessionRow key={s.id} s={s} all={sessions} driverName={drivers.find((d) => d.id === s.driverId)?.displayName} onDelete={() => deleteSession(s.id)} />
+                <SessionRow key={s.id} s={s} all={sessions} driverName={drivers.find((d) => d.id === s.driverId)?.displayName} />
               ))}
             </ul>
           </section>
@@ -154,12 +155,11 @@ export function Home() {
   )
 }
 
-function SessionRow({ s, all, driverName, onDelete }: { s: StoredSession; all: StoredSession[]; driverName?: string; onDelete: () => void }) {
+function SessionRow({ s, all, driverName }: { s: StoredSession; all: StoredSession[]; driverName?: string; onDelete?: () => void }) {
   const p = labelParts(s, all)
   const best = s.laps[s.bestLapIndex]
   const bestNum = best ? best.lapNumber ?? best.index + 1 : undefined
-  const loggerSaid = loggerDateLabel(s.logger?.rawDate, s.logger?.hwReg)
-  const title = [p.layout, p.time, p.round ? `R${p.round}` : undefined].filter(Boolean).join(' · ') || p.track
+  const round = p.round ? `Round ${p.round}` : p.layout || p.track
   const target = s.setupConfirmed === false ? `/session/${s.id}/setup` : `/session/${s.id}`
   return (
     <li className="flex items-center gap-3 rounded-2xl border border-n10-border bg-n10-card p-3 transition hover:border-n10-lime/40">
@@ -168,33 +168,22 @@ function SessionRow({ s, all, driverName, onDelete }: { s: StoredSession; all: S
           {driverName ? initial(driverName) : '?'}
         </span>
         <span className="min-w-0">
-          <span className="flex flex-wrap items-center gap-2">
-            <span className="font-bold text-white">{title}</span>
+          <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span className="text-lg font-black text-white">{round}</span>
+            <span className="text-xl font-black tabular-nums text-n10-lime">
+              {best ? formatLapTime(best.timeMs) : '—'}
+            </span>
             {s.isDemo && <span className="rounded-full border border-amber-300/60 px-2 text-sm font-bold uppercase text-amber-200">Demo</span>}
             {s.setupConfirmed === false && <span className="rounded-full border border-n10-teal/60 px-2 text-sm font-semibold text-n10-teal">setup needed</span>}
           </span>
           <span className="block text-sm text-n10-soft">
-            {best ? `Best ★ L${bestNum} ${formatLapTime(best.timeMs)}` : 'Best —'} · {getClassConfig(s.classId).label}
+            {best ? `L${bestNum}` : 'Best —'}
+            {p.time ? ` · ${p.time}` : ''}
             {s.setup?.rearTeeth ? ` · ${s.setup.rearTeeth}T` : ''}
+            {` · ${getClassConfig(s.classId).label}`}
           </span>
-          {s.dateSource === 'gps' && s.dayOffset && !s.dateFixUndone ? (
-            <span className="block text-sm text-n10-mute">Date fixed from GPS{loggerSaid ? ` (logger said ${loggerSaid})` : ''}</span>
-          ) : p.unverified ? (
-            <span className="block text-sm text-n10-mute">Time from logger clock (unverified)</span>
-          ) : null}
         </span>
       </Link>
-      <button
-        type="button"
-        className="min-h-[48px] min-w-[48px] rounded-lg text-n10-mute hover:text-rose-300"
-        aria-label="Delete session"
-        onClick={() => {
-          if (!window.confirm('Delete this session?')) return
-          onDelete()
-        }}
-      >
-        ✕
-      </button>
     </li>
   )
 }

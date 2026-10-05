@@ -45,7 +45,7 @@ interface SessionsCtx {
   toggleFavorite: (id: string) => void
   loadDemos: () => void
   /** Parse → draft session (setup not confirmed yet). Caller navigates to /session/:id/setup. */
-  importFile: (file: File) => Promise<{ session: StoredSession | null; parse: ParseResult; needsDriverPrompt: boolean }>
+  importFile: (file: File) => Promise<{ session: StoredSession | null; parse: ParseResult; needsDriverPrompt: boolean; alreadyImported?: boolean }>
   updateReferenceLap: (sessionId: string, lapIndex: number) => void
   /** Setup step save: setup + class + weather → re-score (the only way setup changes). */
   saveSetup: (sessionId: string, setup: SessionSetup, opts?: { classId?: string; weather?: WeatherSnapshot | null; series?: SeriesTag }) => void
@@ -195,15 +195,48 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
 
   const importFile = useCallback(async (file: File) => {
     const lower = file.name.toLowerCase()
-    const payload = lower.endsWith('.csv') || lower.endsWith('.txt') ? await file.text() : await file.arrayBuffer()
+    const isText = lower.endsWith('.csv') || lower.endsWith('.txt')
+    const payload: ArrayBuffer | string = isText ? await file.text() : await file.arrayBuffer()
+
+    let importHash: string | undefined
+    try {
+      const bytes = typeof payload === 'string' ? new TextEncoder().encode(payload) : new Uint8Array(payload)
+      if (typeof crypto !== 'undefined' && crypto.subtle) {
+        const dig = await crypto.subtle.digest('SHA-256', bytes)
+        importHash = [...new Uint8Array(dig)].map((b) => b.toString(16).padStart(2, '0')).join('')
+      }
+    } catch {
+      importHash = undefined
+    }
+
     const parse = await parseSessionFile(file, payload)
     if (!parse.ok || !parse.laps.length) return { session: null, parse, needsDriverPrompt: false }
+
+    // Fast path: same file hash already in the library.
+    if (importHash) {
+      const byHash = sessionsRef.current.find((s) => !s.isDemo && s.importHash === importHash)
+      if (byHash) return { session: byHash, parse, needsDriverPrompt: false, alreadyImported: true }
+    }
+
     const { session, needsDriverPrompt } = await createSessionFromParse(parse, file.name, {
       sessions: sessionsRef.current,
       drivers: driversRef.current,
       series: prefs.series,
       fallbackTrackId: prefs.trackId || 'mosport',
     })
+    if (importHash) session.importHash = importHash
+
+    // Logger serial + startUtc — same outing imported twice under different names.
+    const byLogger = sessionsRef.current.find(
+      (s) =>
+        !s.isDemo &&
+        session.logger?.serial != null &&
+        s.logger?.serial === session.logger.serial &&
+        !!session.startUtc &&
+        s.startUtc === session.startUtc,
+    )
+    if (byLogger) return { session: byLogger, parse, needsDriverPrompt: false, alreadyImported: true }
+
     setSessions((list) => [session, ...list].sort((a, b) => byStart(b, a)))
     setPrefs((p) => ({ ...p, trackId: session.trackId }))
     return { session, parse, needsDriverPrompt }
