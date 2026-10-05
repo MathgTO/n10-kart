@@ -178,11 +178,11 @@ export function SessionPage() {
       <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-n10-border bg-n10-panel px-4 py-3">
         {best && (
           <p className="mr-2 text-white">
-            <span className="font-semibold">★ Best L{summary.bestLap?.lapNumber}</span> <span className="text-xl font-black">{formatLapTime(best.timeMs)}</span>
+            <span className="font-semibold">★ Best lap {summary.bestLap?.lapNumber}</span> <span className="text-xl font-black">{formatLapTime(best.timeMs)}</span>
             {summary.compareLap && (
               <span className="text-sm text-n10-soft">
                 {' '}
-                vs L{summary.compareLap.lapNumber} {formatLapTime(summary.compareLap.ms)} · +{(summary.compareLap.deltaMs / 1000).toFixed(3)}
+                vs lap {summary.compareLap.lapNumber} {formatLapTime(summary.compareLap.ms)} · +{(summary.compareLap.deltaMs / 1000).toFixed(3)}
               </span>
             )}
           </p>

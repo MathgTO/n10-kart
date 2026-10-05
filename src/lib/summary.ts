@@ -205,10 +205,10 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
   const cmp = s.referenceLapIndex !== s.bestLapIndex ? s.laps[s.referenceLapIndex] : undefined
   const bestNum = best ? best.lapNumber ?? best.index + 1 : 0
   const bestLap = best
-    ? { ms: best.timeMs, lapNumber: bestNum, text: `${lapShort(best.timeMs)} L${bestNum}`, spoken: lapSpokenShort(best.timeMs) }
+    ? { ms: best.timeMs, lapNumber: bestNum, text: `${lapShort(best.timeMs)} Lap ${bestNum}`, spoken: lapSpokenShort(best.timeMs) }
     : undefined
   const close = closeByLap(s)
-  const bestText = bestLap ? `Best ${lapShort(bestLap.ms)} on L${bestLap.lapNumber}.` : undefined
+  const bestText = bestLap ? `Best ${lapShort(bestLap.ms)} on lap ${bestLap.lapNumber}.` : undefined
 
   // Same graded-dim set as Coach: measured + data-backed estimates with letters.
   // D19 stays on the setup card (never a kid grade). D20 wet-only. Racecraft race-only.

@@ -177,7 +177,7 @@ function SessionRow({ s, all, driverName }: { s: StoredSession; all: StoredSessi
             {s.setupConfirmed === false && <span className="rounded-full border border-n10-teal/60 px-2 text-sm font-semibold text-n10-teal">setup needed</span>}
           </span>
           <span className="block text-sm text-n10-soft">
-            {best ? `L${bestNum}` : 'Best —'}
+            {best ? `Lap ${bestNum}` : 'Best —'}
             {p.time ? ` · ${p.time}` : ''}
             {s.setup?.rearTeeth ? ` · ${s.setup.rearTeeth}T` : ''}
             {` · ${getClassConfig(s.classId).label}`}

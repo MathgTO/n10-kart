@@ -109,12 +109,12 @@ export function buildReportCardPdf(summary: DriverSummary, opts?: ReportPdfOpts)
     doc.text('YOUR BEST LAP', margin + 5, y + 5)
     doc.setFontSize(18)
     doc.setTextColor(INK[0], INK[1], INK[2])
-    const lapStr = summary.bestLap.text.replace(/\s*L\d+$/, '').trim()
+    const lapStr = summary.bestLap.text.replace(/\s*(?:L|Lap)\s*\d+$/i, '').trim()
     doc.text(lapStr, margin + 5, y + 12)
     const lapW = doc.getTextWidth(lapStr) // measure at 18pt before shrinking
     doc.setFontSize(10)
     doc.setTextColor(SOFT[0], SOFT[1], SOFT[2])
-    doc.text(`L${summary.bestLap.lapNumber}`, margin + 5 + lapW + 3, y + 11.5)
+    doc.text(`Lap ${summary.bestLap.lapNumber}`, margin + 5 + lapW + 3, y + 11.5)
     y += 18
   }
 
