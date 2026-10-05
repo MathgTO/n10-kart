@@ -5,7 +5,7 @@
  * Driving only — setup lives in the setup verdict (setupVerdict.ts). Never blames the driver for kart issues.
  */
 import { getTrack } from '@/data/tracks'
-import { letterForDim, overallLetter, type Letter } from './grades'
+import { dimGrade, overallLetter, type Letter } from './grades'
 import { getDrill } from './rubric'
 import { lapShort, lapSpokenShort, numberWords } from './speech'
 import { lapValidity } from './telemetry'
@@ -63,21 +63,25 @@ const RACECRAFT = new Set(['D14', 'D15', 'D16', 'D17'])
 export interface Subject {
   dimId: DimensionId
   label: string
-  letter: Letter
-  score: number
+  /** null when the dim is shown as N/A (needs video / no data basis / setup context). */
+  letter: Letter | null
+  score: number | null
   why: string
   fromVideo: boolean
+  /** Data-backed estimate (not hard MyChron / video measure). */
+  estimate?: boolean
 }
 
 export interface DriverSummary {
   name: string
   kid: boolean
   title: string // "Gabriel's report card"
+  /** Internal only — used for bad-day checks; never shown as a grade on Keep/Start/Stop/Overall. */
   overall: Letter | null
   overallSentence: string
-  /** Up to 3 graded subjects on the card face. */
+  /** Same graded-dim set as Coach (measured + data-backed estimates), face first. */
   face: Subject[]
-  /** Rest, behind "More skills". */
+  /** Rest of the graded set, behind "More skills". */
   more: Subject[]
   /** Graded subjects that came from video (shown under "New from your video"). */
   fromVideo: Subject[]
@@ -92,7 +96,8 @@ export interface DriverSummary {
   gpsOnly: boolean
   badDay: boolean
   voiceScript: string
-  share: { sms: string; emailSubject: string; emailBody: string; pdfTitle: string }
+  /** PDF share file name + short title for the native share sheet. */
+  share: { pdfTitle: string; fileName: string }
 }
 
 function labelFor(id: string, kid: boolean): string {
@@ -131,6 +136,12 @@ function whyFor(id: string, s: DimensionScore, ctx: { closeByLap?: number; bestT
     case 'D3':
       if (good) return kid ? 'Kept your speed through the middle of the corner.' : 'Minimum corner speed held up.'
       return kid ? 'Lost speed in the middle of the corner.' : 'Minimum corner speed is giving time away.'
+    case 'D2':
+      if (good) return kid ? 'Turn-in lined up with your best lap.' : 'Turn-in timing stayed close to your best lap.'
+      return kid ? 'Turn-in drifted vs your best lap.' : 'Turn-in timing moved around vs your best lap.'
+    case 'D5':
+      if (good) return kid ? 'Hard enough on the brakes into the slow corners.' : 'Brake aggression into slow corners matched your best lap.'
+      return kid ? 'Could squeeze harder on the brakes into the slow corners.' : 'Brake aggression into slow corners was softer than your best lap.'
     default:
       return s.notes ?? ''
   }
@@ -175,26 +186,29 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
   const close = closeByLap(s)
   const bestText = bestLap ? `Best ${lapShort(bestLap.ms)} on L${bestLap.lapNumber}.` : undefined
 
-  // Graded subjects: measured only, D19 never, D20 wet only, racecraft race only, not confounded.
+  // Same graded-dim set as Coach: measured + data-backed estimates with letters.
+  // D19 stays on the setup card (never a kid grade). D20 wet-only. Racecraft race-only.
+  // Setup-confounded / needs-video / no-basis stay out of the lettered set (kid shows N/A only via unlock/video).
   const graded: Subject[] = []
   for (const sc of report.scores) {
     const id = sc.dimension_id
     if (id === 'D19') continue
     if (id === 'D20' && !wet) continue
     if (RACECRAFT.has(id) && !race) continue
-    const letter = letterForDim(sc)
-    if (!letter || sc.score == null) continue
+    const g = dimGrade(sc)
+    if (g.letter == null || g.score == null) continue
     graded.push({
       dimId: id,
       label: labelFor(id, kid),
-      letter,
-      score: sc.score,
+      letter: g.letter,
+      score: g.score,
       why: whyFor(id, sc, { closeByLap: close, bestText }, kid),
       fromVideo: sc.evidence_kind === 'kart_cam',
+      estimate: g.status === 'estimate',
     })
   }
-  // Order: Briggs/RCA pit order for MyChron subjects (D18 → D4 → D10 → D3 → D7), video after.
-  const order = ['D18', 'D4', 'D10', 'D3', 'D7']
+  // Order: Briggs/RCA pit order for MyChron subjects, then other data estimates, video after.
+  const order = ['D18', 'D4', 'D10', 'D3', 'D7', 'D2', 'D5']
   graded.sort((a, b) => {
     if (a.fromVideo !== b.fromVideo) return a.fromVideo ? 1 : -1
     const ia = order.indexOf(a.dimId)
@@ -206,7 +220,7 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
   const face = logger.slice(0, 3)
   const more = logger.slice(3)
   const shown = [...face, ...fromVideo]
-  const overall = overallLetter(shown.map((g) => g.score))
+  const overall = overallLetter(shown.map((g) => g.score).filter((n): n is number => n != null))
 
   const d4 = report.scores.find((x) => x.dimension_id === 'D4')
   const exitsNote =
@@ -223,10 +237,10 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
   const badDay = lowOverall || (!!slower && overall == null)
 
   // Keep doing: 1–2 best measured subjects + why
-  const strengths = [...shown].sort((a, b) => b.score - a.score).slice(0, 2)
+  const strengths = [...shown].sort((a, b) => (b.score ?? 0) - (a.score ?? 0)).slice(0, 2)
   const keepSubject = strengths[0]
   let keepText = keepSubject ? keepSubject.why : close ? `Building early — close by lap ${close}.` : kid ? 'You kept pushing all session.' : 'Steady effort through the session.'
-  if (strengths[1] && strengths[1].score >= 3.5 && strengths[1].why && strengths[1].why !== keepText) keepText += ` ${strengths[1].why}`
+  if (strengths[1] && (strengths[1].score ?? 0) >= 3.5 && strengths[1].why && strengths[1].why !== keepText) keepText += ` ${strengths[1].why}`
   if (badDay && !keepSubject) keepText = close ? `Building early — close by lap ${close}.` : kid ? 'You kept working all session — that effort counts.' : 'Effort and the build-up were there.'
 
   // Start doing: the turn with the biggest loss (craft only), drill from the priority.
@@ -258,10 +272,10 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
       : 'Changing your line every lap. Pick your marks and repeat them.'
 
   const overallSentence = overall
-    ? `${overall} for the outing. ${badDay ? 'Tough day, real effort' : 'Strong build'}, clear homework: ${
+    ? `${badDay ? 'Tough day, real effort' : 'Strong build'}, clear homework: ${
         exitsWork ? `${badDay ? 'next focus is' : 'lock'} the ${corner.short} exit next round` : `${(drill?.name ?? 'your marks').toLowerCase()} next round`
       }.${kid ? ' Dad owns the kart checklist.' : ''}`
-    : `Not enough measured skills for an overall letter yet.${kid ? ' Dad owns the kart checklist.' : ''}`
+    : `Not enough measured skills to summarize the outing yet.${kid ? ' Dad owns the kart checklist.' : ''}`
 
   // ---- driver voice (~45 s, RCA style) ----
   const v: string[] = [`${name}.`]
@@ -284,32 +298,10 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
   v.push(exitsWork ? `Lock that exit, and the time comes with it.${kid ? ' Proud of you.' : ''}` : kid ? 'Proud of you.' : 'Good work.')
   const voiceScript = v.join(' ')
 
-  // ---- share (school-report tone; no age, sprocket, PSI, clutch, D-codes, numeric scores) ----
-  const date = input.date
-  const overallTxt = overall ? `Overall ${overall}.` : ''
-  const keepShort = close ? `building early (close by lap ${close})` : keepSubject ? keepSubject.label.toLowerCase() : 'effort all session'
-  const startShort = exitsWork ? `${corner.short} exit — wait to turn, earlier throttle out` : (drill?.name ?? 'same marks every lap').toLowerCase()
-  const stopShort = concentrated ? 'reinventing the whole lap' : stopText.split('.')[0].toLowerCase()
-  const startWord = badDay ? 'Next focus' : 'Start'
-  const smsParts = [
-    `${name} — ${track.short} report${date ? ` ${date}` : ''}: ${overallTxt}`,
-    `Keep: ${keepShort}${bestLap ? `, best ${lapShort(bestLap.ms)} L${bestLap.lapNumber}` : ''}.`,
-    `${startWord}: ${startShort}.`,
-    `Stop: ${stopShort}.`,
-    kid ? 'Dad has the kart. Proud of you! —N10' : '—N10',
-  ]
-  let sms = smsParts.join(' ').replace(/\s+/g, ' ').trim()
-  if (sms.length > 320) sms = smsParts.filter((_, i) => i !== 3).join(' ').slice(0, 320)
+  // ---- share: PDF report card only (native share sheet attaches the file; no plain-text SMS/email body)
+  const pdfTitle = `${name}’s report card — ${input.label}`
+  const fileName = `${name.replace(/[^\w.-]+/g, '_')}_report_card.pdf`
 
-  const emailSubject = `${name}’s ${track.short} report card${date ? ` — ${date}` : ''}${overall ? ` (Overall ${overall})` : ''}`
-  const lines: string[] = [`Hi ${name},`, '', `Here’s your coach note from ${track.short}${date ? ` on ${date}` : ''}.`, '']
-  if (overall) lines.push(`Overall: ${overall} — ${overallSentence.replace(/^\S+ for the outing\. /, '').replace(' Dad owns the kart checklist.', '')}`, '')
-  lines.push('KEEP DOING', `${keepText}${keepSubject ? ` (${keepSubject.label}: ${keepSubject.letter})` : ''}`, '')
-  lines.push(badDay ? 'NEXT FOCUS' : 'START DOING', `${startText}${startSubject ? ` (${startSubject.label}: ${startSubject.letter})` : ''}`, '')
-  lines.push('STOP DOING', stopText, '')
-  lines.push('YOUR DRILL', drillText, '')
-  lines.push(kid ? `Dad owns setup. You own the driving. Proud of you — go ${exitsWork ? 'lock that exit' : 'nail that drill'}.` : 'Kart setup is handled separately. Good work.', '', '— N10 coach')
-  const emailBody = lines.join('\n')
 
   return {
     name,
@@ -330,6 +322,6 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
     gpsOnly: verdict.gpsOnly,
     badDay,
     voiceScript,
-    share: { sms, emailSubject, emailBody, pdfTitle: `${name}’s report card — ${input.label}` },
+    share: { pdfTitle, fileName },
   }
 }

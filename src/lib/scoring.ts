@@ -18,6 +18,7 @@ import {
   biggestLossSector,
   computeDelta,
   idealLapMs,
+  lapValidity,
   pickBestFlyingLap,
   pickCompareLap,
   resolveCompareLap,
@@ -171,6 +172,93 @@ export function buildCornerCues(
   })
 }
 
+/** One braking zone on a lap: the local speed minimum and the peak deceleration leading into it. */
+interface BrakeZone {
+  dMin: number
+  vMin: number
+  /** km/h per second */
+  peakDecel: number
+}
+
+/** Braking zones from the speed trace: local minima at least 12 km/h below the preceding maximum. */
+function brakeZones(samples: LapData['samples']): BrakeZone[] {
+  const out: BrakeZone[] = []
+  if (samples.length < 10) return out
+  let lastMin = 0
+  for (let i = 1; i < samples.length - 1; i++) {
+    const v = samples[i].speed
+    if (!(v > 0) || !(v <= samples[i - 1].speed && v < samples[i + 1].speed)) continue
+    let iMax = i
+    for (let j = i - 1; j >= lastMin; j--) if (samples[j].speed > samples[iMax].speed) iMax = j
+    if (samples[iMax].speed - v < 12) continue
+    let peak = 0
+    for (let j = iMax + 1; j <= i; j++) {
+      const dt = samples[j].t - samples[j - 1].t
+      if (dt > 0) peak = Math.max(peak, (samples[j - 1].speed - samples[j].speed) / dt)
+    }
+    out.push({ dMin: samples[i].dist, vMin: v, peakDecel: peak })
+    lastMin = i
+  }
+  return out
+}
+
+/** The compare lap's matching zone (minimum within ±2% of the lap around the best lap's minimum). */
+function matchZone(samples: LapData['samples'], z: BrakeZone): { dMin: number; peakDecel: number } | null {
+  const win = samples.filter((x) => Math.abs(x.dist - z.dMin) <= 0.02 && x.speed > 0)
+  if (win.length < 2) return null
+  const m = win.reduce((a, b) => (b.speed < a.speed ? b : a))
+  const lead = samples.filter((x) => x.dist >= m.dist - 0.06 && x.dist <= m.dist)
+  let peak = 0
+  for (let j = 1; j < lead.length; j++) {
+    const dt = lead[j].t - lead[j - 1].t
+    if (dt > 0) peak = Math.max(peak, (lead[j - 1].speed - lead[j].speed) / dt)
+  }
+  return { dMin: m.dist, peakDecel: peak }
+}
+
+function median(xs: number[]): number {
+  const a = [...xs].sort((p, q) => p - q)
+  const m = Math.floor(a.length / 2)
+  return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2
+}
+
+/**
+ * Data-backed ESTIMATES (evidence_kind 'heuristic', low confidence) — only where the MyChron speed trace /
+ * lap times give a realistic basis, always against the driver's own best lap:
+ *  - D2 turn-in timing: where the minimum-speed point lands vs the best lap (early dart / late turn shift it)
+ *  - D5 braking aggressiveness: peak deceleration into each corner vs the best lap
+ *  - D19 tire management: lap-time fade at the end of the run vs best (setup/tire context → no letter)
+ */
+function dataEstimates(laps: LapData[], best: LapData, ref: LapData): Partial<Record<DimensionId, { score: number; markers: string[]; confounded?: boolean }>> {
+  const out: Partial<Record<DimensionId, { score: number; markers: string[]; confounded?: boolean }>> = {}
+  if (ref !== best && best.samples.length >= 20 && ref.samples.length >= 20) {
+    const zones = brakeZones(best.samples)
+    const pairs = zones.map((z) => ({ z, c: matchZone(ref.samples, z) })).filter((p): p is { z: BrakeZone; c: { dMin: number; peakDecel: number } } => p.c != null)
+    if (pairs.length >= 3) {
+      const offS = median(pairs.map((p) => Math.abs(p.c.dMin - p.z.dMin))) * (best.timeMs / 1000)
+      const d2 = offS <= 0.3 ? 4.0 : offS <= 0.6 ? 3.5 : offS <= 0.9 ? 3.0 : 2.5
+      out.D2 = { score: d2, markers: [`Min-speed point ~${offS.toFixed(1)} s off best lap (median, ${pairs.length} corners)`] }
+      const withDecel = pairs.filter((p) => p.z.peakDecel > 0)
+      if (withDecel.length >= 3) {
+        const ratio = median(withDecel.map((p) => p.c.peakDecel / p.z.peakDecel))
+        const bestG = median(withDecel.map((p) => p.z.peakDecel)) / 3.6 / 9.81
+        const d5 = ratio >= 0.95 ? 4.0 : ratio >= 0.85 ? 3.5 : ratio >= 0.75 ? 3.0 : 2.5
+        out.D5 = { score: d5, markers: [`Peak decel ~${bestG.toFixed(2)} g on best lap · compare lap ~${Math.round(ratio * 100)}% of that`] }
+      }
+    }
+  }
+  const v = lapValidity(laps)
+  const ok = laps.filter((l, i) => v[i] === 'ok' && l.timeMs > 0)
+  if (ok.length >= 5) {
+    const bestMs = Math.min(...ok.map((l) => l.timeMs))
+    const tail = ok.slice(-2)
+    const fade = (tail.reduce((a, l) => a + l.timeMs, 0) / tail.length - bestMs) / bestMs
+    const d19 = fade < 0.005 ? 4.0 : fade < 0.01 ? 3.5 : fade < 0.02 ? 3.0 : 2.5
+    out.D19 = { score: d19, markers: [`Last laps +${((fade * bestMs) / 1000).toFixed(2)} s vs best (end-of-run fade)`], confounded: true }
+  }
+  return out
+}
+
 function scoreFromTelemetry(
   laps: LapData[],
   refIdx: number,
@@ -225,6 +313,8 @@ function scoreFromTelemetry(
 
   // D18 consistency
   let d18 = consistencyGap < 150 ? 4.5 : consistencyGap < 350 ? 3.0 : 2.0
+
+  const estimates = dataEstimates(laps, best, ref)
 
   const seeded: Record<string, number> = {
     D7: d7,
@@ -315,8 +405,24 @@ function scoreFromTelemetry(
       }
     }
 
-    // Honesty: never invent a 2.9–3.2 "estimate" that looks measured.
-    // Heuristic / video-needed dims stay N/A until real evidence exists (D1–D3 only via sector-loss path above).
+    // Data-backed estimates (D2 / D5 / D19) — real speed-trace / lap-time evidence, never a constant guess.
+    const est = estimates[id]
+    if (est && hasTelemetry) {
+      const clamped = clampScore(est.score)
+      return {
+        dimension_id: id,
+        score: clamped,
+        evidence_kind: 'heuristic' as EvidenceKind,
+        evidence_markers: est.markers,
+        setup_confounded: est.confounded || undefined,
+        confidence: 'low' as const,
+        notes: est.confounded
+          ? 'Estimate from lap times — tires/setup explain fade as much as driving, so context only (see the setup card).'
+          : `Estimate from the MyChron speed trace vs your best lap. ${dim?.example_feedback[scoreBand(clamped)] ?? ''}`.trim(),
+      }
+    }
+
+    // No realistic logger/GPS basis (or video needed): stay N/A — never invent a constant "estimate".
     const kind = evidenceKind(id, hasTelemetry, hasVideo, ch)
     return {
       dimension_id: id,
@@ -326,7 +432,9 @@ function scoreFromTelemetry(
       notes:
         kind === 'needs_kart_cam'
           ? 'Not scored: needs someone watching on track. N10 only reads logger data.'
-          : 'Not measured from logger data — no estimate score.',
+          : id === 'D20' && conditions !== 'wet'
+            ? 'Dry session — wet driving not graded.'
+            : 'No realistic basis in MyChron speed/RPM data — not graded.',
     }
   })
 }

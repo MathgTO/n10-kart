@@ -1,7 +1,6 @@
 import type { CoachingReport, DimensionScore } from '@/lib/types'
 import { getDimension } from '@/lib/rubric'
-import { letterForDim } from '@/lib/grades'
-import { isMeasured } from '@/lib/scoring'
+import { dimGrade, gradeRank } from '@/lib/grades'
 
 function evidenceLabel(s: DimensionScore): string {
   if (s.unavailable_reason === 'needs_cam' || s.evidence_kind === 'needs_kart_cam') return 'needs video'
@@ -9,39 +8,40 @@ function evidenceLabel(s: DimensionScore): string {
   if (s.setup_confounded) return `MyChron · ${s.confidence ?? 'medium'} confidence · context`
   if (s.evidence_kind === 'mychron') return 'MyChron'
   if (s.evidence_kind === 'kart_cam') return 'video'
-  return 'estimate'
+  if (s.evidence_kind === 'heuristic' && s.score != null) return `estimate · ${s.confidence ?? 'low'} confidence`
+  return 'no data basis'
 }
 
-/** Coach view: every dimension with its D-id. Numbers/letters only for measured evidence (same honesty as kid card). */
+/** Coach view: same graded-dim set as the kid card. Measured + data-backed estimates get numbers/letters; video-required and no-basis stay N/A. */
 export function CoachDims({ report }: { report: CoachingReport }) {
-  const rows = [...report.scores].sort((a, b) => Number(isMeasured(b)) - Number(isMeasured(a)))
+  const rows = [...report.scores].sort((a, b) => gradeRank(dimGrade(a)) - gradeRank(dimGrade(b)))
   return (
     <section className="panel">
       <h2 className="text-xl font-bold">Coach dims</h2>
       <p className="mt-1 text-sm text-n10-soft">
-        Numbers 0–5 only when MyChron/video-measured (not setup-confounded). Heuristic estimates show N/A — never a fake score.
+        Numbers 0–5 for MyChron-measured dims and data-backed estimates (speed/RPM/lap times). Video-only dims and dims with no logger basis show N/A.
       </p>
       <ul className="mt-3 divide-y divide-n10-border">
         {rows.map((s) => {
           const dim = getDimension(s.dimension_id)
-          const measured = isMeasured(s)
-          const letter = letterForDim(s)
+          const g = dimGrade(s)
+          const scored = g.score != null
           return (
             <li key={s.dimension_id} className="grid grid-cols-[3.5rem_1fr_auto] items-start gap-3 py-2.5">
               <span className="font-mono text-sm font-bold text-n10-mute">{s.dimension_id}</span>
               <div className="min-w-0">
-                <p className={`font-semibold ${measured ? 'text-white' : 'text-n10-mute'}`}>{dim?.label ?? s.dimension_id}</p>
+                <p className={`font-semibold ${scored ? 'text-white' : 'text-n10-mute'}`}>{dim?.label ?? s.dimension_id}</p>
                 <p className="text-sm text-n10-mute">
                   {evidenceLabel(s)}
-                  {measured && s.evidence_markers[0] ? ` · ${s.evidence_markers.join(' · ')}` : ''}
+                  {scored && s.evidence_markers[0] ? ` · ${s.evidence_markers.join(' · ')}` : ''}
                 </p>
                 {s.notes && <p className="text-sm text-n10-soft">{s.notes}</p>}
               </div>
               <span className="text-right">
-                <span className={`block font-bold ${measured ? 'text-white' : 'text-n10-mute'}`}>
-                  {measured ? (s.score as number).toFixed(1) : 'N/A'}
+                <span className={`block font-bold ${scored ? 'text-white' : 'text-n10-mute'}`}>
+                  {scored ? (g.score as number).toFixed(1) : 'N/A'}
                 </span>
-                {letter && <span className="block text-sm font-bold text-n10-lime">{letter}</span>}
+                {g.letter && <span className="block text-sm font-bold text-n10-lime">{g.letter}{g.status === 'estimate' ? ' · est.' : ''}</span>}
               </span>
             </li>
           )

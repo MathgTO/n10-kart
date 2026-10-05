@@ -6,7 +6,9 @@
  *  - Gabriel auto-assigned via logger serial 35023763
  *  - KTE class config (Junior Light: limiter 6150, peak band 5800–6150, corner-exit floor ~3700) and D4 honesty
  *  - setup verdict (67→69 applied, tires next, vs Sep baseline 1:07.967) + tuner voice wording
- *  - share SMS ≤ 320 chars
+ *  - share is PDF-only (no plain-text SMS/email body)
+ *  - Keep/Start/Stop/Overall prose has no letter grades
+ *  - coach data-backed estimates (D2/D5) get letters; video-required dims stay N/A
  *  - no 'America/Toronto' or '5800' literals in src outside the track table / class config / fixtures / baked rubric JSON
  * Run: npx --yes tsx --tsconfig tsconfig.app.json scripts/smoke-redesign.mts
  */
@@ -35,7 +37,8 @@ const check = (ok: boolean, msg: string) => {
 check(letterFromScore(4.7) === 'A+' && letterFromScore(4.5) === 'A' && letterFromScore(3.3) === 'B' && letterFromScore(3.0) === 'B−', 'letters A+/A/B/B−')
 check(letterFromScore(2.5) === 'C' && letterFromScore(1.9) === 'D' && letterFromScore(null) === null, 'letters C/D/null')
 check(overallLetter([3.5, 3.0, 3.5]) === 'B', 'overall = mean of shown')
-check(letterForDim({ dimension_id: 'D2', score: 4, evidence_kind: 'heuristic', evidence_markers: [] } as never) === null, 'heuristic estimate → no letter')
+check(letterForDim({ dimension_id: 'D2', score: 4, evidence_kind: 'heuristic', evidence_markers: [] } as never) === 'A−', 'data-backed heuristic estimate → letter')
+check(letterForDim({ dimension_id: 'D1', score: null, evidence_kind: 'heuristic', evidence_markers: [] } as never) === null, 'heuristic with no score → no letter')
 check(letterForDim({ dimension_id: 'D4', score: 4, evidence_kind: 'mychron', evidence_markers: [], setup_confounded: true } as never) === null, 'setup-confounded → no letter')
 
 // --- KTE class config
@@ -82,9 +85,18 @@ check(a.verdict.priorChange?.text === 'rear 67→69' && a.verdict.priorChange.ap
 check(a.verdict.vsLast?.prevBestMs === 67967, 'vs Sep baseline 1:07.967 (driver baseline newer than the library sessions)')
 check(/sixty-one-fifty limiter/.test(a.verdict.voiceScript) && !/sixty-one hundred/i.test(a.verdict.voiceScript), 'tuner voice says "under the sixty-one-fifty limiter"')
 check(a.summary.exitsNote === "Dad's checking the kart on this one", 'kid card exits row: "Dad\'s checking the kart on this one"')
-check(a.summary.share.sms.length <= 320, `SMS ${a.summary.share.sms.length} ≤ 320`)
-check(!/psi|69T|67T|D\d+\b/i.test(a.summary.share.sms), 'SMS has no PSI/sprocket/D-codes')
+check(!!a.summary.share.pdfTitle && !!a.summary.share.fileName.endsWith('.pdf'), `PDF share meta "${a.summary.share.fileName}"`)
+check(!('sms' in a.summary.share) && !('emailBody' in a.summary.share), 'share has no plain-text SMS/email body')
 check(a.summary.title === 'Gabriel’s report card', 'title "Gabriel’s report card"')
+check(a.summary.keep.text.length > 0 && a.summary.start.text.length > 0 && a.summary.stop.text.length > 0, 'Keep / Start / Stop prose present on kid summary')
+check(!/^\s*[A-D][+−-]?\b/.test(a.summary.overallSentence) && !/Overall:\s*[A-D]/i.test(a.summary.overallSentence), 'Overall summary prose has no letter grade')
+const kidIds = new Set([...a.summary.face, ...a.summary.more, ...a.summary.fromVideo].map((x) => x.dimId))
+const coachLettered = oct.report.scores.filter((s) => letterForDim(s) != null && s.dimension_id !== 'D19')
+check(coachLettered.every((s) => kidIds.has(s.dimension_id)), 'kid graded dim set matches coach lettered dims (excl. D19 setup)')
+const d2 = oct.report.scores.find((s) => s.dimension_id === 'D2')!
+const d9 = oct.report.scores.find((s) => s.dimension_id === 'D9')!
+check(d2.score != null && d2.evidence_kind === 'heuristic' && letterForDim(d2) != null, `D2 data-backed estimate scored (${d2.score}) with letter`)
+check(d9.score == null && (d9.unavailable_reason === 'needs_cam' || d9.evidence_kind === 'needs_kart_cam') && letterForDim(d9) == null, 'D9 needs video → N/A, no letter')
 
 // --- unknown logger → prompt; CSV (no serial) → last driver at track
 {
