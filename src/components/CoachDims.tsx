@@ -13,12 +13,12 @@ function evidenceLabel(s: DimensionScore): string {
   return 'no data basis'
 }
 
-/** Coach view: same graded-dim set as the kid card. Measured + data-backed estimates get numbers/letters; video-required and no-basis stay N/A. */
+/** Coach view: same graded-dim set as the driver report. Measured + data-backed estimates get numbers/letters; video-required and no-basis stay N/A. */
 export function CoachDims({ report }: { report: CoachingReport }) {
   const rows = [...report.scores].sort((a, b) => gradeRank(dimGrade(a)) - gradeRank(dimGrade(b)))
   return (
     <section className="panel">
-      <h2 className="text-xl font-bold">Coach dims</h2>
+      <h2 className="text-xl font-bold">Coach grades</h2>
       <p className="mt-1 text-sm text-n10-soft">
         Numbers 0–5 for MyChron-measured dims and data-backed estimates (speed/RPM/lap times). Video-only dims and dims with no logger basis show N/A.
       </p>

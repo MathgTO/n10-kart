@@ -11,6 +11,7 @@ import { SetupCard } from '@/components/SetupCard'
 import { TrackMap } from '@/components/TrackMap'
 import { VideoPanel } from '@/components/VideoPanel'
 import { VoicePlayer } from '@/components/VoicePlayer'
+import { GradeDeltaStrip } from '@/components/GradeDeltaStrip'
 import { VsLastStrip } from '@/components/VsLastStrip'
 import { MOSPORT_GP_SECTORS } from '@/data/mosportSectors'
 import { getTrack } from '@/data/tracks'
@@ -160,7 +161,7 @@ export function SessionPage() {
               <p className="mt-1 text-base font-semibold text-white leading-snug">{focusLine}</p>
             </div>
             <div className="rounded-xl border border-n10-teal/40 bg-n10-teal/5 p-3">
-              <p className="text-sm font-bold text-n10-teal">Kart · Dad’s job</p>
+              <p className="text-sm font-bold text-n10-teal">Kart · Tuner</p>
               <p className="mt-1 text-base font-semibold text-white leading-snug">{kartLine}</p>
             </div>
           </div>
@@ -170,7 +171,7 @@ export function SessionPage() {
       <div className="no-print grid grid-cols-2 gap-1 rounded-2xl border border-n10-border bg-n10-panel p-1" role="tablist">
         {(['kid', 'coach'] as const).map((v) => (
           <button key={v} type="button" role="tab" aria-selected={view === v} className={`min-h-[48px] rounded-xl font-semibold ${view === v ? 'bg-n10-lime text-black' : 'text-n10-soft'}`} onClick={() => setView(v)}>
-            {v === 'kid' ? (kidCard ? 'Kid view' : 'Driver view') : 'Coach view'}
+            {v === 'kid' ? 'Driver view' : 'Coach view'}
           </button>
         ))}
       </div>
@@ -193,6 +194,8 @@ export function SessionPage() {
           {cls.limiter ? ` · ${cls.limiter}` : ''}
         </span>
       </div>
+
+      <GradeDeltaStrip current={session} previous={a.previous} />
 
       {view === 'kid' ? (
         <SchoolCard summary={summary}>

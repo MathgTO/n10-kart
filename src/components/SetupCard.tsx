@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { VoicePlayer } from './VoicePlayer'
 import type { SetupVerdict } from '@/lib/setupVerdict'
 
-/** Teal tuner card (Dad's job) — one setup category per outing, from the setup verdict. */
+/** Teal tuner card — one setup category per outing, from the setup verdict. */
 export function SetupCard({
   verdict,
   sessionId,
@@ -20,7 +20,7 @@ export function SetupCard({
   return (
     <section className="rounded-2xl border border-n10-teal/40 bg-n10-teal/5 p-4 sm:p-5 print-card">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-bold uppercase tracking-wide text-n10-teal">⚙ Setup · {kid ? "Dad’s job" : 'tuner'}</p>
+        <p className="text-sm font-bold uppercase tracking-wide text-n10-teal">⚙ Setup · Tuner</p>
         <Link to={`/session/${sessionId}/setup`} className="btn-secondary min-h-[44px] no-print">
           Edit setup
         </Link>

@@ -36,8 +36,8 @@ export function SchoolCard({ summary, children }: { summary: DriverSummary; chil
   return (
     <section className="rounded-2xl border border-n10-lime/40 border-l-4 border-l-n10-lime bg-n10-panel p-4 sm:p-5 print-card">
       <div>
-        <p className="text-sm font-bold uppercase tracking-wide text-n10-lime">{summary.kid ? 'School report' : 'Driver report'}</p>
-        <p className="text-sm text-n10-soft">{summary.kid ? 'Driving only · Dad owns the kart checklist' : 'Driving only · setup is on the tuner card'}</p>
+        <p className="text-sm font-bold uppercase tracking-wide text-n10-lime">'Driver report'</p>
+        <p className="text-sm text-n10-soft">'Driving only · setup is on the tuner card'</p>
       </div>
       <div className="mt-4 space-y-3">
         <Section title="Keep doing">

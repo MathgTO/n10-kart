@@ -45,7 +45,7 @@ function DriverForm({ d, onDone }: { d: DriverProfile; onDone: () => void }) {
         </label>
       </div>
       <label className="flex min-h-[48px] items-center justify-between gap-3 rounded-xl border border-n10-border bg-n10-card px-4">
-        <span className="font-semibold text-white">Kid report card (school letters, kid voice)</span>
+        <span className="font-semibold text-white">Driver report card (school letters, driver-friendly voice)</span>
         <input type="checkbox" className="h-6 w-6 accent-[#c8f542]" checked={kid} onChange={(e) => setKid(e.target.checked)} />
       </label>
       <div>
@@ -117,7 +117,7 @@ export function DriverSheet({ open, onClose }: { open: boolean; onClose: () => v
               <span className="flex-1">
                 <span className="block font-semibold text-white">{d.displayName}</span>
                 <span className="block text-sm text-n10-mute">
-                  {getClassConfig(d.classDefault).label} · {d.kidCard ? 'kid card' : 'adult card'}
+                  {getClassConfig(d.classDefault).label} · {d.kidCard ? 'driver-friendly' : 'coach card'}
                   {d.boundLoggers.length ? ` · ${d.boundLoggers.map((l) => `${l.model ?? 'MyChron'} ${serialTail(l.serial)}`).join(', ')}` : ''}
                 </span>
               </span>

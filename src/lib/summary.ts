@@ -250,7 +250,7 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
   const exitsNote =
     d4 && verdict.exitsConfounded && d4.score != null
       ? kid
-        ? "Dad's checking the kart on this one"
+        ? "Tuner's checking the kart on this one"
         : 'Kart setup is the likely limiter on exits — see the setup card'
       : undefined
 
@@ -343,7 +343,7 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
     ? kid
       ? `${badDay ? 'Tough outing — you stayed in it' : 'Solid build'}. Lock ${lockPhrase} next round and the tenths come with you.`
       : `${badDay ? 'Tough outing, real effort' : 'Solid build'}. Lock ${lockPhrase} next round.`
-    : `Not enough measured skills to summarize the outing yet.${kid ? " Dad owns the kart checklist." : ''}`
+    : `Not enough measured skills to summarize the outing yet.${kid ? " Tuner owns the kart checklist." : ''}`
 
   // ---- driver voice (~45 s, RCA style) ----
   const v: string[] = [`${name}.`]
@@ -368,7 +368,7 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
     v.push(`Next round, one job: ${drill?.instruction ?? 'same marks every lap.'}`)
   }
   if (concentrated) v.push(apexWork ? "Don't reinvent the rest of the lap — just the apex." : "Don't reinvent the rest of the lap.")
-  if (exitsNote) v.push(kid ? "On exits, the kart side may be part of it — Dad's on that." : 'On exits, the kart may be part of it — check with the tuner.')
+  if (exitsNote) v.push(kid ? "On exits, the kart side may be part of it — Tuner's on that." : 'On exits, the kart may be part of it — check with the tuner.')
   v.push(exitsWork ? 'Lock that exit, and the time comes with it.' : apexWork ? 'Lock the apex next round.' : 'Lock the marks next round.')
   const voiceScript = v.join(' ')
 
