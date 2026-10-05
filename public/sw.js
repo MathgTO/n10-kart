@@ -1,5 +1,5 @@
-/* Network-first for shell + assets so deploys win over stale PWA cache. v37 layout UI: Rename only (drop Other) */
-const CACHE = 'n10-shell-v37'
+/* Network-first for shell + assets so deploys win over stale PWA cache. v38 force CDN bust — layout Rename only */
+const CACHE = 'n10-shell-v38'
 const BASE = self.registration.scope // e.g. https://n10-kart.netlify.app/
 const SHELL = ['', 'index.html', 'manifest.webmanifest', 'n10-mark.png', 'n10-logo.jpg', 'apple-touch-icon.png'].map(
   (p) => new URL(p || './', BASE).href,
