@@ -91,7 +91,7 @@ function migrate(s: StoredSession): StoredSession {
     out.driverSource = out.driverSource ?? 'migrated'
   }
   if (out.isDemo) {
-    // Demos always teach Junior Light (blue .520 / 6150 / Vega White) — never yellow Junior.
+    // Demos always teach Junior Light (blue .520 / 6150 / VEGA BLUE) — never yellow Junior.
     out.classId = 'junior_light'
     out.classAssumption = getClassConfig('junior_light').label
     out.layoutId = out.layoutId ?? 'gp'

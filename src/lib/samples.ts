@@ -33,7 +33,7 @@ export const REAL_SAMPLES: BundledSample[] = [
     gpsStartUtc: '2026-10-04T19:01:08.691Z',
     setup: {
       rearTeeth: 69,
-      tireCompound: 'Vega White',
+      tireCompound: 'VEGA BLUE',
       coldPsi: { fl: 11, fr: 11, rl: 11, rr: 11 },
       intentionalChange: 'gearing',
     },
@@ -46,7 +46,7 @@ export const REAL_SAMPLES: BundledSample[] = [
     displayName: '2026-09-25_mosport_163712_best-108294.xrk',
     note: '67T rear · GPS speed',
     gpsStartUtc: '2026-09-26T20:37:07.913Z',
-    setup: { rearTeeth: 67, tireCompound: 'Vega White' },
+    setup: { rearTeeth: 67, tireCompound: 'VEGA BLUE' },
     aliases: ['Mosport · Sep 25 2026 · 16:37.xrk', 'Mosport · Sep 25 2026 · 16:37'],
   },
   {
@@ -56,7 +56,7 @@ export const REAL_SAMPLES: BundledSample[] = [
     displayName: '2026-09-25_mosport_143726_best-108241.xrk',
     note: '67T rear · GPS speed',
     gpsStartUtc: '2026-09-26T18:37:22.426Z',
-    setup: { rearTeeth: 67, tireCompound: 'Vega White' },
+    setup: { rearTeeth: 67, tireCompound: 'VEGA BLUE' },
     aliases: ['Mosport · Sep 25 2026 · 14:37.xrk', 'Mosport · Sep 25 2026 · 14:37'],
   },
 ]

@@ -25,8 +25,12 @@ export interface ClassConfig {
   peakSpeedBand: { lo: number; hi: number; ideal?: number } | null
   /** D4: RPM 0.8 s after a slow-corner minimum below this = soft exit. null = unknown. */
   cornerExitLowRpm: number | null
-  /** Default tire compound for the setup step. */
+  /** Default dry tire (MIKA mandated). */
   defaultTire: string
+  /** Default wet tire (MIKA mandated). */
+  defaultWetTire: string
+  /** Dry size string for MIKA Briggs (null = unknown). */
+  tireSizeDry: string | null
   /** How the limiter is spoken in the tuner voice. */
   limiterSpoken: string | null
 }
@@ -41,7 +45,9 @@ export const CLASS_CONFIGS: Record<ClassId, ClassConfig> = {
     nearLimiter: 6050,
     peakSpeedBand: { lo: 5800, hi: 6150, ideal: 6000 },
     cornerExitLowRpm: 3700,
-    defaultTire: 'Vega White',
+    defaultTire: 'VEGA BLUE',
+    defaultWetTire: 'VEGA W6',
+    tireSizeDry: '4.6/6.5',
     limiterSpoken: 'sixty-one-fifty',
   },
   junior: {
@@ -53,7 +59,9 @@ export const CLASS_CONFIGS: Record<ClassId, ClassConfig> = {
     nearLimiter: 6000,
     peakSpeedBand: { lo: 5800, hi: 6100 },
     cornerExitLowRpm: 3700,
-    defaultTire: 'Vega White',
+    defaultTire: 'VEGA BLUE',
+    defaultWetTire: 'VEGA W6',
+    tireSizeDry: '4.6/6.5',
     limiterSpoken: 'sixty-one hundred',
   },
   senior: {
@@ -65,7 +73,9 @@ export const CLASS_CONFIGS: Record<ClassId, ClassConfig> = {
     nearLimiter: null,
     peakSpeedBand: null,
     cornerExitLowRpm: null,
-    defaultTire: 'Vega White',
+    defaultTire: 'VEGA BLUE',
+    defaultWetTire: 'VEGA W6',
+    tireSizeDry: '4.6/6.5',
     limiterSpoken: null,
   },
   other: {
@@ -77,11 +87,18 @@ export const CLASS_CONFIGS: Record<ClassId, ClassConfig> = {
     nearLimiter: null,
     peakSpeedBand: null,
     cornerExitLowRpm: null,
-    defaultTire: 'Vega White',
+    defaultTire: 'VEGA BLUE',
+    defaultWetTire: 'VEGA W6',
+    tireSizeDry: null,
     limiterSpoken: null,
   },
 }
 
+
+/** MIKA-mandated compounds (display names). */
+export const TIRE_MANDATED = ['VEGA BLUE', 'VEGA W6'] as const
+/** Practice / other compounds — never the class default badge. */
+export const TIRE_OPTIONAL = ['Mega White', 'Vega White', 'Vega Yellow', 'MG Yellow', 'Other'] as const
 export const CLASS_OPTIONS: ClassId[] = ['junior_light', 'junior', 'senior', 'other']
 export const DEFAULT_CLASS: ClassId = 'junior_light'
 
@@ -89,6 +106,11 @@ export function getClassConfig(id?: string | null): ClassConfig {
   if (id && id in CLASS_CONFIGS) return CLASS_CONFIGS[id as ClassId]
   return CLASS_CONFIGS.other
 }
+
+export function tireSizeForClass(id?: string | null): string | null {
+  return getClassConfig(id).tireSizeDry
+}
+
 
 /** Map legacy free-text class labels ('LO206', 'LO206 Junior') to a class id. */
 export function classIdFromLegacy(label?: string | null): ClassId {

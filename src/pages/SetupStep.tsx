@@ -4,7 +4,7 @@ import { DriverPrompt } from '@/components/DriverPrompt'
 import { Sheet } from '@/components/Sheet'
 import { allTracks, getLayoutInfo, getTrack } from '@/data/tracks'
 import { useSessions } from '@/hooks/SessionsContext'
-import { CLASS_OPTIONS, getClassConfig } from '@/lib/classConfig'
+import { CLASS_OPTIONS, getClassConfig, TIRE_MANDATED, TIRE_OPTIONAL } from '@/lib/classConfig'
 import { initial, serialTail } from '@/lib/drivers'
 import { distanceM } from '@/lib/geo'
 import { createTrackFromDetection, prefillSetup, previousFor } from '@/lib/pipeline'
@@ -437,8 +437,19 @@ export function SetupStepPage() {
       </Card>
 
       <Card title="Tires">
-        <div className="flex flex-wrap gap-2">
-          {['Vega White', 'Vega Yellow', 'MG Yellow', 'Other'].map((t) => (
+        <p className="text-sm text-n10-soft">
+          Mandated · MIKA{cls.tireSizeDry ? ` · dry ${cls.tireSizeDry}` : ''}
+        </p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {TIRE_MANDATED.map((t) => (
+            <Chip key={t} on={(setup.tireCompound ?? cls.defaultTire) === t} onClick={() => set({ tireCompound: t })}>
+              {t}
+            </Chip>
+          ))}
+        </div>
+        <p className="mt-4 text-sm text-n10-soft">Practice / other</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {TIRE_OPTIONAL.map((t) => (
             <Chip key={t} on={(setup.tireCompound ?? cls.defaultTire) === t} onClick={() => set({ tireCompound: t })}>
               {t}
             </Chip>
