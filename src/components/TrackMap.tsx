@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   MOSPORT_LAYOUTS,
   getLayout,
@@ -7,6 +7,14 @@ import {
   type LayoutCorner,
   type TrackLayout,
 } from '@/lib/mosportLayouts'
+import {
+  createNamedLayout,
+  geometryIdFor,
+  layoutDisplayName,
+  layoutLengthHint,
+  listLayouts,
+  renameLayout,
+} from '@/lib/layoutRegistry'
 import {
   MOSPORT_GP_SECTORS,
   SECTOR_VS_TURN_HELP,
@@ -60,21 +68,30 @@ export function TrackMap({
   focusCornerName,
   selectedSectorIndex,
   onSelectSector,
+  trackId = 'mosport',
   layoutId: layoutIdProp,
   onLayoutChange,
 }: {
   focusCornerName?: string
   selectedSectorIndex: number | null
   onSelectSector: (index: number) => void
-  /** Persisted on the session (setup chip / this selector). */
+  trackId?: string
+  /** Persisted on the session (registry id L1… or legacy stock id). */
   layoutId?: string
   onLayoutChange?: (id: string) => void
 }) {
-  const layoutId = MOSPORT_LAYOUTS.some((l) => l.id === layoutIdProp) ? (layoutIdProp as string) : 'gp'
+  const registry = listLayouts(trackId)
+  const label = layoutDisplayName(trackId, layoutIdProp)
+  const lengthHint = layoutLengthHint(trackId, layoutIdProp)
+  const geoId = geometryIdFor(trackId, layoutIdProp) ?? 'gp'
+  const layoutId = MOSPORT_LAYOUTS.some((l) => l.id === geoId) ? geoId : 'gp'
   const layout = useMemo(() => getLayout(layoutId), [layoutId])
   const focusId = useMemo(() => matchFocusCorner(layout, focusCornerName), [layout, focusCornerName])
   const box = useMemo(() => bounds(layout), [layout])
   const sf = pointAt(layout, 0)
+  const [renaming, setRenaming] = useState(false)
+  const [draftName, setDraftName] = useState(label === 'Layout?' ? '' : label)
+  const [selectValue, setSelectValue] = useState(layoutIdProp ?? '')
 
   const activeSector: SectorDef | null =
     selectedSectorIndex != null ? MOSPORT_GP_SECTORS[selectedSectorIndex] ?? null : null
@@ -89,6 +106,37 @@ export function TrackMap({
     onSelectSector(s.index)
   }
 
+  const commitRename = () => {
+    const name = draftName.trim()
+    if (!name) {
+      setRenaming(false)
+      return
+    }
+    if (layoutIdProp) {
+      const rec = renameLayout(trackId, layoutIdProp, name)
+      if (rec) onLayoutChange?.(rec.id)
+    } else {
+      const rec = createNamedLayout(trackId, name)
+      onLayoutChange?.(rec.id)
+    }
+    setRenaming(false)
+  }
+
+  const onSelect = (value: string) => {
+    setSelectValue(value)
+    if (value === '__rename__') {
+      setDraftName(label === 'Layout?' ? '' : label)
+      setRenaming(true)
+      return
+    }
+    if (value === '__new__') {
+      setDraftName('')
+      setRenaming(true)
+      return
+    }
+    onLayoutChange?.(value)
+  }
+
   return (
     <section className="panel">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -100,29 +148,61 @@ export function TrackMap({
           </p>
           <p className="mt-1 text-sm text-n10-mute max-w-xl">{SECTOR_VS_TURN_HELP}</p>
         </div>
-        <label className="text-sm text-n10-soft">
-          Layout
-          <select
-            className="ml-2 rounded-lg border border-n10-border bg-n10-card px-3 py-2 text-white font-semibold"
-            value={layoutId}
-            onChange={(e) => onLayoutChange?.(e.target.value)}
-          >
-            {MOSPORT_LAYOUTS.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="text-sm text-n10-soft">
+          <label className="block">
+            Layout
+            <select
+              className="ml-2 rounded-lg border border-n10-border bg-n10-card px-3 py-2 text-white font-semibold"
+              value={renaming ? '__rename__' : layoutIdProp && registry.some((r) => r.id === layoutIdProp) ? layoutIdProp : selectValue || ''}
+              onChange={(e) => onSelect(e.target.value)}
+            >
+              {!layoutIdProp && <option value="">Layout?</option>}
+              {registry.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.displayName}
+                </option>
+              ))}
+              <option value="__rename__">Rename…</option>
+              <option value="__new__">Other…</option>
+            </select>
+          </label>
+          {renaming && (
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <input
+                className="rounded-lg border border-n10-border bg-n10-card px-3 py-2 text-white font-semibold"
+                value={draftName}
+                placeholder="Facility / layout name"
+                onChange={(e) => setDraftName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') commitRename()
+                  if (e.key === 'Escape') setRenaming(false)
+                }}
+                autoFocus
+              />
+              <button type="button" className="btn-primary min-h-[40px] px-3 text-sm" onClick={commitRename}>
+                Save
+              </button>
+              <button type="button" className="btn-secondary min-h-[40px] px-3 text-sm" onClick={() => setRenaming(false)}>
+                Cancel
+              </button>
+            </div>
+          )}
+        </div>
       </div>
-      <p className="mt-2 text-sm text-n10-mute">{layout.blurb}</p>
+      <p className="mt-2 text-sm text-n10-mute">
+        <span className="font-semibold text-white">{label}</span>
+        {lengthHint ? ` · ${lengthHint}` : ''}
+        {label !== 'Layout?' ? '' : ' · Config unconfirmed'}
+        {' · '}
+        {layout.blurb}
+      </p>
 
       <div className="mt-4 overflow-hidden rounded-xl border border-n10-border bg-black/50">
         <svg
           viewBox={`${box.minX} ${box.minY} ${box.width} ${box.height}`}
           className="mx-auto block h-auto w-full max-h-[420px]"
           role="img"
-          aria-label={`${layout.name} with sectors and turns`}
+          aria-label={`${label} with sectors and turns`}
         >
           {/* Base track */}
           <path

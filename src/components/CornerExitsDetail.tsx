@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { getClassConfig } from '@/lib/classConfig'
 import { cornerExitStats } from '@/lib/cornerExit'
+import { geometryIdFor } from '@/lib/layoutRegistry'
 import { getLayout } from '@/lib/mosportLayouts'
 import type { StoredSession } from '@/lib/types'
 
@@ -13,7 +14,7 @@ export function CornerExitsDetail({ session, confoundNote }: { session: StoredSe
   const floor = cls.cornerExitLowRpm
   const stats = useMemo(() => cornerExitStats(session.laps, floor), [session.laps, floor])
   const rows = useMemo(() => {
-    const layout = session.trackId === 'mosport' ? getLayout(session.layoutId ?? 'gp') : null
+    const layout = session.trackId === 'mosport' ? getLayout(geometryIdFor(session.trackId, session.layoutId) ?? 'gp') : null
     const bins = new Map<number, typeof stats.windows>()
     for (const w of stats.windows) {
       const k = Math.round(w.dist * 25)

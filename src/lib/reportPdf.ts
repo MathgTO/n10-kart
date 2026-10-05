@@ -23,9 +23,15 @@ const RULE = [229, 229, 229] as const
 const WASH = [250, 250, 250] as const
 
 export type ReportPdfOpts = {
+  /** Venue short name (e.g. Mosport) — no GPS coords. */
   trackLabel?: string
+  /** Layout N / renamed label / Layout? — same string as in-app + TrackMap. */
+  layoutLabel?: string
   dateLabel?: string
+  /** Session type / class (e.g. Junior Light). */
   classLabel?: string
+  /** Driver display name already in hero; optional chip for multi-page header row. */
+  driverLabel?: string
 }
 
 export function buildReportCardPdf(summary: DriverSummary, opts?: ReportPdfOpts): Blob {
@@ -87,13 +93,39 @@ export function buildReportCardPdf(summary: DriverSummary, opts?: ReportPdfOpts)
   }
   y = nameY + 16
 
-  const meta = [opts?.trackLabel, opts?.dateLabel, opts?.classLabel].filter(Boolean).join(' · ')
+  // Header row: date · session/class · driver · layout (same chip as in-app / TrackMap)
+  const headerBits = [
+    opts?.dateLabel,
+    opts?.classLabel,
+    opts?.driverLabel,
+    opts?.layoutLabel || 'Layout?',
+  ].filter(Boolean) as string[]
+  // Venue short on the same row when present (layout chip is still first-class)
+  const meta = [opts?.trackLabel, ...headerBits].filter(Boolean).join(' · ')
   if (meta) {
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(10)
     doc.setTextColor(SOFT[0], SOFT[1], SOFT[2])
     doc.text(meta, margin, y)
     y += 6
+  }
+
+  const drawContinuingHeader = () => {
+    // Compact header on continuation pages — layout chip always present
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(9)
+    doc.setTextColor(INK[0], INK[1], INK[2])
+    doc.text(summary.name, margin, margin + 3)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(8)
+    doc.setTextColor(SOFT[0], SOFT[1], SOFT[2])
+    const cont = [opts?.trackLabel, opts?.layoutLabel || 'Layout?', opts?.dateLabel, opts?.classLabel]
+      .filter(Boolean)
+      .join(' · ')
+    if (cont) doc.text(cont, margin, margin + 8)
+    doc.setDrawColor(RULE[0], RULE[1], RULE[2])
+    doc.setLineWidth(0.3)
+    doc.line(margin, margin + 11, pageW - margin, margin + 11)
   }
 
   if (summary.bestLap) {
@@ -132,7 +164,8 @@ export function buildReportCardPdf(summary: DriverSummary, opts?: ReportPdfOpts)
       doc.addPage()
       doc.setFillColor(255, 255, 255)
       doc.rect(0, 0, pageW, pageH, 'F')
-      y = margin
+      drawContinuingHeader()
+      y = margin + 14
     }
     if (wash) {
       doc.setFillColor(WASH[0], WASH[1], WASH[2])
@@ -239,7 +272,8 @@ export function buildReportCardPdf(summary: DriverSummary, opts?: ReportPdfOpts)
         doc.addPage()
         doc.setFillColor(255, 255, 255)
         doc.rect(0, 0, pageW, pageH, 'F')
-        y = margin
+        drawContinuingHeader()
+        y = margin + 14
         rowY = y
         col = 0
       }

@@ -5,16 +5,28 @@ export function VsLastStrip({
   deltas,
   priorityAdvanced,
   priorityDim,
+  firstOnLayout,
+  differentLayoutNote,
 }: {
   deltas: ProgressDelta[]
   priorityAdvanced: boolean
   priorityDim: string
+  /** Same track/class but layout changed — no apple-to-apple compare. */
+  firstOnLayout?: boolean
+  differentLayoutNote?: string
 }) {
   if (!deltas.length) {
     return (
       <section className="panel">
         <h2 className="text-xl font-bold">vs last session</h2>
-        <p className="mt-2 text-base text-n10-soft">No prior session yet — this becomes your baseline.</p>
+        <p className="mt-2 text-base text-n10-soft">
+          {firstOnLayout || differentLayoutNote
+            ? differentLayoutNote ?? 'First session on this layout — not comparable to other configs.'
+            : 'No prior session yet — this becomes your baseline.'}
+        </p>
+        {differentLayoutNote && (
+          <p className="mt-1 text-sm font-semibold text-amber-200/90">Different track config</p>
+        )}
       </section>
     )
   }

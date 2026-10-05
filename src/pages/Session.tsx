@@ -21,12 +21,14 @@ import { formatLapLabel, formatLapTime } from '@/lib/format'
 import { SAFETY_LINE } from '@/lib/labels'
 import { shareReportCardPdf } from '@/lib/reportPdf'
 import { rubric } from '@/lib/rubric'
+import { layoutDisplayName } from '@/lib/layoutRegistry'
+import { previousDifferentLayout } from '@/lib/pipeline'
 import { sessionLocal } from '@/lib/sessionLabel'
 import { lapValidity } from '@/lib/telemetry'
 
 export function SessionPage() {
   const { id } = useParams()
-  const { getSession, updateReferenceLap, deleteSession, updateSessionMeta, analyze } = useSessions()
+  const { getSession, sessions, updateReferenceLap, deleteSession, updateSessionMeta, analyze } = useSessions()
   const session = id ? getSession(id) : undefined
   const nav = useNavigate()
   const [importOpen, setImportOpen] = useState(false)
@@ -92,9 +94,11 @@ export function SessionPage() {
         ? `${local.monthShort} ${local.day}${local.year ? `, ${local.year}` : ''}`
         : undefined
       const result = await shareReportCardPdf(summary, {
-        trackLabel: track.name,
+        trackLabel: track.short || track.name,
+        layoutLabel: layoutDisplayName(session.trackId, session.layoutId),
         dateLabel,
         classLabel: getClassConfig(session.classId).label,
+        driverLabel: summary.name,
       })
       if (firstShare) {
         setShareToast('Private — driving report only. Nothing leaves this device until you send the PDF.')
@@ -278,6 +282,7 @@ export function SessionPage() {
               focusCornerName={session.report.focus.cornerName}
               selectedSectorIndex={selectedSectorIndex}
               onSelectSector={setSelectedSectorIndex}
+              trackId={session.trackId}
               layoutId={session.layoutId}
               onLayoutChange={(layoutId) => updateSessionMeta(session.id, { layoutId })}
             />
@@ -286,7 +291,17 @@ export function SessionPage() {
           <CornerCards corners={session.corners} selectedSectorIndex={selectedSectorIndex} onSelectSector={setSelectedSectorIndex} />
           <CornerExitsDetail session={session} confoundNote={verdict.exitsConfounded ? 'Kart setup is the likely limiter on exits this outing — no exit grade (see the setup card).' : undefined} />
           {view === 'coach' && (
-            <VsLastStrip deltas={session.report.vs_last} priorityAdvanced={session.report.priority_advanced} priorityDim={session.report.priority_dimension_id} />
+            <VsLastStrip
+              deltas={session.report.vs_last}
+              priorityAdvanced={session.report.priority_advanced}
+              priorityDim={session.report.priority_dimension_id}
+              firstOnLayout={!a.previous && !!previousDifferentLayout(session, sessions)}
+              differentLayoutNote={
+                !a.previous && previousDifferentLayout(session, sessions)
+                  ? 'Different track config than last session — not comparable'
+                  : undefined
+              }
+            />
           )}
 
           {session.report.racecraft_cue && (

@@ -11,6 +11,7 @@ import { resolveSessionTime, resolveZone } from './sessionTime'
 import { buildSetupVerdict, setupOf, type SetupVerdict } from './setupVerdict'
 import { buildDriverSummary, type DriverSummary } from './summary'
 import { detectInputFromMeta, detectTrack } from './trackDetect'
+import { lastUsedLayout, resolveFromDetection } from './layoutRegistry'
 import type { DriverBaseline, DriverProfile, ParseResult, SeriesTag, SessionSetup, StoredSession, TrackInfo } from './types'
 
 export interface ImportContext {
@@ -27,8 +28,32 @@ export interface ImportResult {
   needsDriverPrompt: boolean
 }
 
-/** This driver's latest earlier session at the same track + class (strictly per driver). */
+/** This driver's latest earlier session at the same track + layout + class (strictly per driver). */
 export function previousFor(s: StoredSession, all: StoredSession[]): StoredSession | null {
+  const me = sessionStartUtc(s) ?? s.createdAt
+  const sameLayout = (x: StoredSession) => {
+    // Apple-to-apple: both must share a layout id. Missing layout → not comparable for vs-last deltas.
+    if (!s.layoutId || !x.layoutId) return false
+    return x.layoutId === s.layoutId
+  }
+  return (
+    all
+      .filter(
+        (x) =>
+          x.id !== s.id &&
+          !x.isDemo === !s.isDemo &&
+          (x.driverId ?? '') === (s.driverId ?? '') &&
+          x.trackId === s.trackId &&
+          sameLayout(x) &&
+          (x.classId ?? DEFAULT_CLASS) === (s.classId ?? DEFAULT_CLASS) &&
+          (sessionStartUtc(x) ?? x.createdAt) < me
+      )
+      .sort((a, b) => (sessionStartUtc(b) ?? b.createdAt).localeCompare(sessionStartUtc(a) ?? a.createdAt))[0] ?? null
+  )
+}
+
+/** Prior session at same track+class but different layout (soft-flag for UI). */
+export function previousDifferentLayout(s: StoredSession, all: StoredSession[]): StoredSession | null {
   const me = sessionStartUtc(s) ?? s.createdAt
   return (
     all
@@ -39,6 +64,9 @@ export function previousFor(s: StoredSession, all: StoredSession[]): StoredSessi
           (x.driverId ?? '') === (s.driverId ?? '') &&
           x.trackId === s.trackId &&
           (x.classId ?? DEFAULT_CLASS) === (s.classId ?? DEFAULT_CLASS) &&
+          !!s.layoutId &&
+          !!x.layoutId &&
+          x.layoutId !== s.layoutId &&
           (sessionStartUtc(x) ?? x.createdAt) < me
       )
       .sort((a, b) => (sessionStartUtc(b) ?? b.createdAt).localeCompare(sessionStartUtc(a) ?? a.createdAt))[0] ?? null
@@ -48,9 +76,16 @@ export function previousFor(s: StoredSession, all: StoredSession[]): StoredSessi
 export function baselineFor(s: StoredSession, drivers: DriverProfile[]): DriverBaseline | undefined {
   const d = drivers.find((x) => x.id === s.driverId)
   const at = sessionStartUtc(s)
-  return d?.baselines?.find(
-    (b) => b.trackId === s.trackId && b.classId === (s.classId ?? DEFAULT_CLASS) && (!b.atUtc || (at != null && at > b.atUtc))
+  const candidates = (d?.baselines ?? []).filter(
+    (b) => b.trackId === s.trackId && b.classId === (s.classId ?? DEFAULT_CLASS) && (!b.atUtc || (at != null && at > b.atUtc)),
   )
+  if (s.layoutId) {
+    const same = candidates.find((b) => b.layoutId === s.layoutId)
+    if (same) return same
+    // No layout-tagged baseline for this config — do not silently mix across layouts
+    if (candidates.some((b) => b.layoutId)) return undefined
+  }
+  return candidates[0]
 }
 
 /** Setup prefill: last session for the same driver + track + class (else the driver's baseline sprocket). */
@@ -174,7 +209,15 @@ export async function createSessionFromParse(parse: ParseResult, fileName: strin
     conditions: 'dry',
     trackId: track.id,
     trackName: track.name,
-    layoutId: detection.layoutId ?? track.layouts?.[0]?.id,
+    // GPS → Layout N registry (not stock GP/National names). Unknown → leave blank (Layout?).
+    layoutId: (() => {
+      const resolved = resolveFromDetection(track.id, detection)
+      if (resolved) return resolved.id
+      const last = lastUsedLayout(track.id, ctx.sessions)
+      // Prefer last-used only when GPS gave a venue but no layout signature
+      if (last && detection.trackId && detection.layoutId == null && detection.lapLengthM == null) return last.id
+      return undefined
+    })(),
     detectConfidence,
     detection,
     classId: driver?.classDefault ?? DEFAULT_CLASS,

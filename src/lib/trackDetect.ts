@@ -151,11 +151,12 @@ export function detectTrack(input: DetectInput, tracks: TrackInfo[] = allTracks(
   if (confidence === 'high' && second && top.score - second.score < 15) confidence = 'medium'
   const layoutId = pickLayout(top.t, input.lapLengthM, input.direction)
   // A known venue with no layout fitting the measured lap → keep venue, ask about the layout.
+  // Do NOT invent layouts[0] — unknown layout stays null (UI shows Layout?).
   if (confidence === 'high' && top.t.layouts?.length && layoutId == null) confidence = 'medium'
   return {
     ...base,
     trackId: top.t.id,
-    layoutId: layoutId ?? top.t.layouts?.[0]?.id ?? null,
+    layoutId, // geometry hint only; display names come from layoutRegistry (Layout N)
     confidence,
     score: top.score,
     reason: top.reasons.join(' + ') || 'name',

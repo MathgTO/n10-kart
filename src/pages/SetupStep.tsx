@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { DriverPrompt } from '@/components/DriverPrompt'
 import { Sheet } from '@/components/Sheet'
-import { allTracks, getLayoutInfo, getTrack } from '@/data/tracks'
+import { allTracks, getTrack } from '@/data/tracks'
+import { createNamedLayout, layoutDisplayName, listLayouts, renameLayout, resolveFromDetection } from '@/lib/layoutRegistry'
 import { useSessions } from '@/hooks/SessionsContext'
 import { CLASS_OPTIONS, getClassConfig, TIRE_CHOICES, TIRE_MANDATED } from '@/lib/classConfig'
 import { initial, serialTail } from '@/lib/drivers'
@@ -58,6 +59,46 @@ function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; chi
   )
 }
 
+
+function LayoutRenameRow({ trackId, layoutId, onPicked }: { trackId: string; layoutId?: string; onPicked: (id: string) => void }) {
+  const [open, setOpen] = useState(false)
+  const [name, setName] = useState('')
+  if (!open) {
+    return (
+      <button type="button" className="mt-2 text-sm font-semibold text-n10-lime" onClick={() => setOpen(true)}>
+        {layoutId ? 'Rename layout…' : 'Name this layout…'}
+      </button>
+    )
+  }
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-2">
+      <input
+        className="min-h-[44px] flex-1 rounded-xl border border-n10-border bg-n10-card px-3 text-white font-semibold"
+        placeholder="Facility / layout name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+      <button
+        type="button"
+        className="btn-primary min-h-[44px] px-3 text-sm"
+        onClick={() => {
+          const trimmed = name.trim()
+          if (!trimmed) return
+          const rec = layoutId ? renameLayout(trackId, layoutId, trimmed) : createNamedLayout(trackId, trimmed)
+          if (rec) onPicked(rec.id)
+          setOpen(false)
+          setName('')
+        }}
+      >
+        Save
+      </button>
+      <button type="button" className="btn-secondary min-h-[44px] px-3 text-sm" onClick={() => setOpen(false)}>
+        Cancel
+      </button>
+    </div>
+  )
+}
+
 function TrackSheet({ open, onClose, s }: { open: boolean; onClose: () => void; s: StoredSession }) {
   const { updateSessionMeta } = useSessions()
   const [newName, setNewName] = useState('')
@@ -69,9 +110,20 @@ function TrackSheet({ open, onClose, s }: { open: boolean; onClose: () => void; 
   }, [c])
   const choose = (trackId: string, layoutId?: string) => {
     const t = getTrack(trackId)
+    let nextLayout = layoutId
+    if (!nextLayout) {
+      const geo = pickLayout(t, s.detection?.lapLengthM, s.detection?.direction)
+      const resolved = resolveFromDetection(trackId, {
+        layoutId: geo,
+        lapLengthM: s.detection?.lapLengthM,
+        direction: s.detection?.direction,
+        confidence: 'high',
+      })
+      nextLayout = resolved?.id
+    }
     updateSessionMeta(s.id, {
       trackId,
-      layoutId: layoutId ?? pickLayout(t, s.detection?.lapLengthM, s.detection?.direction) ?? t.layouts?.[0]?.id,
+      layoutId: nextLayout,
       detectConfidence: 'manual',
       ...(s.tzSource !== 'manual' && t.tz ? { timeZone: t.tz, tzSource: 'track' as const } : {}),
     })
@@ -80,18 +132,22 @@ function TrackSheet({ open, onClose, s }: { open: boolean; onClose: () => void; 
   const cur = getTrack(s.trackId)
   return (
     <Sheet open={open} onClose={onClose} title="Track and layout">
-      {cur.layouts && cur.layouts.length > 1 && (
-        <div className="mb-4">
-          <p className="label-lg">Layout at {cur.short ?? cur.name}</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {cur.layouts.map((l) => (
-              <Chip key={l.id} on={s.layoutId === l.id} onClick={() => choose(cur.id, l.id)}>
-                {l.name}
-              </Chip>
-            ))}
-          </div>
+      <div className="mb-4">
+        <p className="label-lg">Layout at {cur.short ?? cur.name}</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {listLayouts(cur.id).map((l) => (
+            <Chip key={l.id} on={s.layoutId === l.id} onClick={() => choose(cur.id, l.id)}>
+              {l.displayName}
+            </Chip>
+          ))}
+          {!s.layoutId && (
+            <span className="min-h-[48px] inline-flex items-center rounded-xl border border-amber-300/50 px-4 font-semibold text-amber-100">
+              Layout?
+            </span>
+          )}
         </div>
-      )}
+        <LayoutRenameRow trackId={cur.id} layoutId={s.layoutId} onPicked={(id) => choose(cur.id, id)} />
+      </div>
       <p className="label-lg">{c ? 'Nearest first' : 'Tracks'}</p>
       <ul className="mt-2 space-y-2">
         {tracks.slice(0, 12).map((t) => (
@@ -169,7 +225,7 @@ export function SetupStepPage() {
   const firstTime = (loc.state as { fresh?: boolean } | null)?.fresh
   const driver = drivers.find((d) => d.id === s.driverId)
   const track = getTrack(s.trackId)
-  const layout = getLayoutInfo(track, s.layoutId)
+  const layoutLabel = layoutDisplayName(s.trackId, s.layoutId)
   const cls = getClassConfig(classId)
   const prevSetup = prev?.setup
   const label = canonicalLabel(s, sessions)
@@ -250,7 +306,7 @@ export function SetupStepPage() {
           <div>
             <p className="font-semibold text-white">
               {track.name}
-              {layout ? ` · ${layout.name}` : ''}
+              {layoutLabel ? ` · ${layoutLabel}` : ''}
             </p>
             <p className="text-sm text-n10-soft">
               {conf === 'manual'

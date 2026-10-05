@@ -5,7 +5,8 @@
  * (track zone). The zone tag is always shown (decision: travel-safe and unambiguous).
  * Never uses file names, mtime or upload time.
  */
-import { getLayoutInfo, getTrack } from '@/data/tracks'
+import { getTrack } from '@/data/tracks'
+import { layoutDisplayName } from './layoutRegistry'
 import { deviceZone, localParts, wallClockToUtc } from './sessionTime'
 import type { StoredSession } from './types'
 
@@ -58,12 +59,13 @@ export interface LabelParts {
 
 export function labelParts(s: StoredSession, all: StoredSession[]): LabelParts {
   const track = getTrack(s.trackId)
-  const layout = getLayoutInfo(track, s.layoutId)
+  const layoutLabel = layoutDisplayName(s.trackId, s.layoutId)
   const l = sessionLocal(s)
   const yearNow = new Date().getFullYear()
   return {
     track: track.short,
-    layout: layout?.name,
+    // Always surface layout (Layout N / rename / Layout?) so list + header + PDF match TrackMap
+    layout: layoutLabel,
     day: l ? `${l.weekdayShort} ${l.monthShort} ${l.day}${l.year !== yearNow ? ` ${l.year}` : ''}` : undefined,
     time: l ? `${l.hhmm} ${l.zone}` : undefined,
     round: roundNumber(s, all),
