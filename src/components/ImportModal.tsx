@@ -25,6 +25,22 @@ export const IMPORT_ACCEPT = [
   'application/x-xrz',
 ].join(',')
 
+/** Mouse/trackpad computer (Mac, PC), not a phone or iPad. */
+export function isDesktop(): boolean {
+  if (typeof window === 'undefined') return false
+  const ua = navigator.userAgent
+  const ipadOs = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1
+  return !ipadOs && !/iPhone|iPad|iPod|Android/i.test(ua) && window.matchMedia?.('(pointer: fine)').matches !== false
+}
+
+/**
+ * On desktop, macOS/Windows file dialogs can grey out .xrk/.xrz (no registered type), so no filter
+ * there; importFile rejects anything that isn't a session file. Phones/iPad keep the list (no camera).
+ */
+export function pickerAccept(): string | undefined {
+  return isDesktop() ? undefined : IMPORT_ACCEPT
+}
+
 interface Props {
   open: boolean
   onClose: () => void
@@ -63,7 +79,22 @@ export function ImportModal({ open, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-4"
+      onDragOver={(e) => {
+        e.preventDefault()
+        setDragging(true)
+      }}
+      onDragLeave={(e) => {
+        if (e.currentTarget === e.target) setDragging(false)
+      }}
+      onDrop={(e) => {
+        e.preventDefault()
+        setDragging(false)
+        const f = e.dataTransfer.files?.[0]
+        if (f) void handleFile(f)
+      }}
+    >
       <div className="w-full max-w-lg rounded-2xl border border-n10-border bg-n10-panel p-5 shadow-2xl">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -95,46 +126,36 @@ export function ImportModal({ open, onClose }: Props) {
           </select>
         </div>
 
-        <input
-          ref={inputRef}
-          type="file"
-          accept={IMPORT_ACCEPT}
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0]
-            e.target.value = '' // allow picking the same file again
-            if (f) void handleFile(f)
-          }}
-        />
-
-        <button
-          type="button"
-          disabled={busy}
-          className={`mt-4 w-full rounded-xl border-2 border-dashed px-4 py-8 text-center transition ${
+        {/* A real <label> wrapping a visually-hidden (not display:none) input is the most reliable
+            picker across desktop Safari, Chrome, Firefox and iPad: no programmatic click needed. */}
+        <label
+          className={`mt-4 block w-full cursor-pointer rounded-xl border-2 border-dashed px-4 py-8 text-center transition ${
+            busy ? 'pointer-events-none opacity-60' : ''
+          } ${
             dragging
               ? 'border-n10-lime bg-n10-lime/10'
               : 'border-n10-lime/50 bg-n10-lime/5 hover:border-n10-lime'
           }`}
-          onClick={() => inputRef.current?.click()}
-          onDragOver={(e) => {
-            e.preventDefault()
-            setDragging(true)
-          }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={(e) => {
-            e.preventDefault()
-            setDragging(false)
-            const f = e.dataTransfer.files?.[0]
-            if (f) void handleFile(f)
-          }}
         >
+          <input
+            ref={inputRef}
+            type="file"
+            accept={pickerAccept()}
+            className="sr-only"
+            disabled={busy}
+            onChange={(e) => {
+              const f = e.target.files?.[0]
+              e.target.value = '' // allow picking the same file again
+              if (f) void handleFile(f)
+            }}
+          />
           <span className="block text-lg font-bold text-n10-lime">
-            {busy ? 'Importing…' : 'Choose or drop file'}
+            {busy ? 'Importing…' : isDesktop() ? 'Choose a file or drop it here' : 'Choose file'}
           </span>
           <span className="mt-2 block text-sm text-n10-soft">
-            .xrk / .xrz / .csv · track, date and driver are read from the file · on iPad use Browse → Files
+            .xrk / .xrz / .csv · track, date and driver are read from the file{isDesktop() ? '' : ' · on iPad use Browse → Files'}
           </span>
-        </button>
+        </label>
 
         {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
 

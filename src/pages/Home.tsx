@@ -65,6 +65,15 @@ export function Home() {
   const [importOpen, setImportOpen] = useState(false)
   const [driverFilter, setDriverFilter] = useState<string>('all')
 
+  // Desktop: dragging a file anywhere onto the page opens Import so the drop lands in the modal.
+  useEffect(() => {
+    const onEnter = (e: DragEvent) => {
+      if (e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files')) setImportOpen(true)
+    }
+    window.addEventListener('dragenter', onEnter)
+    return () => window.removeEventListener('dragenter', onEnter)
+  }, [])
+
   const multiDriver = drivers.length >= 2
   const visible = sessions.filter((s) => driverFilter === 'all' || s.driverId === driverFilter)
   // Day groups (track-local day + track), newest first; demos last.

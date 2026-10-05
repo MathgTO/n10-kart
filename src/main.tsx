@@ -9,10 +9,13 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
+// A file dropped outside a drop zone must never make the browser open/download it and leave the app.
+for (const ev of ['dragover', 'drop'] as const) window.addEventListener(ev, (e) => e.preventDefault())
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     // Bust + update so a new deploy replaces the old cached shell
-    const swUrl = `${import.meta.env.BASE_URL}sw.js?v=13`
+    const swUrl = `${import.meta.env.BASE_URL}sw.js?v=15`
     navigator.serviceWorker
       .register(swUrl)
       .then((reg) => {
