@@ -2,7 +2,7 @@
  * Import → session draft → (setup step) → re-score. Pure functions (no React) so the smoke scripts run them too.
  */
 import { getTrack, saveCustomTrack } from '@/data/tracks'
-import { DEFAULT_CLASS, getClassConfig } from './classConfig'
+import { DEFAULT_CLASS, defaultTireForClass, getClassConfig } from './classConfig'
 import { driverForSerial, lastDriverAtTrack } from './drivers'
 import { buildCoachingReport, pickBestFlyingLap, pickCompareLap, resolveCompareLap } from './scoring'
 import { sampleSetup } from './samples'
@@ -96,7 +96,8 @@ export function prefillSetup(s: StoredSession, all: StoredSession[], drivers: Dr
     return { prefill: { ...p, hotPsi: undefined, intentionalChange: undefined, notes: undefined }, from: prev }
   }
   const b = baselineFor(s, drivers)
-  return { prefill: { rearTeeth: b?.rearTeeth, tireCompound: getClassConfig(s.classId).defaultTire }, from: null }
+  const wet = s.conditions === 'wet' || !!s.weather?.wet
+  return { prefill: { rearTeeth: b?.rearTeeth, tireCompound: defaultTireForClass(s.classId, wet) }, from: null }
 }
 
 /** Re-score: report → setup verdict → (if the kart explains exits) report again with D4 confounded. */

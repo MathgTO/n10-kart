@@ -1,5 +1,5 @@
-/* Network-first for shell + assets so deploys win over stale PWA cache. v44 remove clutch from setup step */
-const CACHE = 'n10-shell-v44'
+/* Network-first for shell + assets so deploys win over stale PWA cache. v45 MIKA tire race-check sections */
+const CACHE = 'n10-shell-v45'
 const BASE = self.registration.scope // e.g. https://n10-kart.netlify.app/
 const SHELL = ['', 'index.html', 'manifest.webmanifest', 'n10-mark.png', 'n10-logo.jpg', 'apple-touch-icon.png'].map(
   (p) => new URL(p || './', BASE).href,
