@@ -95,10 +95,12 @@ export const CLASS_CONFIGS: Record<ClassId, ClassConfig> = {
 }
 
 
-/** MIKA-mandated compounds (display names). */
+/** MIKA race compounds — listed first in the single tire menu. */
 export const TIRE_MANDATED = ['VEGA BLUE', 'VEGA W6'] as const
-/** Practice / other compounds — never the class default badge. */
+/** Non-race / practice compounds — same menu, after mandated. */
 export const TIRE_OPTIONAL = ['Mega White', 'Vega White', 'Vega Yellow', 'MG Yellow', 'Other'] as const
+/** One selectable tire list: mandated first, then optionals (no split sections). */
+export const TIRE_CHOICES = [...TIRE_MANDATED, ...TIRE_OPTIONAL] as const
 export const CLASS_OPTIONS: ClassId[] = ['junior_light', 'junior', 'senior', 'other']
 export const DEFAULT_CLASS: ClassId = 'junior_light'
 
