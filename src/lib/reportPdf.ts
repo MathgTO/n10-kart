@@ -1,6 +1,6 @@
 /**
  * Branded N10 report-card PDF (jsPDF, white page, colored mark).
- * Letters only on skill rows + overall glyph in the hero — Keep/Next/Stop/Overall prose stay ungraded.
+ * Letters only on skill rows (prev->now when prior exists) + overall glyph in the hero — Keep/Next/Stop/Overall prose stay ungraded.
  * Driving only — no PSI / sprocket / setup numbers.
  */
 import { jsPDF } from 'jspdf'
@@ -188,6 +188,7 @@ export function buildReportCardPdf(summary: DriverSummary, opts?: ReportPdfOpts)
 
   const rows = [...summary.face, ...summary.more, ...summary.fromVideo]
   if (rows.length && y < contentBottom - 28) {
+    const showPrevLegend = rows.some((s) => s.prevLetter != null)
     doc.setDrawColor(RULE[0], RULE[1], RULE[2])
     doc.setLineWidth(0.3)
     doc.line(margin, y, pageW - margin, y)
@@ -197,12 +198,41 @@ export function buildReportCardPdf(summary: DriverSummary, opts?: ReportPdfOpts)
     doc.setTextColor(MUTE[0], MUTE[1], MUTE[2])
     const cls = opts?.classLabel ? ` · ${opts.classLabel}` : ''
     doc.text(`SKILLS · THIS SESSION${cls}`.toUpperCase(), margin, y)
+    if (showPrevLegend) {
+      y += 3.5
+      doc.setFontSize(7)
+      doc.setTextColor(MUTE[0], MUTE[1], MUTE[2])
+      // ASCII arrow — Helvetica cannot draw U+2192
+      doc.text('prev -> now', margin, y)
+    }
     y += 5
 
     const colW = (maxW - 10) / 2
     const rowH = 11
     let col = 0
     let rowY = y
+    // Wider strip when any row shows prev->now so left-col grades never sit on right-col labels
+    const gradeStrip = showPrevLegend ? 22 : 12
+
+    /** Draw one letter grade right-aligned into a fixed letter+suffix slot (ASCII +/- only). */
+    const drawGradeLetter = (
+      letter: string,
+      gradeRight: number,
+      yy: number,
+      size: number,
+      color: readonly [number, number, number],
+      suffixW: number,
+      letterSlot: number,
+    ) => {
+      const { base, suffix } = splitLetter(letter)
+      const pdfSuffix = suffix === '+' ? '+' : suffix ? '-' : ''
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(size)
+      doc.setTextColor(color[0], color[1], color[2])
+      const letterCenter = gradeRight - suffixW - letterSlot / 2
+      doc.text(base, letterCenter, yy, { align: 'center' })
+      if (pdfSuffix) doc.text(pdfSuffix, gradeRight - suffixW + 0.4, yy, { align: 'left' })
+    }
 
     for (const r of rows) {
       if (rowY + rowH > contentBottom - 10) {
@@ -214,7 +244,6 @@ export function buildReportCardPdf(summary: DriverSummary, opts?: ReportPdfOpts)
         col = 0
       }
       const gutter = 10
-      const gradeStrip = 12 // reserved so left-col grades never sit on right-col labels
       const x = margin + col * (colW + gutter)
       const textW = colW - gradeStrip
       const desc = KID_DESCS[r.dimId] ?? r.why ?? ''
@@ -229,24 +258,31 @@ export function buildReportCardPdf(summary: DriverSummary, opts?: ReportPdfOpts)
       const dLines = doc.splitTextToSize(desc, textW) as string[]
       doc.text(dLines[0] ?? '', x, rowY + 7.5)
 
-      // Helvetica cannot draw U+2212; use ASCII - so we never get a " glyph
-      doc.setFont('helvetica', 'bold')
-      doc.setFontSize(12)
-      doc.setTextColor(LIME_INK[0], LIME_INK[1], LIME_INK[2])
+      // Helvetica cannot draw U+2212 / U+2192; use ASCII - and -> so we never get a " glyph
       const gradeRight = x + colW
       if (!r.letter) {
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(12)
+        doc.setTextColor(LIME_INK[0], LIME_INK[1], LIME_INK[2])
         doc.text('N/A', gradeRight, rowY + 4.5, { align: 'right' })
+      } else if (r.prevLetter) {
+        // Current letter at the right (lime), prev soft to its left with "->"
+        const currSuffixW = 3.2
+        const currLetterSlot = 4.5
+        drawGradeLetter(r.letter, gradeRight, rowY + 4.5, 12, LIME_INK, currSuffixW, currLetterSlot)
+        const arrowRight = gradeRight - currSuffixW - currLetterSlot - 0.8
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(8)
+        doc.setTextColor(MUTE[0], MUTE[1], MUTE[2])
+        doc.text('->', arrowRight, rowY + 4.3, { align: 'right' })
+        const prevRight = arrowRight - 4.2
+        drawGradeLetter(r.prevLetter, prevRight, rowY + 4.5, 10, SOFT, 2.8, 3.8)
       } else {
-        const { base, suffix } = splitLetter(r.letter)
-        const pdfSuffix = suffix === '+' ? '+' : suffix ? '-' : ''
         // Fixed letter slot so C and C- share the same letter center; +/- hangs in suffix slot
-        const suffixW = 3.2
-        const letterSlot = 4.5
-        const letterCenter = gradeRight - suffixW - letterSlot / 2
-        doc.text(base, letterCenter, rowY + 4.5, { align: 'center' })
-        if (pdfSuffix) doc.text(pdfSuffix, gradeRight - suffixW + 0.4, rowY + 4.5, { align: 'left' })
+        drawGradeLetter(r.letter, gradeRight, rowY + 4.5, 12, LIME_INK, 3.2, 4.5)
       }
       if (r.estimate && r.letter) {
+        doc.setFont('helvetica', 'bold')
         doc.setFontSize(6.5)
         doc.setTextColor(MUTE[0], MUTE[1], MUTE[2])
         doc.text('est.', gradeRight, rowY + 8.5, { align: 'right' })
