@@ -1,7 +1,7 @@
 {
-  "schema_version": "1.8",
+  "schema_version": "1.10",
   "product": "Briggs LO206 Racing Coach (MyChron + kart-cam)",
-  "default_class_assumption": "LO206 Junior Light @ Mosport / MIKA (class is a per-session setting in N10)",
+  "default_class_assumption": "LO206 Junior Light @ Mosport / MIKA (path to BSC Ontario wins)",
   "score_scale": {
     "min": 0,
     "max": 5,
@@ -73,9 +73,9 @@
       ],
       "briggs_note": "Critical for min speed without power",
       "example_feedback": {
-        "high": "Width looks intentional — you’re using the full road and protecting minimum speed.",
+        "high": "Width looks intentional \u2014 you\u2019re using the full road and protecting minimum speed.",
         "mid": "Entry width is okay, but exits still leave money on the table. Commit to the exit kerb on the next three corners that open onto straights.",
-        "low": "You’re turning early and floating inside. Pick one corner and force full track-out for five laps — LO206 needs that exit speed."
+        "low": "You\u2019re turning early and floating inside. Pick one corner and force full track-out for five laps \u2014 LO206 needs that exit speed."
       },
       "primary_drill_id": "later_turn_in"
     },
@@ -98,7 +98,7 @@
       ],
       "briggs_note": "Early turn-in amplifies exit loss with low power",
       "example_feedback": {
-        "high": "Turn-in patience is strong — apexes support the exit.",
+        "high": "Turn-in patience is strong \u2014 apexes support the exit.",
         "mid": "A couple of early darts are killing exit. Delay turn-in about one kart length on your worst corner.",
         "low": "Early turn-in is the main time thief. Name a turn-in marker, then delay it one kart length for five laps and compare exit."
       },
@@ -123,9 +123,9 @@
       ],
       "briggs_note": null,
       "example_feedback": {
-        "high": "Apexes look like exit tools, not trophies — good.",
-        "mid": "You’re hitting the inside but still lifting to get there. Let the apex come to you later.",
-        "low": "Early apex + lift is stacking. Stop “kerb worship” — later apex, earlier throttle."
+        "high": "Apexes look like exit tools, not trophies \u2014 good.",
+        "mid": "You\u2019re hitting the inside but still lifting to get there. Let the apex come to you later.",
+        "low": "Early apex + lift is stacking. Stop \u201ckerb worship\u201d \u2014 later apex, earlier throttle."
       },
       "primary_drill_id": "later_turn_in"
     },
@@ -151,9 +151,9 @@
       ],
       "briggs_note": "Exit RPM is race currency on LO206",
       "example_feedback": {
-        "high": "Exits are committed — you’re feeding throttle early and using the road.",
+        "high": "Exits are committed \u2014 you\u2019re feeding throttle early and using the road.",
         "mid": "Throttle arrives late on one or two key corners. Aim for progressive full throttle as soon as the wheel starts unwinding.",
-        "low": "Exit commitment is soft. LO206 races are won on exit RPM — one primary corner: earlier roll-on, full track-out, no lift."
+        "low": "Exit commitment is soft. LO206 races are won on exit RPM \u2014 one primary corner: earlier roll-on, full track-out, no lift."
       },
       "primary_drill_id": "later_turn_in",
       "mychron_signals": [
@@ -182,7 +182,7 @@
       "briggs_note": null,
       "example_feedback": {
         "high": "Initial brake hit looks firm and decisive.",
-        "mid": "Brakes are a bit soft. Hit harder on the straight, then bleed — don’t stretch a gentle squeeze forever.",
+        "mid": "Brakes are a bit soft. Hit harder on the straight, then bleed \u2014 don\u2019t stretch a gentle squeeze forever.",
         "low": "Soft brake + coast is costing you. Firm stop on the straight first, then release into the turn."
       },
       "primary_drill_id": "no_coast_braking"
@@ -210,8 +210,8 @@
       ],
       "briggs_note": "Rear-brake-only karts are sensitive on release",
       "example_feedback": {
-        "high": "Trail release is clean — deceleration blends into rotation.",
-        "mid": "There’s a flat coast shelf before turn-in. Keep a light trail instead of going to zero brake.",
+        "high": "Trail release is clean \u2014 deceleration blends into rotation.",
+        "mid": "There\u2019s a flat coast shelf before turn-in. Keep a light trail instead of going to zero brake.",
         "low": "Snap release / coast is pushing the front. Treat trail as a release skill: firm hit, then progressive bleed into apex."
       },
       "primary_drill_id": "trail_creep"
@@ -233,7 +233,7 @@
       ],
       "briggs_note": null,
       "example_feedback": {
-        "high": "Brake markers are stacked — great consistency.",
+        "high": "Brake markers are stacked \u2014 great consistency.",
         "mid": "Brake points wander a bit. Pick one visual reference and nail it for five laps.",
         "low": "Inconsistent braking is inventing a new lap every time. Name the marker out loud for three corners."
       },
@@ -264,9 +264,9 @@
       ],
       "briggs_note": "Scrub kills LO206 momentum",
       "example_feedback": {
-        "high": "Steering is quiet — minimal angle, clean unwind.",
+        "high": "Steering is quiet \u2014 minimal angle, clean unwind.",
         "mid": "A few mid-corner corrections are scrubbing speed. Hold one input longer before adjusting.",
-        "low": "Sawing the wheel is scrubbing the tires. Drill: count “one” while holding mid-corner steering — less input, more speed."
+        "low": "Sawing the wheel is scrubbing the tires. Drill: count \u201cone\u201d while holding mid-corner steering \u2014 less input, more speed."
       },
       "primary_drill_id": "hands_quiet"
     },
@@ -280,7 +280,7 @@
         "9-and-3"
       ],
       "good_cues": [
-        "Fixed 9–3"
+        "Fixed 9\u20133"
       ],
       "bad_cues": [
         "Sliding hands",
@@ -290,7 +290,7 @@
       "example_feedback": {
         "high": "Hands stay planted at 9-and-3.",
         "mid": "Hands migrate under load. Reset to 9-and-3 every straight.",
-        "low": "Hand shuffle is costing precision. Lock 9-and-3 for a full session — no exceptions."
+        "low": "Hand shuffle is costing precision. Lock 9-and-3 for a full session \u2014 no exceptions."
       },
       "primary_drill_id": "hands_quiet"
     },
@@ -316,7 +316,7 @@
       "briggs_note": "Cooks tires and drops RPM on LO206",
       "example_feedback": {
         "high": "Throttle is progressive and you hold full cleanly.",
-        "mid": "A few stabs on exit. Roll on once — don’t pump.",
+        "mid": "A few stabs on exit. Roll on once \u2014 don\u2019t pump.",
         "low": "Throttle stabbing is heating the rears and killing RPM. One smooth roll-on to full; if it spins, you turned in too early or asked too soon."
       },
       "primary_drill_id": "later_turn_in",
@@ -343,7 +343,7 @@
       ],
       "briggs_note": null,
       "example_feedback": {
-        "high": "Rotation is controlled — settle, then drive out.",
+        "high": "Rotation is controlled \u2014 settle, then drive out.",
         "mid": "Occasional rear step. Ease brake release a touch earlier or unwind sooner.",
         "low": "Snap rotation / panic inputs. Slow the hands, finish the trail gently, straighten earlier."
       },
@@ -368,7 +368,7 @@
       ],
       "briggs_note": null,
       "example_feedback": {
-        "high": "Eyes are ahead — inputs look anticipatory, not reactive.",
+        "high": "Eyes are ahead \u2014 inputs look anticipatory, not reactive.",
         "mid": "A few late reactions. Look to the exit earlier so hands follow eyes.",
         "low": "Target fixation is making you late. For three corners, name the next reference before you arrive."
       },
@@ -393,9 +393,9 @@
       ],
       "briggs_note": "Weight class dependent",
       "example_feedback": {
-        "high": "Body is quiet in the seat — good weight transfer.",
+        "high": "Body is quiet in the seat \u2014 good weight transfer.",
         "mid": "Upper body moves more than needed. Relax shoulders; let the kart work.",
-        "low": "Body thrash is unloading the tires. Quiet torso for five laps — inputs only through hands/feet."
+        "low": "Body thrash is unloading the tires. Quiet torso for five laps \u2014 inputs only through hands/feet."
       },
       "primary_drill_id": "hands_quiet"
     },
@@ -418,9 +418,9 @@
       ],
       "briggs_note": "Passes often need tow in LO206",
       "example_feedback": {
-        "high": "Draft use is smart — close for tow, peel with a plan.",
+        "high": "Draft use is smart \u2014 close for tow, peel with a plan.",
         "mid": "Gaps are a bit big to ever tow. Close earlier on the straight without unsettled bumper contact.",
-        "low": "You’re either too far to tow or too close and unsettled. Practice gap control before attempting passes."
+        "low": "You\u2019re either too far to tow or too close and unsettled. Practice gap control before attempting passes."
       },
       "primary_drill_id": "racecraft_practice"
     },
@@ -446,9 +446,9 @@
       ],
       "briggs_note": null,
       "example_feedback": {
-        "high": "Passes are planned — inside owned, exit protected.",
+        "high": "Passes are planned \u2014 inside owned, exit protected.",
         "mid": "A few half-alongside attempts. Present earlier or wait a corner; outside usually donates.",
-        "low": "Dive-bombs / outside lunges aren’t sticking. Plan the pass a corner ahead: tow, own the inside before turn-in, protect exit."
+        "low": "Dive-bombs / outside lunges aren\u2019t sticking. Plan the pass a corner ahead: tow, own the inside before turn-in, protect exit."
       },
       "primary_drill_id": "racecraft_practice"
     },
@@ -473,9 +473,9 @@
       ],
       "briggs_note": "Over-defense punishes LO206 harder (slow race)",
       "example_feedback": {
-        "high": "Defense is selective and legal — you still race your exit.",
-        "mid": "Covering early is fine; don’t give away exit speed every corner.",
-        "low": "Over-defending is making you the slowest kart. Cover once early, then race your line — don’t gift a switchback."
+        "high": "Defense is selective and legal \u2014 you still race your exit.",
+        "mid": "Covering early is fine; don\u2019t give away exit speed every corner.",
+        "low": "Over-defending is making you the slowest kart. Cover once early, then race your line \u2014 don\u2019t gift a switchback."
       },
       "primary_drill_id": "racecraft_practice"
     },
@@ -499,7 +499,7 @@
       ],
       "briggs_note": null,
       "example_feedback": {
-        "high": "Lap 1 is measured — you survived and gained cleanly.",
+        "high": "Lap 1 is measured \u2014 you survived and gained cleanly.",
         "mid": "A bit greedy on cold tires. Survive first, attack once grip arrives.",
         "low": "Cold-tire aggression is high-risk. Prioritize clean exits on lap 1; the pass comes after tires wake up."
       },
@@ -521,7 +521,7 @@
       ],
       "briggs_note": "Consistency wins mains in parity classes",
       "example_feedback": {
-        "high": "Lines stack lap to lap — that’s how you win LO206 mains.",
+        "high": "Lines stack lap to lap \u2014 that\u2019s how you win LO206 mains.",
         "mid": "Pace is there but variance is high. Repeat the same references for five laps.",
         "low": "Every lap is reinvented. Consistency first: same markers, same exits, then push."
       },
@@ -552,9 +552,9 @@
       ],
       "briggs_note": "May need gearing chat (tag as setup)",
       "example_feedback": {
-        "high": "You adapt as tires age — inputs stay smooth late in the run.",
+        "high": "You adapt as tires age \u2014 inputs stay smooth late in the run.",
         "mid": "Slides grow late. Soften exits and protect the rear sooner in the stint.",
-        "low": "Tires are falling off and inputs aren’t adapting. Smooth earlier; if exits feel lazy across the field, consider a setup hypothesis (gearing), not just “push harder.”"
+        "low": "Tires are falling off and inputs aren\u2019t adapting. Smooth earlier; if exits feel lazy across the field, consider a setup hypothesis (gearing), not just \u201cpush harder.\u201d"
       },
       "primary_drill_id": "hands_quiet",
       "setup_hypothesis_hint": "If exits feel lazy despite clean inputs, +1 rear tooth is a common LO206 tire-wear response (Swift)."
@@ -579,7 +579,7 @@
       ],
       "briggs_note": "Low power means wet mistakes stick until the next straight",
       "example_feedback": {
-        "high": "Wet markers look adapted — earlier brakes, avoid painted kerbs.",
+        "high": "Wet markers look adapted \u2014 earlier brakes, avoid painted kerbs.",
         "mid": "Still a bit dry-line in places. Move markers earlier and leave shiny paint alone.",
         "low": "Dry line in the wet is costly on LO206. Earlier brakes, smoother everything, skip painted kerbs."
       },
@@ -596,7 +596,7 @@
     {
       "id": "no_coast_braking",
       "name": "No-coast braking drill",
-      "instruction": "Eliminate the flat speed shelf before turn-in. Firm brake, then continuous release into the corner — no coast.",
+      "instruction": "Eliminate the flat speed shelf before turn-in. Firm brake, then continuous release into the corner \u2014 no coast.",
       "source": "PURPL beginner mistakes / trail braking"
     },
     {
@@ -608,7 +608,7 @@
     {
       "id": "hands_quiet",
       "name": "Hands quiet drill",
-      "instruction": "Hold mid-corner steering and count “one” before any correction. Goal: less sawing, less scrub.",
+      "instruction": "Hold mid-corner steering and count \u201cone\u201d before any correction. Goal: less sawing, less scrub.",
       "source": "Dove / PURPL steering themes"
     },
     {
@@ -634,7 +634,7 @@
         "RPM low off corner",
         "tires wearing / sliding exits"
       ],
-      "message": "Setup hypothesis (not driver blame): exits feel lazy — common LO206 response is +1 rear tooth to keep peak RPM in the class peak-speed band (Swift). Corner exits are judged separately in slow-corner windows."
+      "message": "Setup hypothesis (not driver blame): exits feel lazy \u2014 common LO206 response is +1 rear tooth to keep RPM in the ~5800\u20136100 band (Swift)."
     },
     {
       "id": "gear_minus_one",
@@ -646,7 +646,7 @@
         "tire save",
         "living on limiter on short tracks"
       ],
-      "message": "Setup hypothesis: from the front or for a long main, −1 rear tooth (longer) can protect tires and top speed (Swift)."
+      "message": "Setup hypothesis: from the front or for a long main, \u22121 rear tooth (longer) can protect tires and top speed (Swift)."
     },
     {
       "id": "clutch_health",
@@ -656,7 +656,7 @@
         "bogging launches",
         "inconsistent drive out of slow corners"
       ],
-      "message": "Setup hypothesis: check clutch health/engagement and install (must be locked against crank shoulder — Briggs/Klaus). Don’t assume it’s only technique."
+      "message": "Setup hypothesis: check clutch health/engagement and install (must be locked against crank shoulder \u2014 Briggs/Klaus). Don\u2019t assume it\u2019s only technique."
     },
     {
       "id": "chassis_before_engine",
@@ -674,9 +674,9 @@
       "never_mix_with": "driver_blame",
       "when": [
         "restricted slide class",
-        "gearing only to hit the limiter"
+        "gearing only to hit 6100"
       ],
-      "message": "Setup hypothesis: with restricted slides, gear for the power band peak (earlier than unrestricted), not just the class limiter (Klaus #7)."
+      "message": "Setup hypothesis: Junior Light blue .520 is more restricted than yellow .570 \u2014 gear for the (earlier) power-band peak, not the 6150 ignition max (Klaus #7). Blue-slide dyno peak RPM is an open gap \u2014 do not invent."
     },
     {
       "id": "tire_pressure_session",
@@ -688,7 +688,7 @@
         "hot tire growth",
         "slide increasing over stint"
       ],
-      "message": "Tire pressure (setup): log cold PSI before the run and hot PSI after. LO206 tire growth with heat changes effective gearing — if exits get looser late, check whether hot pressures climbed and whether you’re overheating the rears before you “try harder” (Swift tire-growth + tire-management cues). Confirm compound/pressure box against current MIKA / Mosport rules — don’t invent a number off telemetry alone."
+      "message": "Tire pressure (setup): log cold PSI before the run and hot PSI after. LO206 tire growth with heat changes effective gearing \u2014 if exits get looser late, check whether hot pressures climbed and whether you\u2019re overheating the rears before you \u201ctry harder\u201d (Swift tire-growth + tire-management cues). Confirm compound/pressure box against current MIKA / Mosport rules \u2014 don\u2019t invent a number off telemetry alone."
     },
     {
       "id": "tire_pressure_race_heat",
@@ -701,7 +701,7 @@
         "bsc_ontario",
         "rising slide / D19 soft"
       ],
-      "message": "Tire pressure (race/heat): if grip falls off and opposite-lock creeps up, treat hot pressure + tire cook as a setup conversation first. Longer gear (−1 rear tooth) sometimes saves the tire on long mains; pressure and ratio interact (Swift). Re-check cold set before the next heat."
+      "message": "Tire pressure (race/heat): if grip falls off and opposite-lock creeps up, treat hot pressure + tire cook as a setup conversation first. Longer gear (\u22121 rear tooth) sometimes saves the tire on long mains; pressure and ratio interact (Swift). Re-check cold set before the next heat."
     },
     {
       "id": "gear_ratio_optimize",
@@ -713,7 +713,7 @@
         "limiter behavior",
         "series strategy"
       ],
-      "message": "Gear ratio flag (setup): restricted-slide LO206 classes — gear for the power-band peak, not limiter ego (Klaus #7). Target the class peak-speed band on the main straight; +1 rear tooth if peak RPM sits low; −1 if you’re on the limiter early (Swift)."
+      "message": "Gear ratio flag (setup): LO206 Junior Light (blue .520\u2033 slide #555734) \u2014 gear for the restricted power-band peak (earlier than yellow .570), not limiter ego (Klaus #7 applies harder). Do not invent a blue-slide dyno peak \u2014 confirm dyno/slide chart. +1 rear tooth if exits feel lazy / RPM soft; \u22121 if living on the limiter early or saving tires from the front (Swift methodology)."
     },
     {
       "id": "clutch_late_slip_flare",
@@ -741,7 +741,7 @@
     {
       "id": "carb_float_check",
       "tag": "setup",
-      "summary": "Verify carb float height / fuel delivery per Briggs guide; no illegal jet changes (Junior lock).",
+      "summary": "Verify carb float height / fuel delivery per Briggs guide; no illegal jet changes (Junior Light carb lock #555726).",
       "when_signals": [
         "elevated water/CHT with soft top end",
         "tip-in bog after shipping/storage"
@@ -752,7 +752,7 @@
     {
       "id": "chassis_front_wider",
       "tag": "setup",
-      "summary": "Understeer/push: widen front track one spacer step (or +caster per chassis chart) — one change.",
+      "summary": "Understeer/push: widen front track one spacer step (or +caster per chassis chart) \u2014 one change.",
       "when_signals": [
         "push entry-mid",
         "won't rotate with healthy exit RPM"
@@ -763,7 +763,7 @@
     {
       "id": "chassis_rear_narrower",
       "tag": "setup",
-      "summary": "Snap oversteer/rear step: narrow rear slightly — one change; re-check pressures.",
+      "summary": "Snap oversteer/rear step: narrow rear slightly \u2014 one change; re-check pressures.",
       "when_signals": [
         "snap oversteer",
         "rear step on power"
@@ -795,7 +795,7 @@
         }
       ],
       "primary_drill_id": "later_turn_in",
-      "primary_drill_message": "One priority only: later turn-in on your worst hairpin for 5 laps — compare exits.",
+      "primary_drill_message": "One priority only: later turn-in on your worst hairpin for 5 laps \u2014 compare exits.",
       "racecraft_cue": null,
       "setup_hypotheses": []
     },
@@ -823,11 +823,11 @@
       ],
       "primary_drill_id": "racecraft_practice",
       "primary_drill_message": "Next practice: pass/defense session. Own the inside before turn-in; protect exit after the pass.",
-      "racecraft_cue": "Outside usually donates — present earlier or wait a corner (Lorandi).",
+      "racecraft_cue": "Outside usually donates \u2014 present earlier or wait a corner (Lorandi).",
       "setup_hypotheses": [
         {
           "id": "gear_plus_one",
-          "message": "Setup hypothesis: from mid/back, +1–2 rear teeth can help early-lap acceleration (Swift) — separate from driving notes."
+          "message": "Setup hypothesis: from mid/back, +1\u20132 rear teeth can help early-lap acceleration (Swift) \u2014 separate from driving notes."
         }
       ]
     }
@@ -877,7 +877,7 @@
         "D15"
       ]
     },
-    "rules_hub_url": "https://mosportkartingcentre.com/private-karting/for-members/rules-and-regulations/",
+    "rules_hub_url": "https://www.mosportkartingcentre.com/rules-regulations",
     "briggs_rule_set": "Briggs 206 Factory Ruleset v2026.1.1 (unified US/Canada)",
     "observed_briggs_classes_2026": [
       "LO206 Cadet",
@@ -898,32 +898,115 @@
     "gps_policy": "Do not bake fabricated corner GPS into this rubric. Circuit geometry lives in the app (N10 already models Mosport layouts). Rubric stays coaching principles + bias dims.",
     "briggs_rule_set_url": "https://www.briggsracing.com/sites/default/files/2026-01/Briggs%202026%20206%20Rules_Final.pdf",
     "briggs_rule_set_local": "/workspace/briggs-coach-api/Briggs-2026-206-Rules_Final.pdf",
-    "rules_hub_fetch_note": "Mosport rules hub returned 404 from box on weekly refresh 2026-09-28 ET; re-check live site."
+    "rules_hub_fetch_note": "2026-10-05 ET: legacy hub URL still 404 from box; new Webflow page /rules-regulations fetched OK and links the MIKA PDFs below.",
+    "rules_hub_legacy_url": "https://mosportkartingcentre.com/private-karting/for-members/rules-and-regulations/",
+    "class_structure_page": "https://www.mosportkartingcentre.com/kart-owners"
   },
   "confirmed_class": {
     "name": "LO206 Junior Light",
-    "slide": "Blue .520\" (Briggs Part #555734) · green module 555718 · 6150 RPM limit",
-    "class_note": "Owner-confirmed 2026-09-28 (Kart Tuning Expert). N10 reads the class from the per-session setup step (classConfig.ts); this block is reference only.",
-    "carb_lock": "Required (Part #555726 typical)",
-    "typical_national_min_weight_lb": 300,
-    "weight_note": "Factory Ruleset leaves Junior weight to sanctioning body. TRAK 2026 parallel = 300 lb — NOT MIKA confirmation. Verify current MIKA Class Structure PDF.",
+    "briggs_factory_name": "Junior Light",
+    "mika_label": "BRIGGS JR LITE",
+    "slide": "Blue .520\" (Briggs Part #555734)",
+    "carb_lock": "Required (locking cap Part #555726)",
+    "exhaust": "RLV EXF5520 (formerly 5506), EXF5507, or EXF5511",
+    "ignition_max_rpm": {
+      "value": 6150,
+      "note": "Factory Ruleset \u00a734: Max RPM 6,150 applies to all classes except Kid Kart \u2014 NOT a Junior Light-specific limiter.",
+      "source": "Briggs 206 Factory Ruleset v2026.1.1"
+    },
+    "weight_note": "MIKA 2026 Class Structure V1: Briggs JR LITE 265 lb (driver + kart at scales after final). Failing weight after the final = 0 points for that event (droppable) per MIKA Supp Regs.",
+    "confirmed_by_user": {
+      "date": "2026-10-05",
+      "who": "Mathieu (MathG)",
+      "driver": "Gabriel, age 11",
+      "prior_class": "LO206 Junior (yellow .570 #555741) \u2014 kept as reference only"
+    },
     "coaching_overlays": [
-      "Restricted slide: gear for power band, not limiter (Klaus #7)",
+      "Blue .520 is more restricted than yellow .570 \u2014 Klaus #7 applies even harder: gear for restricted-slide power-band peak (earlier than yellow), not the 6150 limiter ego",
+      "Blue-slide dyno peak RPM is an OPEN GAP \u2014 do not invent; confirm via dyno/slide chart before hard RPM targets",
       "Amplify D2/D3/D4/D8/D18 scoring weight vs Senior stock-slide",
       "Prefer setup templates: restricted_slide_gearing, gear_plus_one, gear_minus_one"
     ],
+    "prior_class_reference_junior_yellow": {
+      "name": "LO206 Junior",
+      "slide": "Yellow .570\" (Briggs Part #555741)",
+      "mika_2026_min_weight_lb": 300,
+      "mika_engine_label": "LO206/YELLOW",
+      "mika_numbers": "202\u2013299",
+      "note": "Previous default (Sep 11\u2013Oct 5 2026). Retain for comparison / if driver moves up."
+    },
     "rules_references": [
       "https://www.briggsracing.com/sites/default/files/2026-01/Briggs%202026%20206%20Rules_Final.pdf",
-      "https://mosportkartingcentre.com/private-karting/for-members/rules-and-regulations/",
+      "https://cdn.prod.website-files.com/69cb22d96d2aef5d02e95d66/69fe6d99e4a2bb2418b4c7de_2026%20MIKA%20Class%20Structure%20V1.pdf",
+      "https://cdn.prod.website-files.com/69cb22d96d2aef5d02e95d66/69fe66d4c4554c1c7623a38c_FINAL_2026_MIKA_supplemental_regulations_APR19.2026..pdf",
+      "https://cdn.prod.website-files.com/69cb22d96d2aef5d02e95d66/69fe6a8fe7d024f9e476888f_2026-03%20-%20MIKA%20Bulletin%20-%20CONTACT%20PENALTY.pdf",
+      "https://www.mosportkartingcentre.com/rules-regulations",
       "https://goodwoodkartways.com/wp-content/uploads/2026/04/2026-TRAK-Class-Structure.pdf"
     ],
     "ontario_parallel_trak_2026": {
       "source_pdf": "https://goodwoodkartways.com/wp-content/uploads/2026/04/2026-TRAK-Class-Structure.pdf",
       "local_pdf": "/workspace/briggs-coach-api/2026-TRAK-Class-Structure.pdf",
-      "junior_weight_lb": 300,
+      "class_label_in_trak_pdf": "BRIGGS JUNIOR LITE",
+      "age": "11-15",
+      "weight_lb": 265,
       "tires": "VEGA BLUE ONT 4.6/6.5",
-      "slide_label_in_trak_pdf": "GOLD SLIDE",
-      "warning": "TRAK parallel only — do not treat as MIKA slide/weight/tire authority"
+      "slide_label_in_trak_pdf": "LO206 BLUE SLIDE",
+      "warning": "TRAK parallel only for naming/age box differences; MIKA 2026 Class Structure is authority for Mosport weight/tires/numbers."
+    },
+    "mika_2026": {
+      "source": "2026 MIKA Class Structure V1 + 2026 MIKA Supplemental Regulations (updated Apr 19, 2026)",
+      "source_pdf": "https://cdn.prod.website-files.com/69cb22d96d2aef5d02e95d66/69fe6d99e4a2bb2418b4c7de_2026%20MIKA%20Class%20Structure%20V1.pdf",
+      "local_pdf": "/workspace/briggs-coach-api/2026-MIKA-Class-Structure-V1.pdf",
+      "class_label": "BRIGGS JR LITE",
+      "min_weight_lb": 265,
+      "age": "8\u201314 (*15 per Supp Regs 2.2a)",
+      "engine": "LO206/BLUE",
+      "dry_tires": "VEGA BLUE 4.6/6.5",
+      "wet_tires": "VEGA W6, 4.60 fronts / 6.50 rears (Supp Regs 25.1)",
+      "license": "B \u2013 B+",
+      "race_numbers": "102\u2013199",
+      "spec_fuel": "91 octane spec fuel voucher, filled at Mosport pump (Supp Regs)",
+      "published_tire_pressure": null,
+      "published_tire_pressure_note": "MIKA documents do not publish cold/hot PSI \u2014 keep methodology-only (Swift); never invent a Mosport PSI."
+    },
+    "min_weight_lb": 265,
+    "briggs_factory_source": {
+      "pdf": "Briggs 206 Factory Ruleset v2026.1.1",
+      "local": "/workspace/briggs-coach-api/Briggs-2026-206-Rules_Final.pdf",
+      "class_chart": "Junior Light - .520 'Blue' Slide (555734); carb lock #555726; RLV EXF5520/5507/5511"
+    },
+    "mika_2026_junior_light": {
+      "source": "2026 MIKA Class Structure V1 + 2026 MIKA Supplemental Regulations (updated Apr 19, 2026)",
+      "source_pdf": "https://cdn.prod.website-files.com/69cb22d96d2aef5d02e95d66/69fe6d99e4a2bb2418b4c7de_2026%20MIKA%20Class%20Structure%20V1.pdf",
+      "local_pdf": "/workspace/briggs-coach-api/2026-MIKA-Class-Structure-V1.pdf",
+      "class_label": "BRIGGS JR LITE",
+      "min_weight_lb": 265,
+      "age": "8\u201314 (*15 per Supp Regs 2.2a)",
+      "engine": "LO206/BLUE",
+      "dry_tires": "VEGA BLUE 4.6/6.5",
+      "wet_tires": "VEGA W6, 4.60 fronts / 6.50 rears (Supp Regs 25.1)",
+      "license": "B \u2013 B+",
+      "race_numbers": "102\u2013199",
+      "spec_fuel": "91 octane spec fuel voucher, filled at Mosport pump (Supp Regs)",
+      "published_tire_pressure": null,
+      "published_tire_pressure_note": "MIKA documents do not publish cold/hot PSI \u2014 keep methodology-only (Swift); never invent a Mosport PSI."
+    },
+    "mika_2026_junior": {
+      "source": "2026 MIKA Class Structure V1 + 2026 MIKA Supplemental Regulations (updated Apr 19, 2026)",
+      "source_pdf": "https://cdn.prod.website-files.com/69cb22d96d2aef5d02e95d66/69fe6d99e4a2bb2418b4c7de_2026%20MIKA%20Class%20Structure%20V1.pdf",
+      "local_pdf": "/workspace/briggs-coach-api/2026-MIKA-Class-Structure-V1.pdf",
+      "class_label": "BRIGGS JUNIOR",
+      "min_weight_lb": 300,
+      "age": "8\u201314 (*15 per Supp Regs 2.2a)",
+      "engine": "LO206/YELLOW",
+      "dry_tires": "VEGA BLUE 4.6/6.5",
+      "wet_tires": "VEGA W6, 4.60 fronts / 6.50 rears (Supp Regs 25.1)",
+      "license": "B \u2013 B+",
+      "race_numbers": "202\u2013299",
+      "spec_fuel": "91 octane spec fuel voucher, filled at Mosport pump (Supp Regs)",
+      "published_tire_pressure": null,
+      "published_tire_pressure_note": "MIKA documents do not publish cold/hot PSI \u2014 keep methodology-only (Swift); never invent a Mosport PSI.",
+      "note": "Prior default class (schema 1.9). Retained as reference after Junior Light switch (1.10)."
     }
   },
   "preferred_setup_hypothesis_ids": [
@@ -937,7 +1020,7 @@
   ],
   "competition_focus": {
     "near_term": "MIKA club at Mosport",
-    "ultimate_objective": "Win BSC Ontario races (LO206 Junior)",
+    "ultimate_objective": "Win BSC Ontario races (LO206 Junior Light)",
     "bsc_ontario": {
       "full_name": "Briggs & Stratton Challenge Ontario",
       "format_notes": "Often two complete race days: practice, qualifying, pre-final, final each day",
@@ -974,8 +1057,8 @@
   },
   "product_north_star": {
     "name": "Continuous improvement AI coach (data + video)",
-    "usage": "After every practice and race — MyChron drop and/or kart-cam",
-    "aim": "Excellence — measurable session-to-session gains toward BSC Ontario wins",
+    "usage": "After every practice and race \u2014 MyChron drop and/or kart-cam",
+    "aim": "Excellence \u2014 measurable session-to-session gains toward BSC Ontario wins",
     "loop": [
       "ingest_mychron_or_kart_cam",
       "pick_reference_lap_and_focus_corner_or_sector",
@@ -993,7 +1076,7 @@
       "prefer_vs_last_session_language": true,
       "max_focus_channels": 3
     },
-    "n10_focus_copy": "Brake, apex, exit — sector, exit, delta versus the reference"
+    "n10_focus_copy": "Brake, apex, exit \u2014 sector, exit, delta versus the reference"
   },
   "session_progress": {
     "track_dimension_trends": true,
@@ -1013,7 +1096,7 @@
       "product_north_star.loop dual path (data focus call + optional video score)",
       "data_coach_parity: AiM Race Studio 3 / Swift LO206 workflows N10 must match or beat",
       "mychron_signals on D4/D7/D10/D18 for exit RPM, brake consistency, throttle, lap stack",
-      "No fabricated Mosport corner GPS — coaching principles only; layout names remain app-side"
+      "No fabricated Mosport corner GPS \u2014 coaching principles only; layout names remain app-side"
     ]
   },
   "input_modes": {
@@ -1028,7 +1111,7 @@
       "CSV export via Race Studio 3"
     ],
     "secondary": "kart_cam_video",
-    "rule": "Never invent video timestamps from telemetry alone. Map data cues to drill language; use kart-cam when scoring D9/D12/D13/D14–D17 or when evidence clips are required.",
+    "rule": "Never invent video timestamps from telemetry alone. Map data cues to drill language; use kart-cam when scoring D9/D12/D13/D14\u2013D17 or when evidence clips are required.",
     "session_pairing": "Prefer same-session MyChron + kart-cam when both exist; otherwise score what was uploaded and tag missing modality."
   },
   "data_coach_parity": {
@@ -1052,22 +1135,22 @@
       {
         "id": "speed_rpm_overlay",
         "feature": "Overlay speed + RPM on key corners",
-        "coach_win": "Separate driving (low speed, OK RPM) vs gearing (lazy exit RPM) → setup tag"
+        "coach_win": "Separate driving (low speed, OK RPM) vs gearing (lazy exit RPM) \u2192 setup tag"
       },
       {
         "id": "exit_rpm_band",
-        "feature": "Corner-exit RPM vs the class floor + peak RPM vs the class peak-speed band (gearing)",
+        "feature": "Exit RPM vs LO206 ~5800\u20136100 band (Junior: gear for restricted-slide peak, not limiter ego)",
         "coach_win": "Surface exit RPM on focus corner every session; link D4 + gear templates"
       },
       {
         "id": "consistency_ideal_lap",
         "feature": "Ideal lap from best sectors + consistency gap",
-        "coach_win": "Map consistency gap → D18 + reference_naming drill; vs-last language"
+        "coach_win": "Map consistency gap \u2192 D18 + reference_naming drill; vs-last language"
       },
       {
         "id": "session_compare",
         "feature": "Compare sessions / drivers with same reference",
-        "coach_win": "Session history with dimension trends + advance priority when score ≥ 4"
+        "coach_win": "Session history with dimension trends + advance priority when score \u2265 4"
       },
       {
         "id": "one_change_rule",
@@ -1078,14 +1161,14 @@
     "n10_observed_baseline": {
       "app": "https://n10-kart.netlify.app",
       "ingest": "Drop MyChron file / USB-C .xrz",
-      "focus_copy": "Brake, apex, exit — sector, exit, delta versus the reference",
+      "focus_copy": "Brake, apex, exit \u2014 sector, exit, delta versus the reference",
       "panes_default": [
         "speed",
         "rpm",
         "delta"
       ],
       "home_default": "Mosport Karting Centre (Bowmanville)",
-      "demo_class": "Briggs Junior Light · LO206 blue .520",
+      "demo_class": "Briggs Junior Light \u00b7 LO206 Blue .520",
       "has_theoretical_best_sectors_lap": true,
       "has_kart_cam_scoring": false,
       "has_20_dim_rubric": false,
@@ -1110,17 +1193,19 @@
     "require_setup_tag": true,
     "one_change_at_a_time": true,
     "junior_restricted_slide_not_limiter_ego": true,
-    "delegates_clutch_to": "/workspace/briggs-coach-api/clutch-health-diagnostic-v1.json"
+    "delegates_clutch_to": "/workspace/briggs-coach-api/clutch-health-diagnostic-v1.json",
+    "class_default": "LO206 Junior Light (blue .520)",
+    "klaus_7_note": "Blue .520 more restricted than yellow .570 \u2014 gear for earlier peak; blue dyno peak RPM = open gap"
   },
   "changelog_1_7": {
     "date": "2026-09-28",
-    "summary": "Trackside tuning pack from MyChron .xrk/.xrz: signal→setup map, Junior/Mosport overlays, tire cold/hot methodology without invented PSI, pointer for tuning bot.",
+    "summary": "Trackside tuning pack from MyChron .xrk/.xrz: signal\u2192setup map, Junior/Mosport overlays, tire cold/hot methodology without invented PSI, pointer for tuning bot.",
     "changes": [
       "schema_version 1.7",
       "trackside_tuning pointer to trackside-tuning-from-xrk-v1.json + exec brief",
       "KB major section Trackside tuning from MyChron session data",
       "Setup hypotheses remain tagged setup; one-change rule reinforced for gear/clutch/tire/chassis",
-      "Restricted slide: gear for the power band, not limiter ego (Klaus #7)",
+      "Junior yellow .570: gear for restricted band not limiter ego (Klaus #7)",
       "Open gaps flagged: MIKA weight PDF, Mosport Junior tire PSI/brand",
       "Added setup templates: carb_float_check, chassis_front_wider, chassis_rear_narrower"
     ]
@@ -1130,11 +1215,225 @@
     "summary": "Weekly KB refresh (first run): source-authority update to Briggs 206 Factory Ruleset v2026.1.1 + TRAK 2026 Junior parallel; no coaching-dimension or drill changes; clutch RPM+speed pairing unchanged.",
     "changes": [
       "schema_version 1.8",
-      "home_track.briggs_rule_set → unified Factory Ruleset v2026.1.1 with URL + local PDF path",
+      "home_track.briggs_rule_set \u2192 unified Factory Ruleset v2026.1.1 with URL + local PDF path",
       "confirmed_class.rules_references prefer Factory Ruleset PDF; TRAK 2026 Class Structure as Ontario parallel (300 lb / Vega Blue ONT) with explicit not-MIKA warning",
       "KB/exec weekly refresh notes; Mosport hub 404 from box flagged",
       "No changes to 20 dims, drills, clutch_health RPM+speed rules, or trackside_tuning signal map"
     ],
+    "weekly_changelog": "/workspace/n10-review/weekly-kb-changelog.md"
+  },
+  "series_rules_mika_2026": {
+    "source_pdfs": {
+      "supplemental_regulations": "https://cdn.prod.website-files.com/69cb22d96d2aef5d02e95d66/69fe66d4c4554c1c7623a38c_FINAL_2026_MIKA_supplemental_regulations_APR19.2026..pdf",
+      "bulletin_2026_03_contact_penalty": "https://cdn.prod.website-files.com/69cb22d96d2aef5d02e95d66/69fe6a8fe7d024f9e476888f_2026-03%20-%20MIKA%20Bulletin%20-%20CONTACT%20PENALTY.pdf",
+      "class_structure": "https://cdn.prod.website-files.com/69cb22d96d2aef5d02e95d66/69fe6d99e4a2bb2418b4c7de_2026%20MIKA%20Class%20Structure%20V1.pdf",
+      "race_schedule_v1_5": "https://cdn.prod.website-files.com/69c7debe960b525c3df152f9/6a027adb1d8d1519117e58d4_MIKA_2026_Race_Schedule_v1.5.pdf"
+    },
+    "local_pdfs": [
+      "/workspace/briggs-coach-api/2026-MIKA-Supplemental-Regulations-APR19.pdf",
+      "/workspace/briggs-coach-api/2026-03-MIKA-Bulletin-Contact-Penalty.pdf",
+      "/workspace/briggs-coach-api/2026-MIKA-Class-Structure-V1.pdf",
+      "/workspace/briggs-coach-api/MIKA_2026_Race_Schedule_v1.5.pdf"
+    ],
+    "contact_position_penalty": {
+      "effective": "2026-04-26",
+      "source": "MIKA Bulletin 2026-03",
+      "rule": "Officials may place an offender behind all drivers who lost positions from contact (on top of ASN 1-15 penalties: warning, 5 s min, black flag, last place, rear of grid next race, DQ). Factors: positional loss, severity/avoidability, mitigating/aggravating circumstances.",
+      "coaching_hooks": {
+        "D15": "A pass that involves contact and moves someone back can be undone or worse. Score contact passes as low regardless of position gained; cue: set it up a corner earlier and own the inside cleanly.",
+        "D16": "Defend without causing contact \u2014 late, aggressive blocks that trigger contact risk the same position penalty.",
+        "D17": "Lap-1 contact in a pack can cost more than the positions gained; survival + clean exits first."
+      }
+    },
+    "push_back_bumper": {
+      "rule": "MIKA Supp Regs \u00a715: GDS/ASN Bumper Rules remain unchanged (1 side in = 5 s; both sides in = 5 s). MIKA modifies to a warning for 1 side in (5 s for 2 sides) for Briggs Senior/Masters only. Quote: 'Cadet, Junior and all 2 stroke classes will follow the ASN regulations on the push back bumper.'",
+      "junior_light_note": "Supp Regs \u00a715 names Cadet/Junior (not 'Junior Light'/'JR LITE' explicitly). Eligible-class list separately includes Briggs Junior Light. Junior Light is not in the Senior/Masters warning exception. Coaching default: treat Junior Light as ASN 5 s (same as Junior) \u2014 flag that the bumper paragraph does not name Junior Light verbatim.",
+      "coaching_hooks": {
+        "D14": "Draft without bumping \u2014 displaced front fairing is a 5 s ASN penalty for Cadet/Junior per \u00a715; apply same caution for Junior Light coaching copy (see junior_light_note)."
+      }
+    },
+    "points_notes": [
+      "5 bonus points for pole in timed qualifying",
+      "Briggs drivers drop worst 3 finishes",
+      "Black flag in Final = 0 points, not droppable",
+      "DQ in post-tech = 0 points, not droppable",
+      "Must qualify and start the Prefinal/Heat to be eligible for the Final",
+      "Rookies start at the back for their first 2 races (X over rear number)"
+    ],
+    "clutch_note": "MIKA relaxes Factory rule 36(a) for Cadet only; Junior Light / Junior follow Factory Ruleset \u00a736 fully (Hilliard Inferno Flame remains approved). Clutch Health RPM+speed rules unchanged.",
+    "remaining_2026_mika_dates": [
+      {
+        "event": "MIKA Race #14",
+        "date": "2026-10-10",
+        "track": "Mosport National Track CCW"
+      },
+      {
+        "event": "MIKA Enduro (non-points)",
+        "date": "2026-10-11",
+        "track": "Mosport National Track CCW"
+      },
+      {
+        "event": "MIKA Awards Banquet",
+        "date": "2026-11-21",
+        "location": "CTMP Main Event Centre"
+      }
+    ],
+    "schedule_note": "From MIKA 2026 schedule v1.5 (04.02.2026); 'subject to change'."
+  },
+  "changelog_1_9": {
+    "date": "2026-10-05",
+    "summary": "Weekly KB refresh: MIKA 2026 Class Structure + Supplemental Regs + Bulletin 2026-03 now fetched (new Mosport rules page). Closes MIKA Junior weight/tire gap; adds series racecraft rules (contact position penalty, Junior push-back bumper) as coaching hooks on D14\u2013D17.",
+    "changes": [
+      "schema_version 1.9",
+      "home_track.rules_hub_url -> https://www.mosportkartingcentre.com/rules-regulations (legacy URL kept as rules_hub_legacy_url)",
+      "confirmed_class.mika_2026: 300 lb, LO206/YELLOW, VEGA BLUE 4.6/6.5 dry, VEGA W6 wet, B\u2013B+ license, numbers 202\u2013299, spec 91 fuel; PSI explicitly unpublished",
+      "confirmed_class.min_weight_lb = 300 (MIKA-confirmed); typical_national_min_weight_lb removed",
+      "series_rules_mika_2026 block: contact position penalty (Bulletin 2026-03) hooks on D15/D16/D17; Junior push-back bumper 5 s hook on D14; points notes; remaining 2026 dates",
+      "No changes to the 20 dimension definitions, drills, clutch_health RPM+speed pairing, or trackside_tuning signal map"
+    ],
+    "weekly_changelog": "/workspace/n10-review/weekly-kb-changelog.md"
+  },
+  "class_profiles": {
+    "note": "Sourced facts only. RPM coaching thresholds must be keyed per class/slide; do not reuse stock-slide Swift 5800\u20136100 as a Junior Light peak target. Blue .520 dyno peak RPM = open gap.",
+    "cadet": {
+      "briggs_name": "Cadet",
+      "slide": "Red .440\" (#555733)",
+      "carb_lock_required": true,
+      "carb_lock_part": "555726",
+      "exhaust": [
+        "EXF5520",
+        "EXF5507",
+        "EXF5511"
+      ],
+      "mika_2026": {
+        "min_weight_lb": 235,
+        "age": "8-11",
+        "engine": "LO206/RED",
+        "dry_tires": "VEGA BLUE 4.6/4.6",
+        "race_numbers": "2-99",
+        "license": "B"
+      },
+      "sources": [
+        "Briggs 206 Factory Ruleset v2026.1.1",
+        "2026 MIKA Class Structure V1"
+      ]
+    },
+    "junior_light": {
+      "briggs_name": "Junior Light",
+      "mika_label": "BRIGGS JR LITE",
+      "slide": "Blue .520\" (#555734)",
+      "carb_lock_required": true,
+      "carb_lock_part": "555726",
+      "exhaust": [
+        "EXF5520",
+        "EXF5507",
+        "EXF5511"
+      ],
+      "ignition_max_rpm": 6150,
+      "ignition_max_rpm_note": "Applies to all non-Kid Kart classes \u2014 not Junior Light-specific",
+      "dyno_peak_rpm": null,
+      "dyno_peak_rpm_gap": "Confirm blue .520 dyno/slide chart \u2014 do not invent",
+      "restricted_vs_yellow": "Blue .520 is more restricted than yellow .570 \u2014 peak power comes earlier; Klaus #7 applies harder",
+      "mika_2026": {
+        "min_weight_lb": 265,
+        "age": "8\u201314 (*15)",
+        "engine": "LO206/BLUE",
+        "dry_tires": "VEGA BLUE 4.6/6.5",
+        "race_numbers": "102-199",
+        "license": "B \u2013 B+"
+      },
+      "trak_2026_parallel": {
+        "label": "BRIGGS JUNIOR LITE",
+        "weight_lb": 265,
+        "age": "11-15",
+        "slide_label": "LO206 BLUE SLIDE"
+      },
+      "sources": [
+        "Briggs 206 Factory Ruleset v2026.1.1",
+        "2026 MIKA Class Structure V1",
+        "2026 TRAK Class Structure"
+      ]
+    },
+    "junior": {
+      "briggs_name": "Junior",
+      "slide": "Yellow .570\" (#555741)",
+      "carb_lock_required": true,
+      "carb_lock_part": "555726",
+      "exhaust": [
+        "EXF5520",
+        "EXF5507",
+        "EXF5511"
+      ],
+      "ignition_max_rpm": 6150,
+      "dyno_peak_rpm": null,
+      "dyno_peak_rpm_note": "Between stock and green restrictor examples; confirm dyno \u2014 do not invent",
+      "mika_2026": {
+        "min_weight_lb": 300,
+        "age": "8\u201314 (*15)",
+        "engine": "LO206/YELLOW",
+        "dry_tires": "VEGA BLUE 4.6/6.5",
+        "race_numbers": "202-299",
+        "license": "B \u2013 B+"
+      },
+      "sources": [
+        "Briggs 206 Factory Ruleset v2026.1.1",
+        "2026 MIKA Class Structure V1"
+      ]
+    },
+    "senior_stock": {
+      "briggs_name": "206 Senior",
+      "slide": "Stock (#555590)",
+      "carb_lock_required": false,
+      "exhaust": [
+        "EXF5520",
+        "EXF5507",
+        "EXF5511"
+      ],
+      "ignition_max_rpm": 6150,
+      "power_band_stock_slide_swift_rpm": {
+        "low": 5800,
+        "high": 6100,
+        "source": "Swift LO206 gear ratio guide"
+      },
+      "mika_2026": {
+        "min_weight_lb": 340,
+        "age": "15+",
+        "engine": "LO206/BLACK",
+        "dry_tires": "VEGA BLUE 4.6/6.5",
+        "race_numbers": "302-399",
+        "license": "A"
+      },
+      "sources": [
+        "Briggs 206 Factory Ruleset v2026.1.1",
+        "2026 MIKA Class Structure V1",
+        "Swift LO206 gear ratio guide"
+      ]
+    }
+  },
+  "rpm_thresholds_policy": {
+    "rule": "RPM-based coaching/setup thresholds must be keyed per class/slide via class_profiles. Do not apply stock-slide Swift 5800\u20136100 as a Junior Light peak target.",
+    "ignition_max_rpm_all_non_kid_kart": 6150,
+    "open_gaps": [
+      "Blue .520 (Junior Light) dyno peak RPM \u2014 confirm dyno/slide chart",
+      "Yellow .570 (Junior) dyno peak RPM \u2014 confirm dyno/slide chart"
+    ]
+  },
+  "changelog_1_10": {
+    "date": "2026-10-05",
+    "summary": "Class switch: default LO206 Junior (yellow .570) \u2192 LO206 Junior Light (blue .520 #555734). Concurrent weekly refresh had already claimed schema 1.9 for MIKA docs fetch; this bump is 1.10 for the class switch.",
+    "changes": [
+      "schema_version 1.9 \u2192 1.10",
+      "default_class_assumption / confirmed_class \u2192 Junior Light (Factory) / JR LITE (MIKA): blue .520 #555734, carb lock #555726, exhaust EXF5520/5507/5511",
+      "MIKA weight/tires/numbers: 265 lb, LO206/BLUE, VEGA BLUE 4.6/6.5, numbers 102\u2013199 (from Class Structure V1 fetched in 1.9 pass)",
+      "Ignition Max RPM 6,150 noted as all-classes-except-Kid-Kart \u2014 not Junior Light-specific",
+      "Klaus #7 applies even harder (blue more restricted than yellow); blue-slide dyno peak RPM flagged as open gap",
+      "Added class_profiles map (cadet / junior_light / junior / senior_stock) with sourced facts only + rpm_thresholds_policy",
+      "Prior yellow Junior retained under confirmed_class.prior_class_reference_junior_yellow",
+      "No changes to the 20 dimension definitions, 0\u20135 scoring, drills, or clutch_health RPM+speed pairing",
+      "Preserved schema 1.9 Junior yellow mika_2026 facts under confirmed_class.mika_2026_junior; Junior Light is confirmed_class.mika_2026 + mika_2026_junior_light",
+      "push_back_bumper: documented exact Supp Regs \u00a715 wording; Junior Light not named verbatim in bumper sentence"
+    ],
+    "conflict_with_concurrent_refresh": "Weekly KB refresh on 2026-10-05 already set schema_version 1.9 (MIKA Class Structure + Supp Regs + Bulletin). Class switch therefore uses 1.10 rather than overwriting changelog_1_9.",
     "weekly_changelog": "/workspace/n10-review/weekly-kb-changelog.md"
   }
 }

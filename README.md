@@ -6,7 +6,7 @@ MyChron-first LO206 Junior coach (Mosport / MIKA → BSC Ontario).
 Vite + React + TypeScript + Tailwind SPA → Netlify (`n10-kart`).
 
 ## Rubric
-Asserts `schema_version === "1.8"` at startup from `src/data/rubric-v1.json` (baked from `/workspace/briggs-coach-api/rubric-v1.json`).
+Asserts `schema_version === "1.10"` at startup from `src/data/rubric-v1.json` (baked from `/workspace/briggs-coach-api/rubric-v1.json`).
 
 ## Scripts
 - `npm run dev` — local

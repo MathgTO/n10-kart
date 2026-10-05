@@ -7,7 +7,7 @@
  *  - KTE class config (Junior Light: limiter 6150, peak band 5800–6150, corner-exit floor ~3700) and D4 honesty
  *  - setup verdict (67→69 applied, tires next, vs Sep baseline 1:07.967) + tuner voice wording
  *  - share SMS ≤ 320 chars
- *  - no 'America/Toronto' or '5800' literals in src outside the track table / class config / fixtures
+ *  - no 'America/Toronto' or '5800' literals in src outside the track table / class config / fixtures / baked rubric JSON
  * Run: npx --yes tsx --tsconfig tsconfig.app.json scripts/smoke-redesign.mts
  */
 import { execSync } from 'node:child_process'
@@ -97,10 +97,10 @@ check(a.summary.title === 'Gabriel’s report card', 'title "Gabriel’s report 
 
 // --- literals
 const out = execSync(
-  `grep -rnE "America/Toronto|5800" src --exclude=tracks.ts --exclude=classConfig.ts --exclude-dir=__fixtures__ || true`,
+  `grep -rnE "America/Toronto|5800" src --exclude=tracks.ts --exclude=classConfig.ts --exclude=rubric-v1.json --exclude-dir=__fixtures__ || true`,
   { cwd: root, encoding: 'utf8' }
 ).trim()
-check(out === '', `no 'America/Toronto' / '5800' in src outside tracks.ts, classConfig.ts, fixtures${out ? `\n${out}` : ''}`)
+check(out === '', `no 'America/Toronto' / '5800' in src outside tracks.ts, classConfig.ts, rubric-v1.json, fixtures${out ? `\n${out}` : ''}`)
 
 if (failed) {
   console.log(`\n${failed} redesign check(s) failed.`)
