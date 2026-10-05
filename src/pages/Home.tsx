@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ImportModal } from '@/components/ImportModal'
+import { LandingFirstVisit } from '@/components/LandingFirstVisit'
 import { useSessions } from '@/hooks/SessionsContext'
 import { getClassConfig } from '@/lib/classConfig'
 import { initial } from '@/lib/drivers'
@@ -64,14 +65,17 @@ export function Home() {
   const [importOpen, setImportOpen] = useState(false)
   const [driverFilter, setDriverFilter] = useState<string>('all')
 
+  const hasRealSessions = sessions.some((s) => !s.isDemo)
+
   // Desktop: dragging a file anywhere onto the page opens Import so the drop lands in the modal.
   useEffect(() => {
+    if (!hasRealSessions) return
     const onEnter = (e: DragEvent) => {
       if (e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files')) setImportOpen(true)
     }
     window.addEventListener('dragenter', onEnter)
     return () => window.removeEventListener('dragenter', onEnter)
-  }, [])
+  }, [hasRealSessions])
 
   const multiDriver = drivers.length >= 2
   const visible = sessions.filter((s) => driverFilter === 'all' || s.driverId === driverFilter)
@@ -91,6 +95,16 @@ export function Home() {
     }
     return [...out.filter((g) => !g.demo), ...out.filter((g) => g.demo)]
   }, [visible])
+
+  // First visit: compressed landing (v6b). Returning users with real sessions get the library.
+  if (!hasRealSessions) {
+    return (
+      <div className="space-y-6 pb-8">
+        <IosHomeScreenTip />
+        <LandingFirstVisit />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6 pb-8">

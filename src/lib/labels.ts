@@ -22,4 +22,4 @@ export const SAFETY_LINE = 'Review your data between sessions. Never use N10 whi
 export const SUPPORT_EMAIL = 'mathieugamache@icloud.com'
 
 /** PWA shell cache id — keep in sync with public/sw.js CACHE. Shown in page footer. */
-export const SHELL_VERSION = 'n10-shell-v38'
+export const SHELL_VERSION = 'n10-shell-v39'
