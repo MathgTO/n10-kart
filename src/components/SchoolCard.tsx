@@ -12,27 +12,37 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function DimRow({ s }: { s: Subject }) {
   const muted = s.letter == null
+  const hasPrev = s.prevLetter != null
   return (
-    <li className="flex items-start justify-between gap-3 py-1.5">
-      <div className="min-w-0">
+    <li className="flex items-start justify-between gap-3 py-2">
+      <div className="min-w-0 flex-1">
         <p className={`font-semibold ${muted ? 'text-n10-mute' : 'text-white'}`}>{s.label}</p>
         {s.why && <p className="text-sm text-n10-soft">{s.why}</p>}
       </div>
       <span className="shrink-0 text-right">
         {s.letter ? (
-          <GradeLetter letter={s.letter} className="text-n10-lime" size="lg" />
+          hasPrev ? (
+            <span className="inline-flex items-end justify-end gap-1.5">
+              <GradeLetter letter={s.prevLetter} size="lg" className="text-n10-soft" />
+              <span className="pb-1 text-sm font-extrabold text-n10-mute">→</span>
+              <GradeLetter letter={s.letter} size="xl" className="text-n10-lime" />
+            </span>
+          ) : (
+            <GradeLetter letter={s.letter} className="text-n10-lime" size="xl" />
+          )
         ) : (
           <span className="block font-bold text-n10-mute">N/A</span>
         )}
-        {s.estimate && s.letter && <span className="block text-xs font-semibold text-n10-mute">est.</span>}
+        {s.estimate && s.letter && <span className="mt-0.5 block text-xs font-semibold text-n10-mute">est.</span>}
       </span>
     </li>
   )
 }
 
-/** Driver/coach school report: Keep / Start / Stop / Overall prose (no letters) + the same graded dim set as Coach. */
+/** Driver/coach school report: Keep / Start / Stop / Overall prose + graded dims (prev→now when prior exists). */
 export function SchoolCard({ summary, children }: { summary: DriverSummary; children?: React.ReactNode }) {
   const startTitle = summary.badDay ? 'Next focus' : 'Start doing'
+  const showPrevLegend = [...summary.face, ...summary.more, ...summary.fromVideo].some((s) => s.prevLetter != null)
   return (
     <section className="rounded-2xl border border-n10-lime/40 border-l-4 border-l-n10-lime bg-n10-panel p-4 sm:p-5 print-card">
       <div>
@@ -63,7 +73,12 @@ export function SchoolCard({ summary, children }: { summary: DriverSummary; chil
         </Section>
 
         <div className="rounded-xl border border-n10-border bg-black/40 p-4">
-          <p className="text-sm font-bold uppercase tracking-wide text-n10-lime">Report card</p>
+          <div>
+            <p className="text-sm font-bold uppercase tracking-wide text-n10-lime">Report card</p>
+            {showPrevLegend && (
+              <p className="mt-0.5 text-xs font-bold uppercase tracking-wide text-n10-mute">prev → now</p>
+            )}
+          </div>
           <ul className="mt-2 divide-y divide-n10-border">
             {summary.face.map((s) => (
               <DimRow key={s.dimId} s={s} />

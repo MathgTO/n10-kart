@@ -89,6 +89,8 @@ export interface Subject {
   label: string
   /** null when the dim is shown as N/A (needs video / no data basis / setup context). */
   letter: Letter | null
+  /** Previous session letter at this track (LTR pair on the report card); null = no prior. */
+  prevLetter?: Letter | null
   score: number | null
   why: string
   fromVideo: boolean
@@ -221,10 +223,13 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
     if (RACECRAFT.has(id) && !race) continue
     const g = dimGrade(sc)
     if (g.letter == null || g.score == null) continue
+    const prevSc = input.previous?.report?.scores.find((x) => x.dimension_id === id)
+    const prevLetter = prevSc ? dimGrade(prevSc).letter : null
     graded.push({
       dimId: id,
       label: labelFor(id, kid),
       letter: g.letter,
+      prevLetter,
       score: g.score,
       why: whyFor(id, sc, { closeByLap: close, bestText }, kid),
       fromVideo: sc.evidence_kind === 'kart_cam',
