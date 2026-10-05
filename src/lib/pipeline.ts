@@ -140,7 +140,8 @@ export async function createSessionFromParse(parse: ParseResult, fileName: strin
   const { tz, tzSource } = await resolveZone(track.id === 'other' ? null : track, detection.centroid ?? meta?.sf)
   const t = resolveSessionTime(meta, tz)
 
-  // Driver: bound serial → no prompt; unknown serial → prompt once; no serial → last driver at this track.
+  // Driver binding is permanent for a serial: bound → reuse (never re-prompt / never overwrite name on import);
+  // unknown serial → prompt once; no serial (CSV) → lastDriverAtTrack only if that driver still exists, else unbound.
   const serial = meta?.loggerSerial
   const bound = driverForSerial(ctx.drivers, serial)
   let driverId: string | undefined
@@ -152,8 +153,12 @@ export async function createSessionFromParse(parse: ParseResult, fileName: strin
   } else if (serial != null) {
     needsDriverPrompt = true
   } else {
-    driverId = lastDriverAtTrack(ctx.sessions, track.id) ?? (ctx.drivers.length === 1 ? ctx.drivers[0].id : undefined)
-    driverSource = 'last_at_track'
+    const lastId = lastDriverAtTrack(ctx.sessions, track.id)
+    if (lastId && ctx.drivers.some((d) => d.id === lastId)) {
+      driverId = lastId
+      driverSource = 'last_at_track'
+    }
+    // else leave unbound — never invent Gabriel
   }
   const driver = ctx.drivers.find((d) => d.id === driverId)
 

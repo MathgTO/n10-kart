@@ -2,9 +2,10 @@ import { buildCoachingReport } from '@/lib/scoring'
 import { getClassConfig, DEFAULT_CLASS } from '@/lib/classConfig'
 import { synthLap } from '@/lib/telemetry'
 import type { LapData, SeriesTag, StoredSession } from '@/lib/types'
+import { DEMO_DRIVER_ID } from '@/lib/drivers'
 import { getTrack } from './tracks'
 
-const DEMO_CLASS = DEFAULT_CLASS // junior_light — Gabriel's real class
+const DEMO_CLASS = DEFAULT_CLASS // junior_light — demo class (anonymous Demo driver, not Gabriel)
 const DEMO_CLS = getClassConfig(DEMO_CLASS)
 
 function makeLaps(timesMs: number[], seedBase: number, exitBias = 0): LapData[] {
@@ -60,6 +61,8 @@ function makeDemo(
     classId: DEMO_CLASS,
     notes,
     isDemo: true,
+    driverId: DEMO_DRIVER_ID,
+    driverSource: 'manual',
     sourceKind: 'demo',
     setup: { tireCompound: DEMO_CLS.defaultTire, rearTeeth: 67 },
     setupConfirmed: true,

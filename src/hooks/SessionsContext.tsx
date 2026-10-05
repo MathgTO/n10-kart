@@ -3,7 +3,7 @@ import { buildDemoSessions, DEMO_IDS } from '@/data/demos'
 import { getTrack } from '@/data/tracks'
 import { classIdFromLegacy, getClassConfig } from '@/lib/classConfig'
 import { parseSessionFile, type ParseResult } from '@/lib/csv'
-import { bindLogger as bindLoggerList, GABRIEL_ID, loadDrivers, saveDrivers, unbindLogger as unbindLoggerList } from '@/lib/drivers'
+import { bindLogger as bindLoggerList, DEMO_DRIVER_ID, loadDrivers, saveDrivers, unbindLogger as unbindLoggerList } from '@/lib/drivers'
 import { analyzeSession, createSessionFromParse, rescoreSession, type Analysis } from '@/lib/pipeline'
 import { findSample, sampleSetup } from '@/lib/samples'
 import { sessionStartUtc } from '@/lib/sessionLabel'
@@ -84,11 +84,7 @@ function migrate(s: StoredSession): StoredSession {
     if (!out.setup) out.setup = sampleSetup(out.sourceFileName)
     if (out.setupConfirmed == null) out.setupConfirmed = true
     if (out.trackId === 'mosport' && !out.layoutId) out.layoutId = 'gp'
-    if (!out.logger) out.logger = { serial: 35023763, model: 'MyChron 6' }
-  }
-  if (!out.isDemo && !out.driverId) {
-    out.driverId = GABRIEL_ID
-    out.driverSource = out.driverSource ?? 'migrated'
+    // Do not invent logger serial or force-assign Gabriel — unbound stays unbound until prompt/assignment.
   }
   if (out.isDemo) {
     // Demos always teach Junior Light (blue .520 / 6150 / VEGA BLUE) — never yellow Junior.
@@ -97,6 +93,11 @@ function migrate(s: StoredSession): StoredSession {
     out.layoutId = out.layoutId ?? 'gp'
     out.setup = { tireCompound: getClassConfig('junior_light').defaultTire, rearTeeth: 67, ...out.setup }
     out.setupConfirmed = true
+    // Anonymous Demo driver so vs-last works without claiming Gabriel.
+    if (!out.driverId) {
+      out.driverId = DEMO_DRIVER_ID
+      out.driverSource = out.driverSource ?? 'manual'
+    }
   }
   if (!out.setup && out.gearing) out.setup = { rearTeeth: out.gearing.rearTeeth, frontTeeth: out.gearing.frontTeeth }
   if (out.setupConfirmed == null) out.setupConfirmed = true

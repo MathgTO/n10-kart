@@ -1,14 +1,19 @@
 /**
  * Driver profiles + logger binding. Stored locally (same localStorage as sessions).
  * A bound logger serial auto-assigns its driver with no prompt; an unknown serial asks once;
- * a missing serial (CSV) falls back to the last-used driver at that track.
+ * a missing serial (CSV) falls back to the last-used driver at that track (if that driver still exists).
  * Shared loggers are not a use case: one serial → one driver.
+ * Binding is permanent until the user edits Drivers or uses Wrong driver rebind — import never overwrites.
  */
 import type { DriverProfile, StoredSession } from './types'
 
 const DRIVERS_KEY = 'n10-kart-drivers-v1'
+/** Opt-in demo seed: localStorage n10-dev-seed-gabriel=1 or ?devSeed=gabriel */
+export const DEV_SEED_GABRIEL_KEY = 'n10-dev-seed-gabriel'
 
 export const GABRIEL_ID = 'drv-gabriel'
+/** Anonymous id for demo sessions so vs-last works without claiming Gabriel. */
+export const DEMO_DRIVER_ID = 'drv-demo'
 
 export function seedDrivers(): DriverProfile[] {
   return [
@@ -38,17 +43,38 @@ export function seedDrivers(): DriverProfile[] {
   ]
 }
 
+function wantsDevSeedGabriel(): boolean {
+  try {
+    if (localStorage.getItem(DEV_SEED_GABRIEL_KEY) === '1') return true
+    if (typeof location !== 'undefined') {
+      const q = new URLSearchParams(location.search)
+      if (q.get('devSeed') === 'gabriel') {
+        // Persist flag so subsequent loads (and SW navigations without the query) keep the seed.
+        localStorage.setItem(DEV_SEED_GABRIEL_KEY, '1')
+        return true
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return false
+}
+
 export function loadDrivers(): DriverProfile[] {
   try {
     const raw = localStorage.getItem(DRIVERS_KEY)
-    if (raw) {
+    if (raw != null) {
       const list = JSON.parse(raw) as DriverProfile[]
+      // Preserve any non-empty list already on this device (e.g. Mathieu's Gabriel+serial binding).
       if (Array.isArray(list) && list.length) return list
+      // Empty []: fall through — flag may seed for demos; otherwise stay empty.
     }
   } catch {
-    /* fall through to seed */
+    /* fall through */
   }
-  return seedDrivers()
+  // First open / empty: default []. Gabriel Mosport seed only behind explicit Mathieu/dev flag.
+  if (wantsDevSeedGabriel()) return seedDrivers()
+  return []
 }
 
 export function saveDrivers(list: DriverProfile[]): boolean {
@@ -70,7 +96,7 @@ export function driverForSerial(list: DriverProfile[], serial?: number): DriverP
   return list.find((d) => d.boundLoggers.some((l) => l.serial === serial))
 }
 
-/** Last driver used at this track (CSV / no serial fallback). */
+/** Last driver used at this track (CSV / no serial fallback). Caller must verify id still exists in drivers. */
 export function lastDriverAtTrack(sessions: StoredSession[], trackId: string): string | undefined {
   const s = [...sessions]
     .filter((x) => x.trackId === trackId && x.driverId && !x.isDemo)
