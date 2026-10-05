@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import {
   MOSPORT_LAYOUTS,
   getLayout,
@@ -60,12 +60,17 @@ export function TrackMap({
   focusCornerName,
   selectedSectorIndex,
   onSelectSector,
+  layoutId: layoutIdProp,
+  onLayoutChange,
 }: {
   focusCornerName?: string
   selectedSectorIndex: number | null
   onSelectSector: (index: number) => void
+  /** Persisted on the session (setup chip / this selector). */
+  layoutId?: string
+  onLayoutChange?: (id: string) => void
 }) {
-  const [layoutId, setLayoutId] = useState('gp')
+  const layoutId = MOSPORT_LAYOUTS.some((l) => l.id === layoutIdProp) ? (layoutIdProp as string) : 'gp'
   const layout = useMemo(() => getLayout(layoutId), [layoutId])
   const focusId = useMemo(() => matchFocusCorner(layout, focusCornerName), [layout, focusCornerName])
   const box = useMemo(() => bounds(layout), [layout])
@@ -93,14 +98,14 @@ export function TrackMap({
             Tap a <span className="text-white font-semibold">sector (S1–S4)</span> or a turn — same
             language as Sector loss below
           </p>
-          <p className="mt-1 text-xs text-n10-mute max-w-xl">{SECTOR_VS_TURN_HELP}</p>
+          <p className="mt-1 text-sm text-n10-mute max-w-xl">{SECTOR_VS_TURN_HELP}</p>
         </div>
         <label className="text-sm text-n10-soft">
           Layout
           <select
             className="ml-2 rounded-lg border border-n10-border bg-n10-card px-3 py-2 text-white font-semibold"
             value={layoutId}
-            onChange={(e) => setLayoutId(e.target.value)}
+            onChange={(e) => onLayoutChange?.(e.target.value)}
           >
             {MOSPORT_LAYOUTS.map((l) => (
               <option key={l.id} value={l.id}>
@@ -110,7 +115,7 @@ export function TrackMap({
           </select>
         </label>
       </div>
-      <p className="mt-2 text-xs text-n10-mute">{layout.blurb}</p>
+      <p className="mt-2 text-sm text-n10-mute">{layout.blurb}</p>
 
       <div className="mt-4 overflow-hidden rounded-xl border border-n10-border bg-black/50">
         <svg

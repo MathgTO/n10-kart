@@ -1,260 +1,278 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { buildDemoSessions, DEMO_IDS } from '@/data/demos'
 import { getTrack } from '@/data/tracks'
-import { buildCoachingReport, pickBestFlyingLap, pickCompareLap, refreshStoredSession, resolveCompareLap } from '@/lib/scoring'
-import {
-  loadFavorites,
-  loadPrefs,
-  loadSessions,
-  saveFavorites,
-  savePrefs,
-  saveSessions,
-  DEFAULT_CLASS_LABEL,
-  type Prefs,
-} from '@/lib/storage'
-import type { LapData, SeriesTag, StoredSession } from '@/lib/types'
+import { classIdFromLegacy, getClassConfig } from '@/lib/classConfig'
 import { parseSessionFile, type ParseResult } from '@/lib/csv'
-import { sampleGearing, sampleIdentity } from '@/lib/samples'
-import { isValidTeeth, type Gearing } from '@/lib/gearRatio'
+import { bindLogger as bindLoggerList, GABRIEL_ID, loadDrivers, saveDrivers, unbindLogger as unbindLoggerList } from '@/lib/drivers'
+import { analyzeSession, createSessionFromParse, rescoreSession, type Analysis } from '@/lib/pipeline'
+import { findSample, sampleSetup } from '@/lib/samples'
+import { sessionStartUtc } from '@/lib/sessionLabel'
+import { loadFavorites, loadPrefs, loadSessions, saveFavorites, savePrefs, saveSessions, type Prefs } from '@/lib/storage'
+import type { DriverProfile, SeriesTag, SessionSetup, StoredSession, WeatherSnapshot } from '@/lib/types'
 
-/**
- * Bundled real samples always know their sprockets (Sep 25 = 67T, Oct 4 = 69T) and their real date.
- * Copies imported under an old name (e.g. 'Mosport · Oct 3 2026 · 15:02.xrk', logger clock one day
- * behind) are migrated to the current title/file name/date so the list shows Oct 4 and re-import dedupes.
- */
-function withSampleFixups(s: StoredSession): StoredSession {
-  const id = sampleIdentity(s.sourceFileName)
-  if (!id) return s
-  let out = s
-  if ((id.title && s.title !== id.title) || (id.sourceFileName && s.sourceFileName !== id.sourceFileName) || s.recordedAt !== id.recordedAt) {
-    out = { ...out, ...id }
-  }
-  if (!out.gearing?.rearTeeth) {
-    const g = sampleGearing(out.sourceFileName)
-    if (g) out = { ...out, gearing: { ...out.gearing, ...g } }
-  }
-  return out
-}
+/** Bump when scoring / labels / class logic change → stored sessions migrate + re-score once. */
+const REPORT_V = 'redesign-oct5-v1'
+
+/** Fields the setup step and the label editor can change (all re-score). */
+export type SessionMetaPatch = Partial<
+  Pick<
+    StoredSession,
+    | 'startUtc'
+    | 'timeZone'
+    | 'tzSource'
+    | 'dateSource'
+    | 'dayOffset'
+    | 'dateFixUndone'
+    | 'driverId'
+    | 'driverSource'
+    | 'trackId'
+    | 'layoutId'
+    | 'classId'
+    | 'series'
+    | 'conditions'
+    | 'weather'
+    | 'shareOptIn'
+    | 'detectConfidence'
+  >
+>
 
 interface SessionsCtx {
   sessions: StoredSession[]
+  drivers: DriverProfile[]
   prefs: Prefs
   favorites: string[]
-  setTrackId: (id: string) => void
   setSeries: (s: SeriesTag) => void
   toggleFavorite: (id: string) => void
   loadDemos: () => void
-  importFile: (file: File, opts?: { trackId?: string }) => Promise<{ session: StoredSession | null; parse: ParseResult }>
+  /** Parse → draft session (setup not confirmed yet). Caller navigates to /session/:id/setup. */
+  importFile: (file: File) => Promise<{ session: StoredSession | null; parse: ParseResult; needsDriverPrompt: boolean }>
   updateReferenceLap: (sessionId: string, lapIndex: number) => void
-  /** Edit this session's sprockets; also remembered as the default for new imports. */
-  updateGearing: (sessionId: string, gearing: Gearing) => void
+  /** Setup step save: setup + class + weather → re-score (the only way setup changes). */
+  saveSetup: (sessionId: string, setup: SessionSetup, opts?: { classId?: string; weather?: WeatherSnapshot | null; series?: SeriesTag }) => void
+  updateSessionMeta: (sessionId: string, patch: SessionMetaPatch) => void
+  /** Assign a driver to a session; optionally bind this logger serial to them for future imports. */
+  assignDriver: (sessionId: string, driverId: string, bind: boolean) => void
+  upsertDriver: (d: DriverProfile) => void
+  deleteDriver: (id: string) => void
+  unbindLogger: (serial: number) => void
   attachVideo: (sessionId: string, file: File) => void
   deleteSession: (id: string) => void
   getSession: (id: string) => StoredSession | undefined
-  /** True when the last save hit the browser storage quota (library too big). */
+  analyze: (s: StoredSession) => Analysis
   storageFull: boolean
 }
 
 const Ctx = createContext<SessionsCtx | null>(null)
 
+const byStart = (a: StoredSession, b: StoredSession) =>
+  (sessionStartUtc(a) ?? a.createdAt).localeCompare(sessionStartUtc(b) ?? b.createdAt)
+
+/** Legacy → current shape: class id, driver, GPS start for bundled samples, setup from gearing. */
+function migrate(s: StoredSession): StoredSession {
+  let out: StoredSession = { ...s }
+  if (!out.classId) out.classId = classIdFromLegacy(out.classAssumption)
+  out.classAssumption = getClassConfig(out.classId).label
+  const sample = findSample(out.sourceFileName)
+  if (sample) {
+    out.sourceFileName = sample.displayName
+    if (!out.startUtc) {
+      out.startUtc = sample.gpsStartUtc
+      out.dateSource = 'gps'
+      out.timeZone = getTrack(out.trackId).tz
+      out.tzSource = 'track'
+    }
+    if (!out.setup) out.setup = sampleSetup(out.sourceFileName)
+    if (out.setupConfirmed == null) out.setupConfirmed = true
+    if (out.trackId === 'mosport' && !out.layoutId) out.layoutId = 'gp'
+    if (!out.logger) out.logger = { serial: 35023763, model: 'MyChron 6' }
+  }
+  if (!out.isDemo && !out.driverId) {
+    out.driverId = GABRIEL_ID
+    out.driverSource = out.driverSource ?? 'migrated'
+  }
+  if (out.isDemo) {
+    out.classId = out.classId ?? 'junior_light'
+    out.layoutId = out.layoutId ?? 'gp'
+    out.setupConfirmed = true
+  }
+  if (!out.setup && out.gearing) out.setup = { rearTeeth: out.gearing.rearTeeth, frontTeeth: out.gearing.frontTeeth }
+  if (out.setupConfirmed == null) out.setupConfirmed = true
+  if (!out.startUtc) {
+    const st = sessionStartUtc(out)
+    if (st && !out.isDemo) {
+      out.startUtc = st
+      out.dateSource = out.dateSource ?? 'logger'
+    }
+  }
+  // Old title overrides (file names / 'Mosport · Oct 3 …') are never displayed again.
+  out.title = ''
+  delete (out as Partial<StoredSession>).recordedAt
+  return out
+}
+
+function rescoreAll(list: StoredSession[], drivers: DriverProfile[]): StoredSession[] {
+  const chrono = [...list].sort(byStart)
+  const done: StoredSession[] = []
+  for (const s of chrono) done.push(rescoreSession(s, done, drivers))
+  return done.sort((a, b) => byStart(b, a))
+}
+
 export function SessionsProvider({ children }: { children: React.ReactNode }) {
   const [sessions, setSessions] = useState<StoredSession[]>([])
+  const [drivers, setDrivers] = useState<DriverProfile[]>(loadDrivers())
   const [prefs, setPrefs] = useState<Prefs>(loadPrefs())
   const [favorites, setFavorites] = useState<string[]>(loadFavorites())
   const [ready, setReady] = useState(false)
   const [storageFull, setStorageFull] = useState(false)
+  const sessionsRef = useRef<StoredSession[]>([])
+  sessionsRef.current = sessions
+  const driversRef = useRef<DriverProfile[]>(drivers)
+  driversRef.current = drivers
 
   useEffect(() => {
-    const existing = loadSessions().map(withSampleFixups)
-    const LANG_V = 'turn-sector-v1'
-    // valid-laps-v1: compare lap = fastest full lap (out/in/partial laps excluded), real-distance
-    // sectors, video never changes the report. Recompute stored sessions once.
-    const REPORT_V = 'valid-laps-v1'
-    const needsLang = prefs.langVersion !== LANG_V
-    const needsReport = prefs.reportVersion !== REPORT_V
-    // First visit / empty library: stay empty until the user explicitly loads demos.
-    if (existing.length === 0) {
-      setSessions([])
-      setPrefs((p) => ({
-        ...p,
-        demosLoaded: false,
-        langVersion: LANG_V,
-        reportVersion: REPORT_V,
-      }))
-    } else if (needsLang || needsReport) {
-      // Recompute reports for stored sessions when scoring or coach vocabulary changes.
-      // Keep any demos already stored, but do not inject them automatically.
-      // Sort oldest→newest so previousSession chain is stable, then restore newest-first.
-      const chrono = [...existing].sort((a, b) => a.createdAt.localeCompare(b.createdAt))
-      const refreshed: StoredSession[] = []
-      for (const s of chrono) {
-        const prev = refreshed.length ? refreshed[refreshed.length - 1] : null
-        const names = getTrack(s.trackId).corners.map((c) => c.name)
-        refreshed.push(refreshStoredSession(s, prev, names))
-      }
-      refreshed.reverse()
-      setSessions(refreshed)
-      setPrefs((p) => ({
-        ...p,
-        demosLoaded: existing.some((s) =>
-          DEMO_IDS.includes(s.id as (typeof DEMO_IDS)[number])
-        ),
-        langVersion: LANG_V,
-        reportVersion: REPORT_V,
-      }))
+    const existing = loadSessions()
+    if (existing.length && prefs.reportVersion !== REPORT_V) {
+      setSessions(rescoreAll(existing.map(migrate), drivers))
     } else {
-      setSessions(existing)
+      setSessions(existing.sort((a, b) => byStart(b, a)))
     }
+    setPrefs((p) => ({
+      ...p,
+      reportVersion: REPORT_V,
+      demosLoaded: existing.some((s) => DEMO_IDS.includes(s.id as (typeof DEMO_IDS)[number])),
+    }))
     setReady(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot hydrate
   }, [])
 
   useEffect(() => {
     if (!ready) return
-    // saveSessions never throws: it returns false when storage is full (quota exceeded)
     setStorageFull(!saveSessions(sessions))
   }, [sessions, ready])
-
   useEffect(() => {
     savePrefs(prefs)
   }, [prefs])
-
   useEffect(() => {
     saveFavorites(favorites)
   }, [favorites])
+  useEffect(() => {
+    saveDrivers(drivers)
+  }, [drivers])
 
-  const setTrackId = useCallback((id: string) => {
-    setPrefs((p) => ({ ...p, trackId: id }))
-  }, [])
-
-  const setSeries = useCallback((s: SeriesTag) => {
-    setPrefs((p) => ({ ...p, series: s }))
-  }, [])
-
-  const toggleFavorite = useCallback((id: string) => {
-    setFavorites((f) => (f.includes(id) ? f.filter((x) => x !== id) : [...f, id]))
-  }, [])
+  const setSeries = useCallback((s: SeriesTag) => setPrefs((p) => ({ ...p, series: s })), [])
+  const toggleFavorite = useCallback(
+    (id: string) => setFavorites((f) => (f.includes(id) ? f.filter((x) => x !== id) : [...f, id])),
+    []
+  )
 
   const loadDemos = useCallback(() => {
-    const demos = buildDemoSessions()
+    const demos = buildDemoSessions().map(migrate)
     setSessions((prev) => {
       const without = prev.filter((s) => !DEMO_IDS.includes(s.id as (typeof DEMO_IDS)[number]))
-      return [...demos, ...without]
+      return [...rescoreAll(demos, driversRef.current), ...without].sort((a, b) => byStart(b, a))
     })
     setPrefs((p) => ({ ...p, demosLoaded: true }))
   }, [])
 
-  const previousFor = useCallback(
-    (list: StoredSession[], excludeId?: string) => {
-      const sorted = [...list]
-        .filter((s) => s.id !== excludeId)
-        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-      return sorted[0] ?? null
-    },
-    []
-  )
-
-  const importFile = useCallback(
-    async (file: File, opts?: { trackId?: string }) => {
-      const lower = file.name.toLowerCase()
-      let payload: string | ArrayBuffer
-      if (lower.endsWith('.csv') || lower.endsWith('.txt')) {
-        payload = await file.text()
-      } else {
-        payload = await file.arrayBuffer()
-      }
-      const parse = await parseSessionFile(file, payload)
-      if (!parse.ok || !parse.laps.length) {
-        return { session: null, parse }
-      }
-      const track = getTrack(opts?.trackId ?? prefs.trackId)
-      const bestLapIndex = pickBestFlyingLap(parse.laps)
-      // Fastest full lap other than best; out-laps, in-laps and partial laps never compare.
-      const compareLapIndex = pickCompareLap(parse.laps, bestLapIndex)
-      const id = `import-${Date.now()}`
-      const series = prefs.series
-      const prev = previousFor(sessions)
-      const { report, corners } = buildCoachingReport({
-        sessionId: id,
-        track: track.name,
-        classAssumption: DEFAULT_CLASS_LABEL,
-        series,
-        conditions: 'dry',
-        laps: parse.laps,
-        referenceLapIndex: compareLapIndex,
-        cornerNames: track.corners.map((c) => c.name),
-        channels: parse.channels,
-        previousSession: prev,
-      })
-      // Gearing: bundled sample → its real sprockets; otherwise the last gearing the owner entered.
-      const gearing: Gearing | undefined = sampleGearing(file.name) ?? (prefs.lastGearing ? { ...prefs.lastGearing } : undefined)
-      // Bundled sample (current or old name) → current title/file name + clock-corrected real date.
-      const sampleId = sampleIdentity(file.name)
-      const session: StoredSession = {
-        id,
-        gearing,
-        createdAt: new Date().toISOString(),
-        recordedAt: sampleId?.recordedAt,
-        title: sampleId?.title ?? file.name.replace(/\.(csv|xrz|xrk)$/i, ''),
-        series,
-        conditions: 'dry',
-        trackId: track.id,
-        trackName: track.name,
-        classAssumption: DEFAULT_CLASS_LABEL,
-        sourceFileName: sampleId?.sourceFileName ?? file.name,
-        sourceKind: parse.kind === 'unknown' ? 'csv' : parse.kind,
-        laps: parse.laps,
-        referenceLapIndex: compareLapIndex,
-        bestLapIndex,
-        corners,
-        report,
-        activePriorityDimensionId: report.priority_dimension_id,
-        activePriorityDrillId: report.primary_drill.id,
-      }
-      setSessions((prevList) => [session, ...prevList])
-      return { session, parse }
-    },
-    [prefs.trackId, prefs.series, prefs.lastGearing, sessions, previousFor]
-  )
-
-  const updateReferenceLap = useCallback((sessionId: string, lapIndex: number) => {
-    setSessions((list) =>
-      list.map((s) => {
-        if (s.id !== sessionId) return s
-        // Only full laps other than best can be compared (chips for out/in/partial laps are disabled)
-        const compareIdx = resolveCompareLap(s.laps, lapIndex, s.bestLapIndex)
-        const prev = previousFor(list, sessionId)
-        const { report, corners } = buildCoachingReport({
-          sessionId: s.id,
-          track: s.trackName,
-          classAssumption: s.classAssumption,
-          series: s.series,
-          conditions: s.conditions,
-          laps: s.laps,
-          referenceLapIndex: compareIdx,
-          cornerNames: getTrack(s.trackId).corners.map((c) => c.name),
-          previousSession: prev,
-        })
-        return {
-          ...s,
-          referenceLapIndex: compareIdx,
-          corners,
-          report,
-          activePriorityDimensionId: report.priority_dimension_id,
-          activePriorityDrillId: report.primary_drill.id,
-        }
-      })
+  /** Replace one session (re-scored) and re-score this driver's later sessions at the same track (their "vs last" moves). */
+  const commit = useCallback((next: StoredSession, list: StoredSession[]): StoredSession[] => {
+    const ds = driversRef.current
+    const others = list.filter((x) => x.id !== next.id)
+    const scored = rescoreSession(next, others, ds)
+    let out = [scored, ...others]
+    const later = out.filter(
+      (x) => x.id !== scored.id && x.driverId === scored.driverId && x.trackId === scored.trackId && byStart(x, scored) > 0
     )
-  }, [previousFor])
-
-  const updateGearing = useCallback((sessionId: string, gearing: Gearing) => {
-    const clean: Gearing = {
-      rearTeeth: isValidTeeth(gearing.rearTeeth, 'rear') ? gearing.rearTeeth : undefined,
-      frontTeeth: isValidTeeth(gearing.frontTeeth, 'front') ? gearing.frontTeeth : undefined,
+    for (const l of later.sort(byStart)) {
+      const r = rescoreSession(l, out.filter((x) => x.id !== l.id), ds)
+      out = out.map((x) => (x.id === l.id ? r : x))
     }
-    setSessions((list) => list.map((s) => (s.id === sessionId ? { ...s, gearing: clean } : s)))
-    setPrefs((p) => ({ ...p, lastGearing: clean }))
+    return out.sort((a, b) => byStart(b, a))
   }, [])
+
+  const importFile = useCallback(async (file: File) => {
+    const lower = file.name.toLowerCase()
+    const payload = lower.endsWith('.csv') || lower.endsWith('.txt') ? await file.text() : await file.arrayBuffer()
+    const parse = await parseSessionFile(file, payload)
+    if (!parse.ok || !parse.laps.length) return { session: null, parse, needsDriverPrompt: false }
+    const { session, needsDriverPrompt } = await createSessionFromParse(parse, file.name, {
+      sessions: sessionsRef.current,
+      drivers: driversRef.current,
+      series: prefs.series,
+      fallbackTrackId: prefs.trackId || 'mosport',
+    })
+    setSessions((list) => [session, ...list].sort((a, b) => byStart(b, a)))
+    setPrefs((p) => ({ ...p, trackId: session.trackId }))
+    return { session, parse, needsDriverPrompt }
+  }, [prefs.series, prefs.trackId])
+
+  const updateReferenceLap = useCallback(
+    (sessionId: string, lapIndex: number) => {
+      setSessions((list) => {
+        const s = list.find((x) => x.id === sessionId)
+        return s ? commit({ ...s, referenceLapIndex: lapIndex }, list) : list
+      })
+    },
+    [commit]
+  )
+
+  const saveSetup = useCallback<SessionsCtx['saveSetup']>(
+    (sessionId, setup, opts) => {
+      setSessions((list) => {
+        const s = list.find((x) => x.id === sessionId)
+        if (!s) return list
+        const next: StoredSession = {
+          ...s,
+          setup,
+          setupConfirmed: true,
+          gearing: { rearTeeth: setup.rearTeeth, frontTeeth: setup.frontTeeth },
+          classId: opts?.classId ?? s.classId,
+          series: opts?.series ?? s.series,
+          weather: opts?.weather === null ? undefined : opts?.weather ?? s.weather,
+          conditions: (opts?.weather ?? s.weather)?.wet ? 'wet' : s.conditions === 'wet' && opts?.weather === null ? 'dry' : s.conditions,
+        }
+        return commit(next, list)
+      })
+    },
+    [commit]
+  )
+
+  const updateSessionMeta = useCallback(
+    (sessionId: string, patch: SessionMetaPatch) => {
+      setSessions((list) => {
+        const s = list.find((x) => x.id === sessionId)
+        if (!s) return list
+        const next = { ...s, ...patch }
+        if (patch.trackId) next.trackName = getTrack(patch.trackId).name
+        return commit(next, list)
+      })
+    },
+    [commit]
+  )
+
+  const assignDriver = useCallback(
+    (sessionId: string, driverId: string, bind: boolean) => {
+      const s = sessionsRef.current.find((x) => x.id === sessionId)
+      const serial = s?.logger?.serial
+      if (bind && serial != null) setDrivers((ds) => bindLoggerList(ds, driverId, serial, s?.logger?.model))
+      const d = driversRef.current.find((x) => x.id === driverId)
+      updateSessionMeta(sessionId, {
+        driverId,
+        driverSource: bind && serial != null ? 'logger' : 'manual',
+        classId: s?.setupConfirmed ? s.classId : d?.classDefault ?? s?.classId,
+      })
+    },
+    [updateSessionMeta]
+  )
+
+  const upsertDriver = useCallback((d: DriverProfile) => {
+    setDrivers((ds) => (ds.some((x) => x.id === d.id) ? ds.map((x) => (x.id === d.id ? d : x)) : [...ds, d]))
+  }, [])
+  const deleteDriver = useCallback((id: string) => {
+    setDrivers((ds) => ds.filter((x) => x.id !== id))
+    setSessions((list) => list.map((s) => (s.driverId === id ? { ...s, driverId: undefined, driverSource: undefined } : s)))
+  }, [])
+  const unbindLogger = useCallback((serial: number) => setDrivers((ds) => unbindLoggerList(ds, serial)), [])
 
   /** The clip is only played back next to the data: it is not analyzed and does not change the report. */
   const attachVideo = useCallback((sessionId: string, file: File) => {
@@ -268,48 +286,34 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
     )
   }, [])
 
-  const deleteSession = useCallback((id: string) => {
-    setSessions((list) => list.filter((s) => s.id !== id))
-  }, [])
-
-  const getSession = useCallback(
-    (id: string) => sessions.find((s) => s.id === id),
-    [sessions]
-  )
+  const deleteSession = useCallback((id: string) => setSessions((list) => list.filter((s) => s.id !== id)), [])
+  const getSession = useCallback((id: string) => sessions.find((s) => s.id === id), [sessions])
+  const analyze = useCallback((s: StoredSession) => analyzeSession(s, sessions, drivers), [sessions, drivers])
 
   const value = useMemo(
     () => ({
       sessions,
+      drivers,
       prefs,
       favorites,
-      setTrackId,
       setSeries,
       toggleFavorite,
       loadDemos,
       importFile,
       updateReferenceLap,
-      updateGearing,
+      saveSetup,
+      updateSessionMeta,
+      assignDriver,
+      upsertDriver,
+      deleteDriver,
+      unbindLogger,
       attachVideo,
       deleteSession,
       getSession,
+      analyze,
       storageFull,
     }),
-    [
-      sessions,
-      prefs,
-      favorites,
-      setTrackId,
-      setSeries,
-      toggleFavorite,
-      loadDemos,
-      importFile,
-      updateReferenceLap,
-      updateGearing,
-      attachVideo,
-      deleteSession,
-      getSession,
-      storageFull,
-    ]
+    [sessions, drivers, prefs, favorites, setSeries, toggleFavorite, loadDemos, importFile, updateReferenceLap, saveSetup, updateSessionMeta, assignDriver, upsertDriver, deleteDriver, unbindLogger, attachVideo, deleteSession, getSession, analyze, storageFull]
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>

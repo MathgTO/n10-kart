@@ -54,7 +54,7 @@ export function ImportModal({ open, onClose }: Props) {
         return
       }
       onClose()
-      nav(`/session/${result.session.id}`)
+      nav(`/session/${result.session.id}/setup`, { state: { fresh: true } })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Import failed')
     } finally {
@@ -75,15 +75,15 @@ export function ImportModal({ open, onClose }: Props) {
               Lap / Time / Speed / RPM / Distance (sector columns recognized when present).
             </p>
           </div>
-          <button type="button" className="text-n10-mute text-2xl leading-none" onClick={onClose}>
+          <button type="button" className="min-h-[48px] min-w-[48px] text-n10-mute text-2xl leading-none" onClick={onClose} aria-label="Close">
             ×
           </button>
         </div>
 
         <div className="mt-4">
-          <label className="label-lg">Series</label>
+          <label className="label-lg">Session type</label>
           <select
-            className="mt-1 w-full rounded-lg border border-n10-border bg-black px-3 py-2 text-base"
+            className="mt-1 min-h-[48px] w-full rounded-lg border border-n10-border bg-black px-3 py-2 text-base"
             value={prefs.series}
             onChange={(e) => setSeries(e.target.value as SeriesTag)}
           >
@@ -132,8 +132,7 @@ export function ImportModal({ open, onClose }: Props) {
             {busy ? 'Importing…' : 'Choose or drop file'}
           </span>
           <span className="mt-2 block text-sm text-n10-soft">
-            .xrk / .xrz / .csv · metadata rows above the table are fine · lap-only CSV still works
-            (synthetic charts) · on iPad use Browse → Files
+            .xrk / .xrz / .csv · track, date and driver are read from the file · on iPad use Browse → Files
           </span>
         </button>
 
