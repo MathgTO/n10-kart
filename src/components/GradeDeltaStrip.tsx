@@ -8,7 +8,7 @@ const LETTER_RANK: Record<string, number> = {
 
 type Bucket = { id: string; label: string; ids: string[] }
 
-/** Glanceable buckets for the between-rounds strip (mockup: Setup / Drive / Pace / Cons. / Race). */
+/** Glanceable buckets for the between-rounds strip (Setup / Drive / Pace / Cons. / Race). */
 const BUCKETS: Bucket[] = [
   { id: 'setup', label: 'Setup', ids: ['D19'] },
   { id: 'drive', label: 'Drive', ids: ['D2', 'D3', 'D4'] },
@@ -31,12 +31,6 @@ function letterDelta(prev: Letter | null, now: Letter | null): number | null {
   return (LETTER_RANK[now] ?? 0) - (LETTER_RANK[prev] ?? 0)
 }
 
-function deltaGlyph(d: number): string {
-  if (d > 0) return `▲ +${d}`
-  if (d < 0) return `▼ ${d}`
-  return '● 0'
-}
-
 export function GradeDeltaStrip({
   current,
   previous,
@@ -56,9 +50,7 @@ export function GradeDeltaStrip({
   if (!previous) {
     return (
       <section className="rounded-2xl border border-n10-border bg-n10-panel px-4 py-3">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-base font-bold text-white">vs last session</h2>
-        </div>
+        <h2 className="text-base font-bold text-white">vs last session</h2>
         <p className="mt-2 text-sm text-n10-soft">First session — no prior baseline.</p>
       </section>
     )
@@ -79,20 +71,39 @@ export function GradeDeltaStrip({
         <h2 className="text-base font-bold text-white">vs last session</h2>
         <p className="text-xs font-bold uppercase tracking-wide text-n10-mute">prev → now</p>
       </div>
-      <div className="mt-3 flex gap-2.5 overflow-x-auto pb-1" style={{ gap: 10 }}>
+      <div className="mt-3 flex overflow-x-auto pb-1" style={{ gap: 10 }}>
         {pills.map((p) => {
-          const tone =
-            p.d == null ? 'border-n10-border bg-n10-card' : p.d > 0 ? 'border-emerald-400/35 bg-emerald-400/10' : p.d < 0 ? 'border-rose-400/35 bg-rose-400/10' : 'border-n10-border bg-n10-card'
-          const deltaColor =
-            p.d == null ? 'text-n10-mute' : p.d > 0 ? 'text-emerald-400' : p.d < 0 ? 'text-rose-400' : 'text-n10-soft'
+          const up = p.d != null && p.d > 0
+          const down = p.d != null && p.d < 0
+          const tone = up
+            ? 'border-emerald-400/35 bg-emerald-400/10'
+            : down
+              ? 'border-rose-400/35 bg-rose-400/10'
+              : 'border-n10-border bg-n10-card'
+          const arrow = up ? '▲' : down ? '▼' : p.d === 0 ? '●' : null
+          const arrowColor = up ? 'text-emerald-400' : down ? 'text-rose-400' : 'text-n10-mute'
           return (
-            <div key={p.id} className={`min-w-[5.5rem] flex-1 rounded-xl border px-2.5 py-1.5 ${tone}`} style={{ padding: '10px 6px' }}>
-              <p className="text-[11px] font-bold text-n10-mute truncate">{p.label}</p>
-              {p.d != null && <p className={`text-xs font-extrabold ${deltaColor}`}>{deltaGlyph(p.d)}</p>}
-              <div className="mt-1 flex items-end justify-center gap-1">
-                {p.prev ? <GradeLetter letter={p.prev} size="sm" className="text-n10-soft" /> : <span className="text-sm text-n10-mute">—</span>}
-                <span className="pb-0.5 text-xs font-extrabold text-n10-mute">→</span>
-                {p.now ? <GradeLetter letter={p.now} size="lg" className="text-n10-lime" /> : <span className="text-lg text-n10-mute">—</span>}
+            <div
+              key={p.id}
+              className={`min-w-[6.25rem] flex-1 rounded-xl border ${tone}`}
+              style={{ padding: '12px 10px' }}
+            >
+              <div className="flex items-center justify-between gap-1">
+                <p className="text-xs font-bold text-n10-mute truncate">{p.label}</p>
+                {arrow && <span className={`text-[10px] font-extrabold leading-none ${arrowColor}`} aria-hidden>{arrow}</span>}
+              </div>
+              <div className="mt-2 flex items-end justify-center gap-1.5">
+                {p.prev ? (
+                  <GradeLetter letter={p.prev} size="lg" className="text-n10-soft" />
+                ) : (
+                  <span className="text-xl text-n10-mute">—</span>
+                )}
+                <span className="pb-1 text-sm font-extrabold text-n10-mute">→</span>
+                {p.now ? (
+                  <GradeLetter letter={p.now} size="xl" className="text-n10-lime" />
+                ) : (
+                  <span className="text-3xl text-n10-mute">—</span>
+                )}
               </div>
             </div>
           )
