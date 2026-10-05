@@ -9,7 +9,7 @@ const LETTER_RANK: Record<string, number> = {
 type Bucket = { id: string; label: string; ids: string[] }
 
 const BUCKETS: Bucket[] = [
-  { id: 'tires', label: 'Tire management', ids: ['D19'] }, // D19 tire management — not chassis/PSI setup
+  { id: 'tires', label: 'Tire management', ids: ['D19'] }, // D19 — strip label Tire management (not Setup/Tires)
   { id: 'drive', label: 'Drive', ids: ['D2', 'D3', 'D4'] },
   { id: 'pace', label: 'Pace', ids: ['D10'] },
   { id: 'cons', label: 'Cons.', ids: ['D18'] },
