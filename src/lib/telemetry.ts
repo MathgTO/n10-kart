@@ -18,7 +18,7 @@ export function synthLap(
     const base = 72 + 22 * Math.sin(u * Math.PI * 2) - 18 * Math.max(0, cornerWave)
     const brakeDip = earlyBrake > 0 && u > 0.22 && u < 0.32 ? earlyBrake * 8 : 0
     const speed = Math.max(28, base - brakeDip + (seed % 5) * 0.3)
-    // RPM tracks speed with LO206 band; exit corners recover toward 5800-6100
+    // RPM tracks speed (synthetic demo trace); exits recover toward the top of the rev range
     const inExit = cornerWave < -0.2
     const rpmBase = 4200 + speed * 22
     const rpm = Math.min(

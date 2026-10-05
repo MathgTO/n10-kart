@@ -29,8 +29,6 @@ export function getSetupTemplate(id: SetupHypothesisId) {
   return rubric.setup_hypothesis_templates.find((t) => t.id === id)
 }
 
-export const EXIT_RPM_BAND = { lo: 5800, hi: 6100 } as const
-
 /** Reader-facing titles for the rubric's source link-outs (the baked rubric only carries ids). */
 const LINK_TITLES: Record<string, string> = {
   lorandi_overtaking: 'Overtaking in karting (PURPL)',

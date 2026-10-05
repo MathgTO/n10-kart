@@ -1,7 +1,7 @@
 {
   "schema_version": "1.8",
   "product": "Briggs LO206 Racing Coach (MyChron + kart-cam)",
-  "default_class_assumption": "LO206 Junior @ Mosport / MIKA (path to BSC Ontario wins)",
+  "default_class_assumption": "LO206 Junior Light @ Mosport / MIKA (class is a per-session setting in N10)",
   "score_scale": {
     "min": 0,
     "max": 5,
@@ -634,7 +634,7 @@
         "RPM low off corner",
         "tires wearing / sliding exits"
       ],
-      "message": "Setup hypothesis (not driver blame): exits feel lazy — common LO206 response is +1 rear tooth to keep RPM in the ~5800–6100 band (Swift)."
+      "message": "Setup hypothesis (not driver blame): exits feel lazy — common LO206 response is +1 rear tooth to keep peak RPM in the class peak-speed band (Swift). Corner exits are judged separately in slow-corner windows."
     },
     {
       "id": "gear_minus_one",
@@ -674,9 +674,9 @@
       "never_mix_with": "driver_blame",
       "when": [
         "restricted slide class",
-        "gearing only to hit 6100"
+        "gearing only to hit the limiter"
       ],
-      "message": "Setup hypothesis: with restricted slides, gear for the power band peak (earlier than unrestricted), not just the 6100 limiter (Klaus #7)."
+      "message": "Setup hypothesis: with restricted slides, gear for the power band peak (earlier than unrestricted), not just the class limiter (Klaus #7)."
     },
     {
       "id": "tire_pressure_session",
@@ -713,7 +713,7 @@
         "limiter behavior",
         "series strategy"
       ],
-      "message": "Gear ratio flag (setup): LO206 Junior (yellow .570″ slide) — gear for the restricted power-band peak, not limiter ego (Klaus #7). Target living ~5800–6100 on power; +1 rear tooth if exits feel lazy / RPM soft; −1 if you’re on the limiter early or saving tires from the front (Swift)."
+      "message": "Gear ratio flag (setup): restricted-slide LO206 classes — gear for the power-band peak, not limiter ego (Klaus #7). Target the class peak-speed band on the main straight; +1 rear tooth if peak RPM sits low; −1 if you’re on the limiter early (Swift)."
     },
     {
       "id": "clutch_late_slip_flare",
@@ -901,8 +901,9 @@
     "rules_hub_fetch_note": "Mosport rules hub returned 404 from box on weekly refresh 2026-09-28 ET; re-check live site."
   },
   "confirmed_class": {
-    "name": "LO206 Junior",
-    "slide": "Yellow .570\" (Briggs Part #555741)",
+    "name": "LO206 Junior Light",
+    "slide": "Blue .520\" (Briggs Part #555734) · green module 555718 · 6150 RPM limit",
+    "class_note": "Owner-confirmed 2026-09-28 (Kart Tuning Expert). N10 reads the class from the per-session setup step (classConfig.ts); this block is reference only.",
     "carb_lock": "Required (Part #555726 typical)",
     "typical_national_min_weight_lb": 300,
     "weight_note": "Factory Ruleset leaves Junior weight to sanctioning body. TRAK 2026 parallel = 300 lb — NOT MIKA confirmation. Verify current MIKA Class Structure PDF.",
@@ -1055,7 +1056,7 @@
       },
       {
         "id": "exit_rpm_band",
-        "feature": "Exit RPM vs LO206 ~5800–6100 band (Junior: gear for restricted-slide peak, not limiter ego)",
+        "feature": "Corner-exit RPM vs the class floor + peak RPM vs the class peak-speed band (gearing)",
         "coach_win": "Surface exit RPM on focus corner every session; link D4 + gear templates"
       },
       {
@@ -1084,7 +1085,7 @@
         "delta"
       ],
       "home_default": "Mosport Karting Centre (Bowmanville)",
-      "demo_class": "Briggs Junior · Birel ART · LO206 Yellow",
+      "demo_class": "Briggs Junior Light · LO206 blue .520",
       "has_theoretical_best_sectors_lap": true,
       "has_kart_cam_scoring": false,
       "has_20_dim_rubric": false,
@@ -1119,7 +1120,7 @@
       "trackside_tuning pointer to trackside-tuning-from-xrk-v1.json + exec brief",
       "KB major section Trackside tuning from MyChron session data",
       "Setup hypotheses remain tagged setup; one-change rule reinforced for gear/clutch/tire/chassis",
-      "Junior yellow .570: gear for restricted band not limiter ego (Klaus #7)",
+      "Restricted slide: gear for the power band, not limiter ego (Klaus #7)",
       "Open gaps flagged: MIKA weight PDF, Mosport Junior tire PSI/brand",
       "Added setup templates: carb_float_check, chassis_front_wider, chassis_rear_narrower"
     ]
