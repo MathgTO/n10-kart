@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ImportModal, isDesktop } from '@/components/ImportModal'
-import { useSessions } from '@/hooks/SessionsContext'
+import { ImportModal } from '@/components/ImportModal'
 
 const STEPS_IN = [
   {
@@ -63,41 +61,8 @@ function FadeIn({ children, className = '' }: { children: ReactNode; className?:
   )
 }
 
-function UploadIcon({ className = 'h-6 w-6' }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 16V4m0 0 4 4m-4-4-4 4"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M4 16.5V18a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1.5"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
-  )
-}
-
-function isXrkOrXrz(file: File) {
-  const name = file.name.toLowerCase()
-  return name.endsWith('.xrk') || name.endsWith('.xrz')
-}
-
 export function LandingFirstVisit() {
-  const { importFile } = useSessions()
-  const nav = useNavigate()
   const [importOpen, setImportOpen] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const [dragging, setDragging] = useState(false)
-  const [picked, setPicked] = useState<File | null>(null)
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
 
   function openSession() {
     setImportOpen(true)
@@ -107,46 +72,6 @@ export function LandingFirstVisit() {
     e.preventDefault()
     document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
-
-  async function runImport(file: File) {
-    if (!isXrkOrXrz(file)) {
-      setError('Drop a MyChron .xrk or .xrz file')
-      setPicked(null)
-      return
-    }
-    setPicked(file)
-    setBusy(true)
-    setError(null)
-    try {
-      const result = await importFile(file)
-      if (!result.session) {
-        setError(result.parse.message || 'Import failed')
-        setBusy(false)
-        return
-      }
-      if (result.alreadyImported) {
-        nav(
-          result.session.setupConfirmed === false
-            ? `/session/${result.session.id}/setup`
-            : `/session/${result.session.id}`,
-        )
-        return
-      }
-      nav(`/session/${result.session.id}/setup`, { state: { fresh: true } })
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Import failed')
-      setBusy(false)
-    }
-  }
-
-  function clearPicked() {
-    setPicked(null)
-    setError(null)
-    setBusy(false)
-    if (fileInputRef.current) fileInputRef.current.value = ''
-  }
-
-  const acceptAttr = isDesktop() ? undefined : '.xrk,.xrz,application/octet-stream'
 
   return (
     <div className="relative pb-10">
@@ -170,80 +95,8 @@ export function LandingFirstVisit() {
             className="btn-primary min-h-[56px] w-full px-8 text-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-n10-lime/40 sm:w-auto sm:self-start"
             onClick={openSession}
           >
-            Open a session
+            Upload a Session
           </button>
-
-          {/* Upload drop zone — secondary to primary CTA */}
-          {picked ? (
-            <div className="flex min-h-[56px] w-full max-w-md items-center gap-3 rounded-xl border-2 border-dashed border-n10-border bg-n10-card/60 px-4 py-3">
-              <UploadIcon className="h-6 w-6 shrink-0 text-n10-mute" />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-white">{picked.name}</p>
-                <p className="text-xs text-n10-mute">
-                  {busy ? 'Importing…' : picked.name.toLowerCase().endsWith('.xrz') ? '.xrz' : '.xrk'}
-                </p>
-              </div>
-              <span className="shrink-0 rounded-full border border-n10-border px-2 py-0.5 text-xs font-semibold uppercase text-n10-soft">
-                {picked.name.toLowerCase().endsWith('.xrz') ? '.xrz' : '.xrk'}
-              </span>
-              <button
-                type="button"
-                className="flex min-h-[44px] min-w-[44px] items-center justify-center text-n10-mute hover:text-white"
-                aria-label="Remove file"
-                onClick={clearPicked}
-                disabled={busy}
-              >
-                ×
-              </button>
-            </div>
-          ) : (
-            <label
-              className={`flex min-h-[56px] w-full max-w-md cursor-pointer items-center gap-3 rounded-xl border-2 border-dashed px-4 py-3 transition ${
-                dragging
-                  ? 'border-n10-lime bg-n10-lime/5'
-                  : 'border-n10-border bg-n10-card/60 hover:border-n10-mute/60'
-              }`}
-              onDragEnter={(e) => {
-                e.preventDefault()
-                setDragging(true)
-              }}
-              onDragOver={(e) => {
-                e.preventDefault()
-                setDragging(true)
-              }}
-              onDragLeave={(e) => {
-                if (e.currentTarget === e.target) setDragging(false)
-              }}
-              onDrop={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                setDragging(false)
-                const f = e.dataTransfer.files?.[0]
-                if (f) void runImport(f)
-              }}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept={acceptAttr}
-                className="sr-only"
-                disabled={busy}
-                onChange={(e) => {
-                  const f = e.target.files?.[0]
-                  e.target.value = ''
-                  if (f) void runImport(f)
-                }}
-              />
-              <UploadIcon className="h-6 w-6 shrink-0 text-n10-mute" />
-              <span className="min-w-0 text-left">
-                <span className="block text-sm font-semibold text-white">Upload your session</span>
-                <span className="mt-0.5 block text-xs text-n10-mute">
-                  Drop a MyChron .xrk or .xrz file
-                </span>
-              </span>
-            </label>
-          )}
-          {error && <p className="text-sm text-red-400">{error}</p>}
 
           <a
             href="#how-it-works"
