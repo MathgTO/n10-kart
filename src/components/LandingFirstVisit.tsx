@@ -98,11 +98,6 @@ export function LandingFirstVisit() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const onOpen = () => setImportOpen(true)
-    window.addEventListener('n10-open-session', onOpen)
-    return () => window.removeEventListener('n10-open-session', onOpen)
-  }, [])
 
   function openSession() {
     setImportOpen(true)
@@ -155,7 +150,6 @@ export function LandingFirstVisit() {
 
   return (
     <div className="relative pb-10">
-      {/* Sticky CTA lives in Shell header on first visit (Open a session). */}
 
       {/* Hero */}
       <section className="flex flex-col gap-3 pt-2 sm:gap-4 sm:pt-4">

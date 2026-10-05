@@ -15,7 +15,7 @@ for (const ev of ['dragover', 'drop'] as const) window.addEventListener(ev, (e) 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     // Bust + update so a new deploy replaces the old cached shell
-    const swUrl = `${import.meta.env.BASE_URL}sw.js?v=39`
+    const swUrl = `${import.meta.env.BASE_URL}sw.js?v=40`
     navigator.serviceWorker
       .register(swUrl)
       .then((reg) => {
