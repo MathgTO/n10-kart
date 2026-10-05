@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { DriverSheet } from './DriverSheet'
 import { useSessions } from '@/hooks/SessionsContext'
-import { SAFETY_LINE, SUPPORT_EMAIL } from '@/lib/labels'
+import { SAFETY_LINE, SHELL_VERSION, SUPPORT_EMAIL } from '@/lib/labels'
 
 const BASE = import.meta.env.BASE_URL
 
@@ -47,6 +47,9 @@ export function Shell() {
               Support
             </a>{' '}
             · <a href={`mailto:${SUPPORT_EMAIL}`} className="underline underline-offset-2 hover:text-white">{SUPPORT_EMAIL}</a>
+          </p>
+          <p className="pt-1 text-xs text-n10-mute/80" data-shell-version={SHELL_VERSION}>
+            {SHELL_VERSION}
           </p>
         </div>
       </footer>
