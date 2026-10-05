@@ -14,14 +14,26 @@ import {
 } from '@/lib/storage'
 import type { LapData, SeriesTag, StoredSession } from '@/lib/types'
 import { parseSessionFile, type ParseResult } from '@/lib/csv'
-import { sampleGearing } from '@/lib/samples'
+import { sampleGearing, sampleIdentity } from '@/lib/samples'
 import { isValidTeeth, type Gearing } from '@/lib/gearRatio'
 
-/** Bundled real samples always know their sprockets (Sep 25 = 67T, Oct 3 = 69T). */
-function withSampleGearing(s: StoredSession): StoredSession {
-  if (s.gearing?.rearTeeth) return s
-  const g = sampleGearing(s.sourceFileName)
-  return g ? { ...s, gearing: { ...s.gearing, ...g } } : s
+/**
+ * Bundled real samples always know their sprockets (Sep 25 = 67T, Oct 4 = 69T) and their real date.
+ * Copies imported under an old name (e.g. 'Mosport · Oct 3 2026 · 15:02.xrk', logger clock one day
+ * behind) are migrated to the current title/file name/date so the list shows Oct 4 and re-import dedupes.
+ */
+function withSampleFixups(s: StoredSession): StoredSession {
+  const id = sampleIdentity(s.sourceFileName)
+  if (!id) return s
+  let out = s
+  if ((id.title && s.title !== id.title) || (id.sourceFileName && s.sourceFileName !== id.sourceFileName) || s.recordedAt !== id.recordedAt) {
+    out = { ...out, ...id }
+  }
+  if (!out.gearing?.rearTeeth) {
+    const g = sampleGearing(out.sourceFileName)
+    if (g) out = { ...out, gearing: { ...out.gearing, ...g } }
+  }
+  return out
 }
 
 interface SessionsCtx {
@@ -53,7 +65,7 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
   const [storageFull, setStorageFull] = useState(false)
 
   useEffect(() => {
-    const existing = loadSessions().map(withSampleGearing)
+    const existing = loadSessions().map(withSampleFixups)
     const LANG_V = 'turn-sector-v1'
     // valid-laps-v1: compare lap = fastest full lap (out/in/partial laps excluded), real-distance
     // sectors, video never changes the report. Recompute stored sessions once.
@@ -176,17 +188,20 @@ export function SessionsProvider({ children }: { children: React.ReactNode }) {
       })
       // Gearing: bundled sample → its real sprockets; otherwise the last gearing the owner entered.
       const gearing: Gearing | undefined = sampleGearing(file.name) ?? (prefs.lastGearing ? { ...prefs.lastGearing } : undefined)
+      // Bundled sample (current or old name) → current title/file name + clock-corrected real date.
+      const sampleId = sampleIdentity(file.name)
       const session: StoredSession = {
         id,
         gearing,
         createdAt: new Date().toISOString(),
-        title: file.name.replace(/\.(csv|xrz|xrk)$/i, ''),
+        recordedAt: sampleId?.recordedAt,
+        title: sampleId?.title ?? file.name.replace(/\.(csv|xrz|xrk)$/i, ''),
         series,
         conditions: 'dry',
         trackId: track.id,
         trackName: track.name,
         classAssumption: DEFAULT_CLASS_LABEL,
-        sourceFileName: file.name,
+        sourceFileName: sampleId?.sourceFileName ?? file.name,
         sourceKind: parse.kind === 'unknown' ? 'csv' : parse.kind,
         laps: parse.laps,
         referenceLapIndex: compareLapIndex,

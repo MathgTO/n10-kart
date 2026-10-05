@@ -111,6 +111,8 @@ export interface NextRunFocus {
 export interface StoredSession {
   id: string
   createdAt: string
+  /** When the session actually ran (local, 'YYYY-MM-DDTHH:mm:ss'); bundled samples carry a clock-corrected date. */
+  recordedAt?: string
   title: string
   series: SeriesTag
   conditions: Conditions

@@ -12,7 +12,7 @@ const KMH_TO_RPM_PER_M = 60 / (3.6 * Math.PI) // 5.3052
 
 /**
  * Calibration from the owner's real Mosport logs (median clutch-locked RPM per km/h, ≥60 km/h):
- *   Sep 25 2026 (67T): 66.3 RPM per km/h · Oct 3 2026 (69T): 68.3 RPM per km/h (+3.1%, 69/67 = +2.99%).
+ *   Sep 25 2026 (67T): 66.3 RPM per km/h · Oct 4 2026 (69T): 68.3 RPM per km/h (+3.1%, 69/67 = +2.99%).
  * Solving ratio × 5.305 / D = RPM per km/h:
  *   19T front → D ≈ 0.282 m (11.1 in, radius 0.141 m) — matches an 11×7.10-5 LO206 rear with a little growth.
  *   17T front → D ≈ 0.316 m (12.4 in) — ~13% over an 11 in rear tire: not physical.
@@ -23,7 +23,7 @@ export const GEAR_CALIBRATION = {
   rollingDiameterM: 0.282,
   samples: [
     { date: '2026-09-25', rearTeeth: 67, rpmPerKmh: 66.3 },
-    { date: '2026-10-03', rearTeeth: 69, rpmPerKmh: 68.3 },
+    { date: '2026-10-04', rearTeeth: 69, rpmPerKmh: 68.3 },
   ],
 } as const
 

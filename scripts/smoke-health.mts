@@ -15,7 +15,7 @@ import type { StoredSession } from '../src/lib/types'
 const BEST: Record<string, number> = {
   '2026-09-25_mosport_143726_best-108241.xrk': 68241,
   '2026-09-25_mosport_163712_best-108294.xrk': 68294,
-  '2026-10-03_mosport_150240_best-110909.xrk': 70909,
+  '2026-10-04_mosport_150240_best-110909.xrk': 70909,
 }
 let failed = 0
 const check = (ok: boolean, msg: string) => {
@@ -71,12 +71,12 @@ for (const f of files) {
       check(!/too tall/i.test(gearTxt) && h.oneChange?.source_card !== 'gear_ratio', 'exit in band → no "too tall" and no gear one-change')
     }
   }
-  if (name.startsWith('2026-10-03')) {
-    // Kart Tuning Expert Oct 3: 69T confirmed — keep it; next change is tires, not gear.
-    check(h.gearAdvice?.rearTeeth === 69, 'Oct 3 uses 69T')
-    check(h.gearAdvice?.action === 'hold', `Oct 3 gear verdict is hold (${h.gearAdvice?.headline})`)
-    check(h.oneChange?.source_card !== 'gear_ratio', 'Oct 3 one-change is not a gear change')
-    check(h.gearAdvice?.dataCheck === 'match', `Oct 3 RPM/km/h ${h.gearAdvice?.rpmPerKmh?.toFixed(1)} matches 69/${h.gearAdvice?.frontTeeth}`)
+  if (name.startsWith('2026-10-04')) {
+    // Kart Tuning Expert Oct 4: 69T confirmed — keep it; next change is tires, not gear.
+    check(h.gearAdvice?.rearTeeth === 69, 'Oct 4 uses 69T')
+    check(h.gearAdvice?.action === 'hold', `Oct 4 gear verdict is hold (${h.gearAdvice?.headline})`)
+    check(h.oneChange?.source_card !== 'gear_ratio', 'Oct 4 one-change is not a gear change')
+    check(h.gearAdvice?.dataCheck === 'match', `Oct 4 RPM/km/h ${h.gearAdvice?.rpmPerKmh?.toFixed(1)} matches 69/${h.gearAdvice?.frontTeeth}`)
   }
   if (name.startsWith('2026-09-25')) {
     check(h.gearAdvice?.rearTeeth === 67, 'Sep 25 uses 67T')

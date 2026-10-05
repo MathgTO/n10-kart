@@ -15,7 +15,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const EXPECT: Record<string, number> = {
   '2026-09-25_mosport_143726_best-108241.xrk': 68241,
   '2026-09-25_mosport_163712_best-108294.xrk': 68294,
-  '2026-10-03_mosport_150240_best-110909.xrk': 70909,
+  '2026-10-04_mosport_150240_best-110909.xrk': 70909,
 }
 const files = [...Object.keys(EXPECT).map((f) => join(root, 'public/samples', f)), ...process.argv.slice(2)]
 let failed = 0

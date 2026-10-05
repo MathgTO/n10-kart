@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ImportModal } from '@/components/ImportModal'
 import { useSessions } from '@/hooks/SessionsContext'
 import { formatLapTime } from '@/lib/format'
-import { fetchSampleFile, REAL_SAMPLES, type BundledSample } from '@/lib/samples'
+import { fetchSampleFile, findSample, REAL_SAMPLES, type BundledSample } from '@/lib/samples'
 import { seriesLabel } from '@/lib/labels'
 import { FAQ_TITLE, HOME_FAQ, WORKS_WITH_BODY, WORKS_WITH_TITLE } from '@/data/homeFaq'
 
@@ -69,7 +69,8 @@ export function Home() {
   /** Loads a real MyChron .xrk from Mosport (bundled in public/samples) through the normal import path. */
   async function openRealSession(sample: BundledSample) {
     setSampleError(null)
-    const existing = sessions.find((s) => s.sourceFileName === sample.displayName)
+    // Matches copies imported under an older name too (e.g. the Oct 3 → Oct 4 clock fix).
+    const existing = sessions.find((s) => findSample(s.sourceFileName)?.file === sample.file)
     if (existing) {
       nav(`/session/${existing.id}`)
       return
