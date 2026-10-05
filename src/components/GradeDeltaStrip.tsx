@@ -67,9 +67,9 @@ export function GradeDeltaStrip({
 
   return (
     <section className="rounded-2xl border border-n10-border bg-n10-panel px-4 py-3">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
+      <div>
         <h2 className="text-base font-bold text-white">vs last session</h2>
-        <p className="text-xs font-bold uppercase tracking-wide text-n10-mute">prev → now</p>
+        <p className="mt-0.5 text-xs font-bold uppercase tracking-wide text-n10-mute">prev → now</p>
       </div>
       <div className="mt-3 flex overflow-x-auto pb-1" style={{ gap: 10 }}>
         {pills.map((p) => {
