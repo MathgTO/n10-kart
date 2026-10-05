@@ -151,7 +151,7 @@ export interface StoredSession {
   /** How the driver was assigned. */
   driverSource?: 'logger' | 'manual' | 'last_at_track' | 'prompt' | 'migrated'
   logger?: LoggerInfo
-  /** Layout inside the venue (e.g. 'gp'); persisted, edited via the setup chip. */
+  /** Layout inside the venue (registry L1…); confirmed on round-setup form. */
   layoutId?: string
   detectConfidence?: 'high' | 'medium' | 'low' | 'none' | 'manual'
   detection?: TrackDetection

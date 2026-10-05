@@ -99,6 +99,48 @@ function LayoutRenameRow({ trackId, layoutId, onPicked }: { trackId: string; lay
   )
 }
 
+/** Primary layout picker — chips on the round-setup form (same step as tires / sprocket). */
+function LayoutPicker({ s }: { s: StoredSession }) {
+  const { updateSessionMeta } = useSessions()
+  const layouts = listLayouts(s.trackId)
+  const pick = (layoutId: string) => {
+    updateSessionMeta(s.id, { layoutId, detectConfidence: 'manual' })
+  }
+  const conf = s.detectConfidence ?? 'low'
+  const gpsHint =
+    conf === 'high'
+      ? 'Pre-filled from GPS — confirm or change'
+      : conf === 'medium'
+        ? 'Best guess from GPS — please confirm'
+        : s.layoutId
+          ? 'Confirm this is the layout you ran'
+          : 'Pick which layout you ran (Layout 1, 2, 3…)'
+
+  return (
+    <Card title="Layout">
+      <p className="text-sm text-n10-soft">{gpsHint}</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {layouts.map((l) => (
+          <Chip key={l.id} on={s.layoutId === l.id} onClick={() => pick(l.id)}>
+            {l.displayName}
+          </Chip>
+        ))}
+        {!s.layoutId && (
+          <span className="min-h-[48px] inline-flex items-center rounded-xl border border-amber-300/50 px-4 font-semibold text-amber-100">
+            Layout?
+          </span>
+        )}
+      </div>
+      <LayoutRenameRow trackId={s.trackId} layoutId={s.layoutId} onPicked={pick} />
+      {s.detection?.lapLengthM ? (
+        <p className="mt-2 text-sm text-n10-mute">
+          File ~{(s.detection.lapLengthM / 1000).toFixed(2)} km {s.detection.direction?.toUpperCase() ?? ''}
+        </p>
+      ) : null}
+    </Card>
+  )
+}
+
 function TrackSheet({ open, onClose, s }: { open: boolean; onClose: () => void; s: StoredSession }) {
   const { updateSessionMeta } = useSessions()
   const [newName, setNewName] = useState('')
@@ -108,47 +150,27 @@ function TrackSheet({ open, onClose, s }: { open: boolean; onClose: () => void; 
     if (!c) return list
     return [...list].sort((a, b) => (a.lat != null ? distanceM(c, { lat: a.lat, lon: a.lon! }) : 1e12) - (b.lat != null ? distanceM(c, { lat: b.lat, lon: b.lon! }) : 1e12))
   }, [c])
-  const choose = (trackId: string, layoutId?: string) => {
+  const choose = (trackId: string) => {
     const t = getTrack(trackId)
-    let nextLayout = layoutId
-    if (!nextLayout) {
-      const geo = pickLayout(t, s.detection?.lapLengthM, s.detection?.direction)
-      const resolved = resolveFromDetection(trackId, {
-        layoutId: geo,
-        lapLengthM: s.detection?.lapLengthM,
-        direction: s.detection?.direction,
-        confidence: 'high',
-      })
-      nextLayout = resolved?.id
-    }
+    const geo = pickLayout(t, s.detection?.lapLengthM, s.detection?.direction)
+    const resolved = resolveFromDetection(trackId, {
+      layoutId: geo,
+      lapLengthM: s.detection?.lapLengthM,
+      direction: s.detection?.direction,
+      confidence: 'high',
+    })
     updateSessionMeta(s.id, {
       trackId,
-      layoutId: nextLayout,
+      layoutId: resolved?.id,
       detectConfidence: 'manual',
       ...(s.tzSource !== 'manual' && t.tz ? { timeZone: t.tz, tzSource: 'track' as const } : {}),
     })
     onClose()
   }
-  const cur = getTrack(s.trackId)
   return (
-    <Sheet open={open} onClose={onClose} title="Track and layout">
-      <div className="mb-4">
-        <p className="label-lg">Layout at {cur.short ?? cur.name}</p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {listLayouts(cur.id).map((l) => (
-            <Chip key={l.id} on={s.layoutId === l.id} onClick={() => choose(cur.id, l.id)}>
-              {l.displayName}
-            </Chip>
-          ))}
-          {!s.layoutId && (
-            <span className="min-h-[48px] inline-flex items-center rounded-xl border border-amber-300/50 px-4 font-semibold text-amber-100">
-              Layout?
-            </span>
-          )}
-        </div>
-        <LayoutRenameRow trackId={cur.id} layoutId={s.layoutId} onPicked={(id) => choose(cur.id, id)} />
-      </div>
+    <Sheet open={open} onClose={onClose} title="Track">
       <p className="label-lg">{c ? 'Nearest first' : 'Tracks'}</p>
+      <p className="mt-1 text-sm text-n10-mute">Layout is chosen on the setup form below.</p>
       <ul className="mt-2 space-y-2">
         {tracks.slice(0, 12).map((t) => (
           <li key={t.id}>
@@ -252,6 +274,7 @@ export function SetupStepPage() {
       psi && (psi.rl != null || psi.rr != null)
         ? ` · cold ~${psi.rl ?? psi.rr}/${psi.rr ?? psi.rl} psi`
         : ''
+    const needsLayout = !s.layoutId
     return (
       <div className="mx-auto max-w-3xl space-y-4 pb-32">
         <header>
@@ -259,13 +282,30 @@ export function SetupStepPage() {
           <h1 className="text-2xl font-black">Same kart as last round?</h1>
           <p className="mt-2 text-n10-soft">
             {label}
+            {layoutLabel ? ` · ${layoutLabel}` : ' · Layout?'}
             {teeth != null ? ` · ${teeth}T` : ''}
             {psiNote}
           </p>
         </header>
+        {needsLayout ? (
+          <LayoutPicker s={s} />
+        ) : (
+          <p className="rounded-xl border border-n10-border bg-n10-panel px-4 py-3 text-sm text-n10-soft">
+            Layout <span className="font-semibold text-white">{layoutLabel}</span>
+            {' · '}
+            <button type="button" className="font-semibold text-n10-lime underline underline-offset-2" onClick={() => setChangeSomething(true)}>
+              Change layout or setup
+            </button>
+          </p>
+        )}
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-n10-border bg-black/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
           <div className="mx-auto flex max-w-3xl flex-col gap-2">
-            <button type="button" className="btn-primary min-h-[52px] w-full text-lg" onClick={() => save(true)}>
+            <button
+              type="button"
+              className="btn-primary min-h-[52px] w-full text-lg"
+              disabled={needsLayout}
+              onClick={() => save(true)}
+            >
               Same as last round
             </button>
             <button type="button" className="btn-secondary min-h-[48px] w-full" onClick={() => setChangeSomething(true)}>
@@ -304,10 +344,7 @@ export function SetupStepPage() {
         <p className="text-lg font-bold text-white">{label}</p>
         <div className={`mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border p-3 ${conf === 'high' ? 'border-n10-teal/50' : 'border-amber-300/50'}`}>
           <div>
-            <p className="font-semibold text-white">
-              {track.name}
-              {layoutLabel ? ` · ${layoutLabel}` : ''}
-            </p>
+            <p className="font-semibold text-white">{track.name}</p>
             <p className="text-sm text-n10-soft">
               {conf === 'manual'
                 ? 'Chosen by you'
@@ -324,7 +361,7 @@ export function SetupStepPage() {
             </p>
           </div>
           <button type="button" className="btn-secondary min-h-[48px] text-n10-teal" onClick={() => setTrackOpen(true)}>
-            Change
+            Change track
           </button>
         </div>
         {s.dateSource === 'gps' && s.dayOffset && !s.dateFixUndone ? (
@@ -392,6 +429,8 @@ export function SetupStepPage() {
           </div>
         )}
       </section>
+
+      <LayoutPicker s={s} />
 
       <Card
         title="Weather (optional)"

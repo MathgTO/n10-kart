@@ -284,7 +284,6 @@ export function SessionPage() {
               onSelectSector={setSelectedSectorIndex}
               trackId={session.trackId}
               layoutId={session.layoutId}
-              onLayoutChange={(layoutId) => updateSessionMeta(session.id, { layoutId })}
             />
           )}
           {best && ref && <OverlayCharts best={best} reference={ref} cornerLabels={cornerLabels} band={cls.peakSpeedBand ?? undefined} floor={cls.cornerExitLowRpm ?? undefined} />}

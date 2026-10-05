@@ -1,5 +1,5 @@
-/* Network-first for shell + assets so deploys win over stale PWA cache. v42 mobile horizontal fit — grade strip wrap + overflow-x clip */
-const CACHE = 'n10-shell-v42'
+/* Network-first for shell + assets so deploys win over stale PWA cache. v43 layout confirm on setup step */
+const CACHE = 'n10-shell-v43'
 const BASE = self.registration.scope // e.g. https://n10-kart.netlify.app/
 const SHELL = ['', 'index.html', 'manifest.webmanifest', 'n10-mark.png', 'n10-logo.jpg', 'apple-touch-icon.png'].map(
   (p) => new URL(p || './', BASE).href,

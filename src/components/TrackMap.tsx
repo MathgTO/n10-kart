@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import {
   MOSPORT_LAYOUTS,
   getLayout,
@@ -11,8 +11,6 @@ import {
   geometryIdFor,
   layoutDisplayName,
   layoutLengthHint,
-  listLayouts,
-  renameLayout,
 } from '@/lib/layoutRegistry'
 import {
   MOSPORT_GP_SECTORS,
@@ -69,17 +67,14 @@ export function TrackMap({
   onSelectSector,
   trackId = 'mosport',
   layoutId: layoutIdProp,
-  onLayoutChange,
 }: {
   focusCornerName?: string
   selectedSectorIndex: number | null
   onSelectSector: (index: number) => void
   trackId?: string
-  /** Persisted on the session (registry id L1… or legacy stock id). */
+  /** Persisted on the session (registry id L1… or legacy stock id). Set on round setup. */
   layoutId?: string
-  onLayoutChange?: (id: string) => void
 }) {
-  const registry = listLayouts(trackId)
   const label = layoutDisplayName(trackId, layoutIdProp)
   const lengthHint = layoutLengthHint(trackId, layoutIdProp)
   const geoId = geometryIdFor(trackId, layoutIdProp) ?? 'gp'
@@ -88,9 +83,6 @@ export function TrackMap({
   const focusId = useMemo(() => matchFocusCorner(layout, focusCornerName), [layout, focusCornerName])
   const box = useMemo(() => bounds(layout), [layout])
   const sf = pointAt(layout, 0)
-  const [renaming, setRenaming] = useState(false)
-  const [draftName, setDraftName] = useState(label === 'Layout?' ? '' : label)
-  const [selectValue, setSelectValue] = useState(layoutIdProp ?? '')
 
   const activeSector: SectorDef | null =
     selectedSectorIndex != null ? MOSPORT_GP_SECTORS[selectedSectorIndex] ?? null : null
@@ -105,83 +97,20 @@ export function TrackMap({
     onSelectSector(s.index)
   }
 
-  const commitRename = () => {
-    const name = draftName.trim()
-    if (!name || !layoutIdProp) {
-      setRenaming(false)
-      return
-    }
-    const rec = renameLayout(trackId, layoutIdProp, name)
-    if (rec) onLayoutChange?.(rec.id)
-    setRenaming(false)
-  }
-
-  const onSelect = (value: string) => {
-    setSelectValue(value)
-    if (value === '__rename__') {
-      if (!layoutIdProp) return
-      setDraftName(label === 'Layout?' ? '' : label)
-      setRenaming(true)
-      return
-    }
-    onLayoutChange?.(value)
-  }
-
   return (
     <section className="panel">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-xl font-bold">Track map</h2>
-          <p className="mt-1 text-sm text-n10-soft">
-            Tap a <span className="text-white font-semibold">sector (S1–S4)</span> or a turn — same
-            language as Sector loss below
-          </p>
-          <p className="mt-1 text-sm text-n10-mute max-w-xl">{SECTOR_VS_TURN_HELP}</p>
-        </div>
-        <div className="text-sm text-n10-soft">
-          <label className="block">
-            Layout
-            <select
-              className="ml-2 rounded-lg border border-n10-border bg-n10-card px-3 py-2 text-white font-semibold"
-              value={renaming ? '__rename__' : layoutIdProp && registry.some((r) => r.id === layoutIdProp) ? layoutIdProp : selectValue || ''}
-              onChange={(e) => onSelect(e.target.value)}
-            >
-              {!layoutIdProp && <option value="">Layout?</option>}
-              {registry.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.displayName}
-                </option>
-              ))}
-              {layoutIdProp && <option value="__rename__">Rename…</option>}
-            </select>
-          </label>
-          {renaming && (
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <input
-                className="rounded-lg border border-n10-border bg-n10-card px-3 py-2 text-white font-semibold"
-                value={draftName}
-                placeholder="Facility / layout name"
-                onChange={(e) => setDraftName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') commitRename()
-                  if (e.key === 'Escape') setRenaming(false)
-                }}
-                autoFocus
-              />
-              <button type="button" className="btn-primary min-h-[40px] px-3 text-sm" onClick={commitRename}>
-                Save
-              </button>
-              <button type="button" className="btn-secondary min-h-[40px] px-3 text-sm" onClick={() => setRenaming(false)}>
-                Cancel
-              </button>
-            </div>
-          )}
-        </div>
+      <div>
+        <h2 className="text-xl font-bold">Track map</h2>
+        <p className="mt-1 text-sm text-n10-soft">
+          Tap a <span className="text-white font-semibold">sector (S1–S4)</span> or a turn — same
+          language as Sector loss below
+        </p>
+        <p className="mt-1 text-sm text-n10-mute max-w-xl">{SECTOR_VS_TURN_HELP}</p>
       </div>
       <p className="mt-2 text-sm text-n10-mute">
         <span className="font-semibold text-white">{label}</span>
         {lengthHint ? ` · ${lengthHint}` : ''}
-        {label !== 'Layout?' ? '' : ' · Config unconfirmed'}
+        {label !== 'Layout?' ? '' : ' · Confirm on setup'}
         {' · '}
         {layout.blurb}
       </p>
