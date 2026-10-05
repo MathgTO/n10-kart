@@ -1,13 +1,13 @@
 /**
- * Bundled-sample identity: Oct 4 sample (logger clock one day behind → logger wrote Oct 3).
+ * Bundled samples: files exist, owner-confirmed setup seeds, old names dedupe, and the date/time now comes
+ * from the file's GPS (no hard-coded recordedAt / title overrides).
  * Run: npx --yes tsx --tsconfig tsconfig.app.json scripts/smoke-samples.mts
- * Checks: file exists under the new name, +1 day override → Oct 4, old names/labels still map to 69T
- * and migrate to the current title/file name (so re-import dedupes instead of duplicating).
  */
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { findSample, REAL_SAMPLES, sampleGearing, sampleIdentity, shiftDate } from '../src/lib/samples'
+import { findSample, REAL_SAMPLES, sampleGearing, sampleSetup } from '../src/lib/samples'
+import { parseXrkFile } from '../src/lib/xrk'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 let failed = 0
@@ -15,22 +15,26 @@ const check = (ok: boolean, msg: string) => {
   console.log(`${ok ? 'OK  ' : 'FAIL'} ${msg}`)
   if (!ok) failed++
 }
-for (const s of REAL_SAMPLES) check(existsSync(join(root, 'public/samples', s.file)), `public/samples/${s.file} exists`)
+for (const s of REAL_SAMPLES) {
+  const p = join(root, 'public/samples', s.file)
+  check(existsSync(p), `public/samples/${s.file} exists`)
+  check(!('recordedAt' in s) && !('title' in s), `${s.file}: no recordedAt/title override`)
+  const buf = readFileSync(p)
+  const ab = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer
+  const r = await parseXrkFile(new File([ab], s.file), ab)
+  const gps = r.meta?.gpsStartUtcMs != null ? new Date(r.meta.gpsStartUtcMs).toISOString() : undefined
+  check(gps === s.gpsStartUtc, `${s.file}: GPS start ${gps} = migration constant ${s.gpsStartUtc}`)
+}
 const oct = REAL_SAMPLES[0]
 check(oct.file === '2026-10-04_mosport_150240_best-110909.xrk', `newest sample file ${oct.file}`)
-check(oct.label === 'Mosport · Oct 4 2026 · 15:02', `label ${oct.label}`)
-check(oct.loggerDate === '2026-10-03' && oct.dateOffsetDays === 1, 'logger date Oct 3 + 1 day')
-check(oct.recordedAt === '2026-10-04T15:02:40', `recordedAt ${oct.recordedAt}`)
-check(shiftDate('2026-09-30', 1) === '2026-10-01' && shiftDate('2026-12-31', 1) === '2027-01-01', 'shiftDate rolls month/year')
+check(oct.setup.rearTeeth === 69 && oct.setup.frontTeeth === undefined, 'Oct 4: 69T rear, front unknown (never assumed)')
+check(oct.setup.coldPsi?.rl === 11 && oct.setup.tireCompound === 'Vega White' && oct.setup.intentionalChange === 'gearing', 'Oct 4: Vega White, cold 11 psi, intentional change gearing')
 for (const old of ['2026-10-03_mosport_150240_best-110909.xrk', 'Mosport · Oct 3 2026 · 15:02.xrk']) {
   check(sampleGearing(old)?.rearTeeth === 69, `old name "${old}" → 69T`)
-  const id = sampleIdentity(old)
-  check(id?.title === oct.label && id?.sourceFileName === oct.displayName && id?.recordedAt === '2026-10-04T15:02:40', `old name "${old}" migrates to Oct 4 title/file/date`)
   check(findSample(old)?.file === oct.file, `old name "${old}" dedupes with the current sample`)
 }
-check(sampleGearing(oct.displayName)?.rearTeeth === 69 && sampleGearing(oct.file)?.rearTeeth === 69, 'new names → 69T')
-check(REAL_SAMPLES.filter((s) => s.gearing.rearTeeth === 67).length === 2, 'Sep 25 samples → 67T')
-check(sampleIdentity('my-own-session.xrk') === undefined, 'non-sample file untouched')
+check(REAL_SAMPLES.filter((s) => s.setup.rearTeeth === 67).length === 2, 'Sep samples → 67T')
+check(sampleSetup('my-own-session.xrk') === undefined, 'non-sample file gets no seed')
 if (failed) {
   console.log(`\n${failed} sample check(s) failed.`)
   process.exit(1)
