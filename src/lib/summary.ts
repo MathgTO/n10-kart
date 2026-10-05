@@ -1,6 +1,6 @@
 /**
  * ONE generated driver summary per session. The school report sections, the driver voice script,
- * the Start-doing focus text and the share text (SMS / email / PDF) all come from this object.
+ * the Start-doing focus text and the share PDF all come from this object.
  * Honesty: only measured, non-confounded dimensions get letters; heuristic estimates never do.
  * Driving only — setup lives in the setup verdict (setupVerdict.ts). Never blames the driver for kart issues.
  */
@@ -257,7 +257,7 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
   // Bad day: overall C or below, or ≥2% slower than this driver's last session here.
   const prevBest = input.previous?.laps[input.previous.bestLapIndex]
   const slower = prevBest && best ? (best.timeMs - prevBest.timeMs) / prevBest.timeMs >= 0.02 : false
-  const lowOverall = overall != null && ['C+', 'C', 'C−', 'D'].includes(overall)
+  const lowOverall = overall != null && ['C+', 'C', 'C-', 'D'].includes(overall)
   const badDay = lowOverall || (!!slower && overall == null)
 
   // Keep doing: strengths ≥4, else best shown — serious you-voice.
@@ -267,13 +267,17 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
   if (strengths[1] && (strengths[1].score ?? 0) >= 3.5 && strengths[1].why && strengths[1].why !== keepText) keepText += ` ${strengths[1].why}`
   if (badDay && !keepSubject) keepText = close ? `Building early — close by lap ${close}.` : kid ? 'You kept working all session — that effort counts.' : 'Effort and the build-up were there.'
 
-  // Start doing / Next focus: active priority. Prefer EXIT commitment on corner loss unless priority is truly D3.
+  // Start doing / Next focus: active priority.
+  // When priority is D3 (apex), ALL copy (Start/Stop/Overall/Voice/Drill) talks apex commitment —
+  // not exit-only and not the rubric's generic later_turn_in drill name.
+  // Prefer EXIT commitment on corner loss only when priority is not D3.
   const corner = turnPhrase(report.focus.cornerName)
   const drill = getDrill(report.primary_drill.id)
   const priorityId = report.priority_dimension_id
+  const apexWork = priorityId === 'D3'
   const startSubject = shown.find((g) => g.dimId === priorityId) ?? face.find((g) => g.dimId === 'D4')
   const focusIsCorner = report.focus.referenceLapIndex !== report.focus.bestLapIndex && report.focus.lossMs > 40
-  const exitsWork = focusIsCorner && priorityId !== 'D3'
+  const exitsWork = focusIsCorner && !apexWork
   const briggsStart: Partial<Record<string, string>> = {
     D4: 'Get on the gas earlier out of the slow corners. The blue slide rewards exit, not living on 6150.',
     D2: 'Wait one kart length longer before you turn. Late apex = faster onto the straight.',
@@ -291,13 +295,15 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
     // Corner-loss sessions: lock EXIT unless priority is truly apex (D3).
     if (exitsWork) {
       startText = `${corner.title} exit — get on the gas earlier. The blue slide rewards exit, not living on 6150.`
-    } else if (priorityId === 'D3') {
+    } else if (apexWork) {
       startText = briggsStart.D3!
     }
   } else if (exitsWork) {
     startText = kid
       ? `${corner.title} exit — get on the gas earlier and push all the way out. The blue slide rewards exit, not living on 6150.`
       : `${corner.title}: turn in a touch later, get to full throttle earlier and use all the exit.`
+  } else if (apexWork) {
+    startText = briggsStart.D3!
   } else {
     startText = kid
       ? `${drill?.name ?? 'Pick your marks'} — ${drill?.instruction ?? 'same marks every lap.'}`
@@ -305,9 +311,11 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
   }
   const drillText = exitsWork
     ? `${corner.title} exit: same entry, wait to turn, earlier throttle`
-    : priorityId === 'D2'
-      ? 'Wait one kart length longer before you turn — then commit'
-      : drill?.name ?? 'Same marks every lap'
+    : apexWork
+      ? 'Commit to the apex — one clean hit mid-corner, no early stab'
+      : priorityId === 'D2'
+        ? 'Wait one kart length longer before you turn — then commit'
+        : drill?.name ?? 'Same marks every lap'
 
   // Stop doing: contact / weaving / bump-draft when race; else one habit to cut.
   const losses = s.corners.map((c) => Math.max(0, c.lossMs ?? 0))
@@ -316,20 +324,25 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
   const stopText = race
     ? "Don't bump-draft or weave. A push gets a bumper penalty — close up for the tow, keep it clean."
     : concentrated
-      ? 'Reinventing the whole lap when one corner is the issue. Same entry; only change the exit.'
-      : priorityId === 'D7'
-        ? 'Moving your braking marker around. Pick one board and stick to it.'
-        : 'Changing your line every lap. Pick your marks and repeat them.'
+      ? apexWork
+        ? 'Stabbing early at the apex. Wait for it — one clean hit mid-corner unlocks the exit.'
+        : 'Reinventing the whole lap when one corner is the issue. Same entry; only change the exit.'
+      : apexWork
+        ? 'Early stab at the apex. Let it come to you — commit once mid-corner.'
+        : priorityId === 'D7'
+          ? 'Moving your braking marker around. Pick one board and stick to it.'
+          : 'Changing your line every lap. Pick your marks and repeat them.'
 
-  // Overall: serious craft lock — no "homework", no soft pride fluff.
+  // Overall: serious craft lock — no "homework", no soft pride fluff. D3 → apex, not later-turn-in drill name.
+  const lockPhrase = exitsWork
+    ? `the ${corner.short} exit`
+    : apexWork
+      ? 'apex commitment'
+      : (drill?.name ?? 'your marks').toLowerCase()
   const overallSentence = overall
     ? kid
-      ? `${badDay ? 'Tough outing — you stayed in it' : 'Solid build'}. Lock ${
-          exitsWork ? `the ${corner.short} exit` : (drill?.name ?? 'your marks').toLowerCase()
-        } next round and the tenths come with you.`
-      : `${badDay ? 'Tough outing, real effort' : 'Solid build'}. Lock ${
-          exitsWork ? `the ${corner.short} exit` : (drill?.name ?? 'your marks').toLowerCase()
-        } next round.`
+      ? `${badDay ? 'Tough outing — you stayed in it' : 'Solid build'}. Lock ${lockPhrase} next round and the tenths come with you.`
+      : `${badDay ? 'Tough outing, real effort' : 'Solid build'}. Lock ${lockPhrase} next round.`
     : `Not enough measured skills to summarize the outing yet.${kid ? " Dad owns the kart checklist." : ''}`
 
   // ---- driver voice (~45 s, RCA style) ----
@@ -345,6 +358,8 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
       }.`
     )
     v.push(`Next round, one job: get on the gas earlier out of ${corner.text}. Same entry, wait a beat, then commit — the blue slide rewards exit, not living on the limiter.`)
+  } else if (apexWork) {
+    v.push('Next round, one job: commit to the apex. One clean hit mid-corner unlocks the exit — no early stab.')
   } else if (priorityId === 'D2') {
     v.push('Next round, one job: wait one kart length longer before you turn. Late apex means faster onto the straight.')
   } else if (priorityId === 'D8' || priorityId === 'D9') {
@@ -352,12 +367,12 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
   } else {
     v.push(`Next round, one job: ${drill?.instruction ?? 'same marks every lap.'}`)
   }
-  if (concentrated) v.push("Don't reinvent the rest of the lap.")
+  if (concentrated) v.push(apexWork ? "Don't reinvent the rest of the lap — just the apex." : "Don't reinvent the rest of the lap.")
   if (exitsNote) v.push(kid ? "On exits, the kart side may be part of it — Dad's on that." : 'On exits, the kart may be part of it — check with the tuner.')
-  v.push(exitsWork ? 'Lock that exit, and the time comes with it.' : 'Lock the marks next round.')
+  v.push(exitsWork ? 'Lock that exit, and the time comes with it.' : apexWork ? 'Lock the apex next round.' : 'Lock the marks next round.')
   const voiceScript = v.join(' ')
 
-  // ---- share: PDF report card only (native share sheet attaches the file; no plain-text SMS/email body)
+  // ---- share: PDF report card only (native share sheet attaches the file)
   const pdfTitle = `${name}’s report card — ${input.label}`
   const fileName = `${name.replace(/[^\w.-]+/g, '_')}_report_card.pdf`
 

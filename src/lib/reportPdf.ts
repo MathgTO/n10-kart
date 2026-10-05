@@ -4,6 +4,7 @@
  * Driving only — no PSI / sprocket / setup numbers.
  */
 import { jsPDF } from 'jspdf'
+import { splitLetter } from './grades'
 import type { DriverSummary } from './summary'
 import { KID_DESCS } from './summary'
 
@@ -75,7 +76,13 @@ export function buildReportCardPdf(summary: DriverSummary, opts?: ReportPdfOpts)
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(42)
     doc.setTextColor(LIME_BRIGHT[0], LIME_BRIGHT[1], LIME_BRIGHT[2])
-    doc.text(summary.overall, pageW - margin, nameY + 14, { align: 'right' })
+    {
+      const { base, suffix } = splitLetter(summary.overall)
+      const suffixW = 7 // mm reserved for +/− so bases share one x
+      const letterRight = pageW - margin - suffixW
+      doc.text(base, letterRight, nameY + 14, { align: 'right' })
+      if (suffix) doc.text(suffix, letterRight + 1.2, nameY + 14, { align: 'left' })
+    }
   }
   y = nameY + 16
 
@@ -219,7 +226,15 @@ export function buildReportCardPdf(summary: DriverSummary, opts?: ReportPdfOpts)
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(12)
       doc.setTextColor(LIME_INK[0], LIME_INK[1], LIME_INK[2])
-      doc.text(r.letter ?? 'N/A', x + colW, rowY + 4.5, { align: 'right' })
+      if (!r.letter) {
+        doc.text('N/A', x + colW, rowY + 4.5, { align: 'right' })
+      } else {
+        const { base, suffix } = splitLetter(r.letter)
+        const suffixW = 3.2
+        const letterRight = x + colW - suffixW
+        doc.text(base, letterRight, rowY + 4.5, { align: 'right' })
+        if (suffix) doc.text(suffix, letterRight + 0.6, rowY + 4.5, { align: 'left' })
+      }
       if (r.estimate && r.letter) {
         doc.setFontSize(6.5)
         doc.setTextColor(MUTE[0], MUTE[1], MUTE[2])

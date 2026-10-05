@@ -34,10 +34,10 @@ const check = (ok: boolean, msg: string) => {
 }
 
 // --- letters
-check(letterFromScore(4.7) === 'A+' && letterFromScore(4.5) === 'A' && letterFromScore(3.3) === 'B' && letterFromScore(3.0) === 'B−', 'letters A+/A/B/B−')
+check(letterFromScore(4.7) === 'A+' && letterFromScore(4.5) === 'A' && letterFromScore(3.3) === 'B' && letterFromScore(3.0) === 'B-', 'letters A+/A/B/B-')
 check(letterFromScore(2.5) === 'C' && letterFromScore(1.9) === 'D' && letterFromScore(null) === null, 'letters C/D/null')
 check(overallLetter([3.5, 3.0, 3.5]) === 'B', 'overall = mean of shown')
-check(letterForDim({ dimension_id: 'D2', score: 4, evidence_kind: 'heuristic', evidence_markers: [] } as never) === 'A−', 'data-backed heuristic estimate → letter')
+check(letterForDim({ dimension_id: 'D2', score: 4, evidence_kind: 'heuristic', evidence_markers: [] } as never) === 'A-', 'data-backed heuristic estimate → letter')
 check(letterForDim({ dimension_id: 'D1', score: null, evidence_kind: 'heuristic', evidence_markers: [] } as never) === null, 'heuristic with no score → no letter')
 check(letterForDim({ dimension_id: 'D4', score: 4, evidence_kind: 'mychron', evidence_markers: [], setup_confounded: true } as never) === null, 'setup-confounded → no letter')
 
@@ -88,6 +88,11 @@ check(a.summary.exitsNote === "Dad's checking the kart on this one", 'kid card e
 check(!!a.summary.share.pdfTitle && !!a.summary.share.fileName.endsWith('.pdf'), `PDF share meta "${a.summary.share.fileName}"`)
 check(!('sms' in a.summary.share) && !('emailBody' in a.summary.share), 'share has no plain-text SMS/email body')
 check(a.summary.title === 'Gabriel’s report card', 'title "Gabriel’s report card"')
+check(oct.report.priority_dimension_id === 'D3', `Oct 4 priority is D3 (got ${oct.report.priority_dimension_id})`)
+check(/apex/i.test(a.summary.start.text) && !/only change the exit/i.test(a.summary.stop.text), 'D3 Start talks apex; Stop is not exit-only')
+check(/apex/i.test(a.summary.start.drill) && !/later turn-in/i.test(a.summary.start.drill), 'D3 drill is apex commitment, not Later turn-in')
+check(/apex/i.test(a.summary.overallSentence) && !/later turn-in/i.test(a.summary.overallSentence), 'D3 Overall locks apex, not later-turn-in')
+check(/commit to the apex/i.test(a.summary.voiceScript) && !/later turn-in/i.test(a.summary.voiceScript), 'D3 voice talks apex commitment')
 check(a.summary.keep.text.length > 0 && a.summary.start.text.length > 0 && a.summary.stop.text.length > 0, 'Keep / Start / Stop prose present on kid summary')
 check(!/^\s*[A-D][+−-]?\b/.test(a.summary.overallSentence) && !/Overall:\s*[A-D]/i.test(a.summary.overallSentence), 'Overall summary prose has no letter grade')
 const kidIds = new Set([...a.summary.face, ...a.summary.more, ...a.summary.fromVideo].map((x) => x.dimId))

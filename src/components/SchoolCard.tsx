@@ -1,8 +1,5 @@
 import type { DriverSummary, Subject } from '@/lib/summary'
-
-export function Draft() {
-  return <span className="ml-1 rounded-full border border-amber-300/50 px-2 py-0.5 align-middle text-xs font-bold text-amber-200">DRAFT</span>
-}
+import { GradeLetter } from './GradeLetter'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -23,7 +20,7 @@ function DimRow({ s }: { s: Subject }) {
       </div>
       <span className="shrink-0 text-right">
         {s.letter ? (
-          <span className="block text-xl font-black text-n10-lime">{s.letter}</span>
+          <GradeLetter letter={s.letter} className="text-n10-lime" size="lg" />
         ) : (
           <span className="block font-bold text-n10-mute">N/A</span>
         )}
@@ -66,9 +63,7 @@ export function SchoolCard({ summary, children }: { summary: DriverSummary; chil
         </Section>
 
         <div className="rounded-xl border border-n10-border bg-black/40 p-4">
-          <p className="text-sm font-bold uppercase tracking-wide text-n10-lime">
-            Report card <Draft />
-          </p>
+          <p className="text-sm font-bold uppercase tracking-wide text-n10-lime">Report card</p>
           <ul className="mt-2 divide-y divide-n10-border">
             {summary.face.map((s) => (
               <DimRow key={s.dimId} s={s} />

@@ -8,17 +8,19 @@ import { ImportModal } from '@/components/ImportModal'
 import { OverlayCharts } from '@/components/OverlayCharts'
 import { SchoolCard } from '@/components/SchoolCard'
 import { SetupCard } from '@/components/SetupCard'
-import { ShareSheet } from '@/components/ShareSheet'
 import { TrackMap } from '@/components/TrackMap'
 import { VideoPanel } from '@/components/VideoPanel'
 import { VoicePlayer } from '@/components/VoicePlayer'
 import { VsLastStrip } from '@/components/VsLastStrip'
 import { MOSPORT_GP_SECTORS } from '@/data/mosportSectors'
+import { getTrack } from '@/data/tracks'
 import { useSessions } from '@/hooks/SessionsContext'
 import { getClassConfig } from '@/lib/classConfig'
 import { formatLapLabel, formatLapTime } from '@/lib/format'
 import { SAFETY_LINE } from '@/lib/labels'
+import { shareReportCardPdf } from '@/lib/reportPdf'
 import { rubric } from '@/lib/rubric'
+import { sessionLocal } from '@/lib/sessionLabel'
 import { lapValidity } from '@/lib/telemetry'
 
 export function SessionPage() {
@@ -27,7 +29,8 @@ export function SessionPage() {
   const session = id ? getSession(id) : undefined
   const nav = useNavigate()
   const [importOpen, setImportOpen] = useState(false)
-  const [shareOpen, setShareOpen] = useState(false)
+  const [shareBusy, setShareBusy] = useState(false)
+  const [shareToast, setShareToast] = useState<string | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [view, setView] = useState<'kid' | 'coach'>('kid')
   const [deepOpen, setDeepOpen] = useState(false)
@@ -74,6 +77,37 @@ export function SessionPage() {
     verdict.category !== 'none'
       ? `${verdict.categoryLabel}: ${verdict.action}`
       : verdict.action
+
+  const onShare = async () => {
+    if (shareBusy) return
+    setShareBusy(true)
+    setShareToast(null)
+    try {
+      const firstShare = !session.shareOptIn
+      if (firstShare) updateSessionMeta(session.id, { shareOptIn: true })
+      const track = getTrack(session.trackId)
+      const local = sessionLocal(session)
+      const dateLabel = local
+        ? `${local.monthShort} ${local.day}${local.year ? `, ${local.year}` : ''}`
+        : undefined
+      const result = await shareReportCardPdf(summary, {
+        trackLabel: track.name,
+        dateLabel,
+        classLabel: getClassConfig(session.classId).label,
+      })
+      if (firstShare) {
+        setShareToast('Private — driving report only. Nothing leaves this device until you send the PDF.')
+      } else if (result === 'saved') {
+        setShareToast('PDF saved on this device — attach it from Files / Downloads.')
+      } else if (result === 'shared') {
+        setShareToast(null)
+      }
+    } catch {
+      setShareToast('Couldn’t prepare the PDF. Try again.')
+    } finally {
+      setShareBusy(false)
+    }
+  }
 
   return (
     <div className="space-y-5 pb-28">
@@ -122,11 +156,11 @@ export function SessionPage() {
           <p className="text-sm font-bold uppercase tracking-wide text-n10-lime">Before next round</p>
           <div className="mt-3 space-y-3">
             <div className="rounded-xl border border-n10-border bg-n10-card/80 p-3">
-              <p className="text-sm font-bold text-n10-lime">🧒 Driver</p>
+              <p className="text-sm font-bold text-n10-lime">Driver</p>
               <p className="mt-1 text-base font-semibold text-white leading-snug">{focusLine}</p>
             </div>
             <div className="rounded-xl border border-n10-teal/40 bg-n10-teal/5 p-3">
-              <p className="text-sm font-bold text-n10-teal">🔧 Kart · Dad’s job</p>
+              <p className="text-sm font-bold text-n10-teal">Kart · Dad’s job</p>
               <p className="mt-1 text-base font-semibold text-white leading-snug">{kartLine}</p>
             </div>
           </div>
@@ -294,19 +328,29 @@ export function SessionPage() {
         </div>
       )}
 
-      {/* Sticky bottom: Import another + Share (Delete stays in overflow) */}
+      {/* Sticky bottom: Import another + Share → native PDF sheet directly */}
       <div className="no-print fixed inset-x-0 bottom-0 z-40 border-t border-n10-border bg-black/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur">
-        <div className="mx-auto flex max-w-3xl gap-2">
-          <button type="button" className="btn-secondary min-h-[48px] flex-1" onClick={() => setImportOpen(true)}>
-            Import another
-          </button>
-          <button type="button" className="btn-primary min-h-[48px] flex-1" onClick={() => setShareOpen(true)}>
-            Share
-          </button>
+        <div className="mx-auto max-w-3xl space-y-2">
+          <div className="flex gap-2">
+            <button type="button" className="btn-secondary min-h-[48px] flex-1" onClick={() => setImportOpen(true)}>
+              Import another
+            </button>
+            <button
+              type="button"
+              className="btn-primary min-h-[48px] flex-1"
+              disabled={shareBusy}
+              onClick={() => void onShare()}
+            >
+              {shareBusy ? 'Preparing PDF…' : 'Share'}
+            </button>
+          </div>
+          <p className="text-center text-xs text-n10-mute">
+            Private — PDF only. Nothing leaves until you send. No setup numbers.
+          </p>
+          {shareToast && <p className="text-center text-sm text-n10-soft">{shareToast}</p>}
         </div>
       </div>
 
-      <ShareSheet open={shareOpen} onClose={() => setShareOpen(false)} session={session} summary={summary} driver={driver} />
       <ImportModal open={importOpen} onClose={() => setImportOpen(false)} />
     </div>
   )

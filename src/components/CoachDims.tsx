@@ -1,6 +1,7 @@
 import type { CoachingReport, DimensionScore } from '@/lib/types'
 import { getDimension } from '@/lib/rubric'
 import { dimGrade, gradeRank } from '@/lib/grades'
+import { GradeLetter } from './GradeLetter'
 
 function evidenceLabel(s: DimensionScore): string {
   if (s.unavailable_reason === 'needs_cam' || s.evidence_kind === 'needs_kart_cam') return 'needs video'
@@ -41,7 +42,12 @@ export function CoachDims({ report }: { report: CoachingReport }) {
                 <span className={`block font-bold ${scored ? 'text-white' : 'text-n10-mute'}`}>
                   {scored ? (g.score as number).toFixed(1) : 'N/A'}
                 </span>
-                {g.letter && <span className="block text-sm font-bold text-n10-lime">{g.letter}{g.status === 'estimate' ? ' · est.' : ''}</span>}
+                {g.letter && (
+                  <span className="mt-0.5 flex items-center justify-end gap-1">
+                    <GradeLetter letter={g.letter} className="text-n10-lime" size="sm" />
+                    {g.status === 'estimate' ? <span className="text-xs font-semibold text-n10-mute">est.</span> : null}
+                  </span>
+                )}
               </span>
             </li>
           )

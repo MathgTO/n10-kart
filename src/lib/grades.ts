@@ -1,19 +1,37 @@
 import type { DimensionScore } from './types'
 
-export type Letter = 'A+' | 'A' | 'A−' | 'B+' | 'B' | 'B−' | 'C+' | 'C' | 'C−' | 'D'
+/** ASCII hyphen for minus grades — avoids font-black synthesizing a double stroke on U+2212. */
+export type Letter = 'A+' | 'A' | 'A-' | 'B+' | 'B' | 'B-' | 'C+' | 'C' | 'C-' | 'D'
+
+export type GradeParts = { base: string; suffix: '' | '+' | '-' }
+
+/** Split a grade so the base letter sits on a fixed vertical axis; +/− hang beside it. */
+export function splitLetter(letter: Letter | string): GradeParts {
+  const m = /^([A-D])([+\u2212-]?)$/u.exec(String(letter).trim())
+  if (!m) return { base: String(letter), suffix: '' }
+  const raw = m[2]
+  const suffix: '' | '+' | '-' = raw === '+' ? '+' : raw === '-' || raw === '\u2212' ? '-' : ''
+  return { base: m[1], suffix }
+}
+
+/** Nullable wrapper for UI when letter may be missing. */
+export function formatGradeParts(letter: Letter | string | null | undefined): GradeParts | null {
+  if (letter == null || letter === '') return null
+  return splitLetter(letter)
+}
 
 /** School letter from a 0–5 score. null / non-finite → no letter. */
 export function letterFromScore(score: number | null | undefined): Letter | null {
   if (score == null || !Number.isFinite(score)) return null
   if (score >= 4.7) return 'A+'
   if (score >= 4.3) return 'A'
-  if (score >= 4.0) return 'A−'
+  if (score >= 4.0) return 'A-'
   if (score >= 3.7) return 'B+'
   if (score >= 3.3) return 'B'
-  if (score >= 3.0) return 'B−'
+  if (score >= 3.0) return 'B-'
   if (score >= 2.7) return 'C+'
   if (score >= 2.3) return 'C'
-  if (score >= 2.0) return 'C−'
+  if (score >= 2.0) return 'C-'
   return 'D'
 }
 

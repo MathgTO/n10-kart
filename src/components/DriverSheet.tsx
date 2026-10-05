@@ -11,8 +11,6 @@ function DriverForm({ d, onDone }: { d: DriverProfile; onDone: () => void }) {
   const [age, setAge] = useState(d.age != null ? String(d.age) : '')
   const [cls, setCls] = useState(d.classDefault ?? 'junior_light')
   const [kid, setKid] = useState(d.kidCard)
-  const [phone, setPhone] = useState(d.shareContact?.phone ?? '')
-  const [email, setEmail] = useState(d.shareContact?.email ?? '')
   const count = sessions.filter((s) => s.driverId === d.id).length
   const input = 'mt-1 block min-h-[48px] w-full rounded-lg border border-n10-border bg-black px-3 text-base text-white'
   return (
@@ -50,16 +48,6 @@ function DriverForm({ d, onDone }: { d: DriverProfile; onDone: () => void }) {
         <span className="font-semibold text-white">Kid report card (school letters, kid voice)</span>
         <input type="checkbox" className="h-6 w-6 accent-[#c8f542]" checked={kid} onChange={(e) => setKid(e.target.checked)} />
       </label>
-      <div className="grid grid-cols-2 gap-3">
-        <label className="block text-sm font-semibold text-n10-soft">
-          Share phone
-          <input className={input} inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
-        </label>
-        <label className="block text-sm font-semibold text-n10-soft">
-          Share email
-          <input className={input} inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        </label>
-      </div>
       <div>
         <p className="label-lg">Bound loggers</p>
         {d.boundLoggers.length === 0 ? (
@@ -92,7 +80,6 @@ function DriverForm({ d, onDone }: { d: DriverProfile; onDone: () => void }) {
               age: age ? Number(age) : undefined,
               classDefault: cls,
               kidCard: kid,
-              shareContact: { phone: phone || undefined, email: email || undefined },
             })
             onDone()
           }}
