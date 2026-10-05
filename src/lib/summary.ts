@@ -6,6 +6,7 @@
  */
 import { getTrack } from '@/data/tracks'
 import { dimGrade, overallLetter, type Letter } from './grades'
+import { HIDDEN_GRADE_DIMS } from './rubric'
 import { getDrill } from './rubric'
 import { lapShort, lapSpokenShort, numberWords } from './speech'
 import { lapValidity } from './telemetry'
@@ -219,6 +220,7 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
   for (const sc of report.scores) {
     const id = sc.dimension_id
     if (id === 'D19') continue
+    if (HIDDEN_GRADE_DIMS.has(id)) continue
     if (id === 'D20' && !wet) continue
     if (RACECRAFT.has(id) && !race) continue
     const g = dimGrade(sc)

@@ -195,7 +195,7 @@ export function SessionPage() {
         </span>
       </div>
 
-      <GradeDeltaStrip current={session} previous={a.previous} />
+      <GradeDeltaStrip current={session} previous={a.previous} vocabulary={view === 'coach' ? 'numbers' : 'letters'} />
 
       {view === 'driver' ? (
         <SchoolCard summary={summary}>
@@ -285,7 +285,9 @@ export function SessionPage() {
           {best && ref && <OverlayCharts best={best} reference={ref} cornerLabels={cornerLabels} band={cls.peakSpeedBand ?? undefined} floor={cls.cornerExitLowRpm ?? undefined} />}
           <CornerCards corners={session.corners} selectedSectorIndex={selectedSectorIndex} onSelectSector={setSelectedSectorIndex} />
           <CornerExitsDetail session={session} confoundNote={verdict.exitsConfounded ? 'Kart setup is the likely limiter on exits this outing — no exit grade (see the setup card).' : undefined} />
-          <VsLastStrip deltas={session.report.vs_last} priorityAdvanced={session.report.priority_advanced} priorityDim={session.report.priority_dimension_id} />
+          {view === 'coach' && (
+            <VsLastStrip deltas={session.report.vs_last} priorityAdvanced={session.report.priority_advanced} priorityDim={session.report.priority_dimension_id} />
+          )}
 
           {session.report.racecraft_cue && (
             <section className="panel">

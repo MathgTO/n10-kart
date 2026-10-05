@@ -16,6 +16,8 @@ const BUCKETS: Bucket[] = [
   { id: 'race', label: 'Race', ids: ['D14', 'D15', 'D16', 'D17'] },
 ]
 
+export type GradeVocabulary = 'letters' | 'numbers'
+
 function meanScore(scores: DimensionScore[] | undefined, ids: string[]): number | null {
   if (!scores?.length) return null
   const vals = ids
@@ -30,19 +32,37 @@ function letterDelta(prev: Letter | null, now: Letter | null): number | null {
   return (LETTER_RANK[now] ?? 0) - (LETTER_RANK[prev] ?? 0)
 }
 
+function fmtScore(n: number | null): string {
+  if (n == null || !Number.isFinite(n)) return '—'
+  return n.toFixed(1)
+}
+
 export function GradeDeltaStrip({
   current,
   previous,
+  vocabulary = 'letters',
 }: {
   current: StoredSession
   previous: StoredSession | null
+  /** Driver view → letters; Coach view → 0–5 numbers. */
+  vocabulary?: GradeVocabulary
 }) {
   const pills = BUCKETS.map((b) => {
-    const now = letterFromScore(meanScore(current.report?.scores, b.ids))
-    const prev = letterFromScore(meanScore(previous?.report?.scores, b.ids))
-    const d = letterDelta(prev, now)
-    return { ...b, now, prev, d }
-  }).filter((p) => p.now != null || p.prev != null)
+    const nowScore = meanScore(current.report?.scores, b.ids)
+    const prevScore = meanScore(previous?.report?.scores, b.ids)
+    const now = letterFromScore(nowScore)
+    const prev = letterFromScore(prevScore)
+    const dLetter = letterDelta(prev, now)
+    const dNum =
+      prevScore != null && nowScore != null && Number.isFinite(prevScore) && Number.isFinite(nowScore)
+        ? nowScore - prevScore
+        : null
+    return { ...b, now, prev, nowScore, prevScore, dLetter, dNum }
+  }).filter((p) =>
+    vocabulary === 'numbers'
+      ? p.nowScore != null || p.prevScore != null
+      : p.now != null || p.prev != null,
+  )
 
   if (!previous) {
     return (
@@ -70,14 +90,15 @@ export function GradeDeltaStrip({
       </div>
       <div className="mt-3 flex overflow-x-auto pb-1" style={{ gap: 10 }}>
         {pills.map((p) => {
-          const up = p.d != null && p.d > 0
-          const down = p.d != null && p.d < 0
+          const d = vocabulary === 'numbers' ? p.dNum : p.dLetter
+          const up = d != null && d > 0
+          const down = d != null && d < 0
           const tone = up
             ? 'border-emerald-400/35 bg-emerald-400/10'
             : down
               ? 'border-rose-400/35 bg-rose-400/10'
               : 'border-n10-border bg-n10-card'
-          const arrow = up ? '▲' : down ? '▼' : p.d === 0 ? '●' : null
+          const arrow = up ? '▲' : down ? '▼' : d === 0 ? '●' : null
           const arrowColor = up ? 'text-emerald-400' : down ? 'text-rose-400' : 'text-n10-mute'
           return (
             <div key={p.id} className={`min-w-[6.25rem] flex-1 rounded-xl border ${tone}`} style={{ padding: '12px 10px' }}>
@@ -89,11 +110,19 @@ export function GradeDeltaStrip({
                   </span>
                 )}
               </div>
-              <div className="mt-2 flex items-end justify-center gap-1.5">
-                {p.prev ? <GradeLetter letter={p.prev} size="lg" className="text-n10-soft" /> : <span className="text-xl text-n10-mute">—</span>}
-                <span className="pb-1 text-sm font-extrabold text-n10-mute">→</span>
-                {p.now ? <GradeLetter letter={p.now} size="xl" className="text-n10-lime" /> : <span className="text-3xl text-n10-mute">—</span>}
-              </div>
+              {vocabulary === 'numbers' ? (
+                <div className="mt-2 flex items-end justify-center gap-1.5">
+                  <span className="text-lg font-bold text-n10-soft">{fmtScore(p.prevScore)}</span>
+                  <span className="pb-0.5 text-sm font-extrabold text-n10-mute">→</span>
+                  <span className="text-2xl font-black text-n10-lime">{fmtScore(p.nowScore)}</span>
+                </div>
+              ) : (
+                <div className="mt-2 flex items-end justify-center gap-1.5">
+                  {p.prev ? <GradeLetter letter={p.prev} size="lg" className="text-n10-soft" /> : <span className="text-xl text-n10-mute">—</span>}
+                  <span className="pb-1 text-sm font-extrabold text-n10-mute">→</span>
+                  {p.now ? <GradeLetter letter={p.now} size="xl" className="text-n10-lime" /> : <span className="text-3xl text-n10-mute">—</span>}
+                </div>
+              )}
             </div>
           )
         })}
