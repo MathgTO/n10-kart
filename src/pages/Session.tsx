@@ -44,7 +44,7 @@ export function SessionPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.id])
 
-  // Coach view opens deep dive; Driver view keeps it collapsed/hidden by default.
+  // Coach view opens deep dive; Driver view keeps it collapsed by default.
   useEffect(() => {
     if (view === 'coach') setDeepOpen(true)
     else setDeepOpen(false)
@@ -151,7 +151,7 @@ export function SessionPage() {
 
       {session.isDemo && <p className="text-sm text-amber-200/90">Demo data generated for illustration, not a real recording.</p>}
 
-      {/* Before next round — Driver hero: one driver focus + one kart line */}
+      {/* Before next round — one driver focus + one kart line */}
       {view === 'driver' && (
         <section className="rounded-2xl border border-n10-lime/50 bg-n10-lime/5 p-4 sm:p-5">
           <p className="text-sm font-bold uppercase tracking-wide text-n10-lime">Before next round</p>
@@ -225,7 +225,7 @@ export function SessionPage() {
         </>
       )}
 
-      {/* Deep dive: hidden/collapsed by default on Driver view; open on Coach */}
+      {/* Deep dive: collapsed by default on Driver view; open on Coach */}
       {view === 'driver' && !deepOpen && (
         <button type="button" className="no-print btn-secondary min-h-[48px] w-full" onClick={() => setDeepOpen(true)}>
           Show deep dive

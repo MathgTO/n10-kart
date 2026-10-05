@@ -8,7 +8,6 @@ const LETTER_RANK: Record<string, number> = {
 
 type Bucket = { id: string; label: string; ids: string[] }
 
-/** Glanceable buckets for the between-rounds strip (Setup / Drive / Pace / Cons. / Race). */
 const BUCKETS: Bucket[] = [
   { id: 'setup', label: 'Setup', ids: ['D19'] },
   { id: 'drive', label: 'Drive', ids: ['D2', 'D3', 'D4'] },
@@ -39,10 +38,8 @@ export function GradeDeltaStrip({
   previous: StoredSession | null
 }) {
   const pills = BUCKETS.map((b) => {
-    const nowScore = meanScore(current.report?.scores, b.ids)
-    const prevScore = meanScore(previous?.report?.scores, b.ids)
-    const now = letterFromScore(nowScore)
-    const prev = letterFromScore(prevScore)
+    const now = letterFromScore(meanScore(current.report?.scores, b.ids))
+    const prev = letterFromScore(meanScore(previous?.report?.scores, b.ids))
     const d = letterDelta(prev, now)
     return { ...b, now, prev, d }
   }).filter((p) => p.now != null || p.prev != null)
@@ -83,27 +80,19 @@ export function GradeDeltaStrip({
           const arrow = up ? '▲' : down ? '▼' : p.d === 0 ? '●' : null
           const arrowColor = up ? 'text-emerald-400' : down ? 'text-rose-400' : 'text-n10-mute'
           return (
-            <div
-              key={p.id}
-              className={`min-w-[6.25rem] flex-1 rounded-xl border ${tone}`}
-              style={{ padding: '12px 10px' }}
-            >
+            <div key={p.id} className={`min-w-[6.25rem] flex-1 rounded-xl border ${tone}`} style={{ padding: '12px 10px' }}>
               <div className="flex items-center justify-between gap-1">
                 <p className="text-xs font-bold text-n10-mute truncate">{p.label}</p>
-                {arrow && <span className={`text-[10px] font-extrabold leading-none ${arrowColor}`} aria-hidden>{arrow}</span>}
+                {arrow && (
+                  <span className={`text-[10px] font-extrabold leading-none ${arrowColor}`} aria-hidden>
+                    {arrow}
+                  </span>
+                )}
               </div>
               <div className="mt-2 flex items-end justify-center gap-1.5">
-                {p.prev ? (
-                  <GradeLetter letter={p.prev} size="lg" className="text-n10-soft" />
-                ) : (
-                  <span className="text-xl text-n10-mute">—</span>
-                )}
+                {p.prev ? <GradeLetter letter={p.prev} size="lg" className="text-n10-soft" /> : <span className="text-xl text-n10-mute">—</span>}
                 <span className="pb-1 text-sm font-extrabold text-n10-mute">→</span>
-                {p.now ? (
-                  <GradeLetter letter={p.now} size="xl" className="text-n10-lime" />
-                ) : (
-                  <span className="text-3xl text-n10-mute">—</span>
-                )}
+                {p.now ? <GradeLetter letter={p.now} size="xl" className="text-n10-lime" /> : <span className="text-3xl text-n10-mute">—</span>}
               </div>
             </div>
           )
