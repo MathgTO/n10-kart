@@ -9,7 +9,7 @@ const LETTER_RANK: Record<string, number> = {
 type Bucket = { id: string; label: string; ids: string[] }
 
 const BUCKETS: Bucket[] = [
-  { id: 'tires', label: 'Tires', ids: ['D19'] }, // D19 tire management — not chassis/PSI setup
+  { id: 'tires', label: 'Tire management', ids: ['D19'] }, // D19 tire management — not chassis/PSI setup
   { id: 'drive', label: 'Drive', ids: ['D2', 'D3', 'D4'] },
   { id: 'pace', label: 'Pace', ids: ['D10'] },
   { id: 'cons', label: 'Cons.', ids: ['D18'] },
@@ -103,7 +103,7 @@ export function GradeDeltaStrip({
           return (
             <div key={p.id} className={`min-w-[6.25rem] flex-1 rounded-xl border ${tone}`} style={{ padding: '12px 10px' }}>
               <div className="flex items-center justify-between gap-1">
-                <p className="text-xs font-bold text-n10-mute truncate" title={p.id === 'tires' ? 'Tires — how well pace holds as the tires wear over the heat.' : undefined}>{p.label}</p>
+                <p className="text-xs font-bold text-n10-mute truncate" title={p.id === 'tires' ? 'Tire management — how well pace holds as the tires wear over the heat.' : undefined}>{p.label}</p>
                 {arrow && (
                   <span className={`text-[10px] font-extrabold leading-none ${arrowColor}`} aria-hidden>
                     {arrow}
