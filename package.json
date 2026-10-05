@@ -6,9 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build && cp dist/index.html dist/404.html",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "smoke": "npx --yes tsx --tsconfig tsconfig.app.json scripts/smoke-csv.mjs && npx --yes tsx --tsconfig tsconfig.app.json scripts/smoke-laps.mts && npx --yes tsx --tsconfig tsconfig.app.json scripts/smoke-samples.mts && npx --yes tsx --tsconfig tsconfig.app.json scripts/smoke-health.mts && npx --yes tsx --tsconfig tsconfig.app.json scripts/smoke-xrk-gear.mjs && npx --yes tsx --tsconfig tsconfig.app.json scripts/smoke-redesign.mts"
   },
   "dependencies": {
+    "@photostructure/tz-lookup": "^11.7.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0"

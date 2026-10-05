@@ -3,8 +3,36 @@
  * Extracts LAP times, GPS speed (from NAV-SOL ECEF velocity), and RPM channel samples.
  * Format notes: libxrk / AIM XRK self-framing messages (<h…> headers, (S)/(G)/(M) data).
  */
-import type { LapData, ParseResult, TelemetrySample } from './types'
+import type { FileMeta, GpsSummary, LapData, ParseResult, TelemetrySample } from './types'
 import { synthLap, withDistanceFromSpeed } from './telemetry'
+import { distanceM, ecefToLatLon, median, signedAreaM2, type LatLon } from './geo'
+
+/** GPS epoch (1980-01-06) in Unix ms; UTC = epoch + week·7d + iTOW − leap seconds. */
+const GPS_EPOCH_MS = Date.UTC(1980, 0, 6)
+/** GPS − UTC leap seconds (18 s since 2017-01-01; no change scheduled). */
+export const GPS_LEAP_SECONDS = 18
+
+export function gpsToUtcMs(week: number, itowMs: number): number {
+  return GPS_EPOCH_MS + week * 7 * 86400000 + itowMs - GPS_LEAP_SECONDS * 1000
+}
+
+interface GpsRec {
+  tc: number
+  utcMs: number
+  fix: number
+  good: boolean
+  ll?: LatLon
+  speedMs: number
+}
+
+function modelName(modelId: number | undefined, hw: string | undefined): string | undefined {
+  const h = hw ?? ''
+  if (/MYC6/i.test(h)) return 'MyChron 6'
+  if (/MYC5/i.test(h)) return 'MyChron 5'
+  if (/MYC4/i.test(h)) return 'MyChron 4'
+  if (modelId != null) return `AiM logger ${modelId}`
+  return undefined
+}
 
 function zstr(bytes: Uint8Array): string {
   let end = bytes.length
@@ -126,6 +154,10 @@ export async function parseXrkFile(file: File, buf: ArrayBuffer): Promise<ParseR
   const grps = new Map<number, number[]>()
   const laps: LapMark[] = []
   const gps: { t: number; v: number }[] = []
+  const gpsRecs: GpsRec[] = []
+  const meta: FileMeta = { speedSource: 'gps' }
+  let lastTrk: { name: string; lat: number; lon: number } | null = null
+  let modelId: number | undefined
 
   // Scan all <h…> headers (including nested in CNF)
   let i = 0
@@ -178,9 +210,54 @@ export async function parseXrkFile(file: File, buf: ArrayBuffer): Promise<ParseR
       const vz = i32(view, payOff + 40)
       const speedMs = Math.sqrt(vx * vx + vy * vy + vz * vz) / 100
       gps.push({ t: tc, v: speedMs })
+      // u-blox NAV-SOL after the 4-byte AiM timecode: iTOW, fTOW, week, gpsFix, flags, ECEF cm, pAcc, …, numSV
+      const itow = u32(view, payOff + 4)
+      const week = view.getInt16(payOff + 12, true)
+      const fix = bytes[payOff + 14]
+      const flags = bytes[payOff + 15]
+      const x = i32(view, payOff + 16)
+      const y = i32(view, payOff + 20)
+      const z = i32(view, payOff + 24)
+      const pAcc = u32(view, payOff + 28)
+      const numSV = bytes[payOff + 51]
+      const good = fix >= 3 && (flags & 0x0c) === 0x0c && pAcc <= 500 && numSV >= 5 && (x !== 0 || y !== 0 || z !== 0) && week > 1000
+      gpsRecs.push({
+        tc,
+        utcMs: good ? gpsToUtcMs(week, itow) : NaN,
+        fix,
+        good,
+        ll: good ? ecefToLatLon(x / 100, y / 100, z / 100) : undefined,
+        speedMs,
+      })
+    } else if (token.trim() === 'TRK' && plen >= 44) {
+      // TRK: name[0:32], int32@36 = S/F lat·1e7, int32@40 = S/F lon·1e7. First block is often empty → keep the last filled one.
+      const nm = zstr(bytes.subarray(payOff, payOff + 32)).trim()
+      const lat = i32(view, payOff + 36) / 1e7
+      const lon = i32(view, payOff + 40) / 1e7
+      if (nm || lat !== 0 || lon !== 0) lastTrk = { name: nm, lat, lon }
+    } else if (token === 'TMD' && plen >= 2) {
+      meta.loggerDate = zstr(bytes.subarray(payOff, payOff + plen)).trim() || meta.loggerDate
+    } else if (token === 'TMT' && plen >= 2) {
+      meta.loggerTime = zstr(bytes.subarray(payOff, payOff + plen)).trim() || meta.loggerTime
+    } else if (token === 'SRC' && plen >= 16 && bytes[payOff] === 0x69 && bytes[payOff + 1] === 0x64 && bytes[payOff + 2] === 0x6e) {
+      // Embedded idn: model u16 @6, logger serial u32 @12 (libxrk)
+      modelId = u16(view, payOff + 6)
+      const serial = u32(view, payOff + 12)
+      if (serial > 0) meta.loggerSerial = serial
+    } else if (token === 'HWNF' && plen >= 4) {
+      const hw = zstr(bytes.subarray(payOff, payOff + plen))
+      const reg = /Reg=([a-z]+)/i.exec(hw)
+      if (reg) meta.hwReg = reg[1].toLowerCase()
+      meta.loggerModel = modelName(modelId, hw)
     }
     i++
   }
+
+  if (lastTrk) {
+    meta.trkName = lastTrk.name || undefined
+    if (lastTrk.lat !== 0 || lastTrk.lon !== 0) meta.sf = { lat: lastTrk.lat, lon: lastTrk.lon }
+  }
+  if (!meta.loggerModel) meta.loggerModel = modelName(modelId, undefined)
 
   if (!laps.length) {
     return {
@@ -190,6 +267,7 @@ export async function parseXrkFile(file: File, buf: ArrayBuffer): Promise<ParseR
       channels: { speed: false, rpm: false, lapTimes: false },
       message: `No lap markers found in ${name}.`,
       fileName: name,
+      meta,
     }
   }
 
@@ -292,6 +370,7 @@ export async function parseXrkFile(file: File, buf: ArrayBuffer): Promise<ParseR
 
   laps.sort((a, b) => a.num - b.num)
   const t0 = laps[0].endAbs - laps[0].duration
+  Object.assign(meta, summarizeGps(gpsRecs, laps, t0))
 
   const gpsRel = gps
     .map((s) => ({ t: s.t - t0, v: s.v }))
@@ -376,5 +455,51 @@ export async function parseXrkFile(file: File, buf: ArrayBuffer): Promise<ParseR
     channels: { speed: hasSpeed, rpm: hasRpm, lapTimes: true },
     message: `Parsed ${built.length} laps from ${kind.toUpperCase()} · best ${(best / 1000).toFixed(3)}s · GPS ${hasSpeed ? 'yes' : 'no'} · RPM ${hasRpm ? 'yes' : 'no'}.`,
     fileName: name,
+    meta,
   }
+}
+
+/**
+ * GPS time + position summary: tc→UTC offset (constant within a file), first-lap-start UTC,
+ * moving centroid, extent, median flying-lap length and lap direction (signed area of the fastest flying lap).
+ */
+function summarizeGps(recs: GpsRec[], laps: LapMark[], t0: number): Pick<FileMeta, 'gpsStartUtcMs' | 'gps'> {
+  const good = recs.filter((r) => r.good && r.ll)
+  const gps: GpsSummary = { goodFixes: good.length }
+  if (good.length < 50) return { gps }
+  const offsets = good.map((r) => r.utcMs - r.tc)
+  const off = median(offsets)
+  const gpsStartUtcMs = Math.round(t0 + off)
+
+  const moving = good.filter((r) => r.speedMs > 8)
+  const pool = moving.length >= 50 ? moving : good
+  const lats = pool.map((r) => r.ll!.lat)
+  const lons = pool.map((r) => r.ll!.lon)
+  gps.centroid = { lat: median(lats), lon: median(lons) }
+  const minLat = Math.min(...lats)
+  const maxLat = Math.max(...lats)
+  const minLon = Math.min(...lons)
+  const maxLon = Math.max(...lons)
+  gps.extentM = Math.max(
+    distanceM({ lat: minLat, lon: minLon }, { lat: maxLat, lon: minLon }),
+    distanceM({ lat: minLat, lon: minLon }, { lat: minLat, lon: maxLon })
+  )
+
+  // Per-lap GPS length (drop out-lap and in-lap)
+  const lapPts = laps.map((l) => good.filter((r) => r.tc >= l.endAbs - l.duration && r.tc <= l.endAbs))
+  const lens = lapPts.map((pts) => {
+    let d = 0
+    for (let k = 1; k < pts.length; k++) d += distanceM(pts[k - 1].ll!, pts[k].ll!)
+    return d
+  })
+  const flyingIdx = laps.map((_, k) => k).filter((k) => k > 0 && k < laps.length - 1 && lens[k] > 200)
+  if (flyingIdx.length) {
+    const med = median(flyingIdx.map((k) => lens[k]))
+    const keep = flyingIdx.filter((k) => Math.abs(lens[k] / med - 1) <= 0.03)
+    gps.lapLengthM = Math.round(median(keep.map((k) => lens[k])))
+    const fastest = keep.reduce((b, k) => (laps[k].duration < laps[b].duration ? k : b), keep[0])
+    const area = signedAreaM2(lapPts[fastest].map((r) => r.ll!))
+    if (Math.abs(area) > 1000) gps.direction = area > 0 ? 'ccw' : 'cw'
+  }
+  return { gpsStartUtcMs, gps }
 }
