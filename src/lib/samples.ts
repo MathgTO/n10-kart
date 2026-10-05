@@ -1,6 +1,6 @@
 /**
  * Real MyChron sessions bundled in public/samples (Mosport Karting Centre, logger 35023763).
- * Used by "Try a real Mosport session" so anyone without a MyChron can see a real .xrk parsed in the browser.
+ * Used when those files are imported (setup hints / aliases) — not exposed as a Home CTA.
  * Date/time, track, layout and driver now come from the file itself (GPS time + TRK + logger serial);
  * only the owner-confirmed setup (sprockets, tire, cold PSI) is carried here because it is not in the file.
  */

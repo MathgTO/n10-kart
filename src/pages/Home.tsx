@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { ImportModal } from '@/components/ImportModal'
 import { useSessions } from '@/hooks/SessionsContext'
 import { getClassConfig } from '@/lib/classConfig'
 import { initial } from '@/lib/drivers'
 import { formatLapTime } from '@/lib/format'
-import { fetchSampleFile, findSample, REAL_SAMPLES, type BundledSample } from '@/lib/samples'
 import { dayHeader, labelParts, sessionLocal } from '@/lib/sessionLabel'
 import { loggerDateLabel } from '@/lib/sessionTime'
 import type { StoredSession } from '@/lib/types'
@@ -62,37 +61,9 @@ function IosHomeScreenTip() {
 }
 
 export function Home() {
-  const { sessions, drivers, loadDemos, deleteSession, importFile } = useSessions()
+  const { sessions, drivers, loadDemos, deleteSession } = useSessions()
   const [importOpen, setImportOpen] = useState(false)
-  const nav = useNavigate()
-  const [pickerOpen, setPickerOpen] = useState(false)
-  const [sampleBusy, setSampleBusy] = useState<string | null>(null)
-  const [sampleError, setSampleError] = useState<string | null>(null)
   const [driverFilter, setDriverFilter] = useState<string>('all')
-
-  /** Loads a real MyChron .xrk from Mosport (bundled in public/samples) through the normal import path. */
-  async function openRealSession(sample: BundledSample) {
-    setSampleError(null)
-    const existing = sessions.find((s) => findSample(s.sourceFileName)?.file === sample.file)
-    if (existing) {
-      nav(`/session/${existing.id}`)
-      return
-    }
-    setSampleBusy(sample.file)
-    try {
-      const file = await fetchSampleFile(sample)
-      const result = await importFile(file)
-      if (!result.session) {
-        setSampleError(result.parse.message || 'Could not read the sample session.')
-        return
-      }
-      nav(`/session/${result.session.id}/setup`, { state: { fresh: true } })
-    } catch (e) {
-      setSampleError(e instanceof Error ? e.message : 'Could not load the sample session.')
-    } finally {
-      setSampleBusy(null)
-    }
-  }
 
   const multiDriver = drivers.length >= 2
   const visible = sessions.filter((s) => driverFilter === 'all' || s.driverId === driverFilter)
@@ -126,33 +97,11 @@ export function Home() {
           <button type="button" className="btn-primary min-h-[48px]" onClick={() => setImportOpen(true)}>
             Import
           </button>
-          <button type="button" className="btn-secondary min-h-[48px]" aria-expanded={pickerOpen} onClick={() => setPickerOpen((v) => !v)}>
-            Try a real Mosport session
-          </button>
           <button type="button" className="btn-secondary min-h-[48px]" onClick={() => loadDemos()}>
             Demo sessions
           </button>
         </div>
       </section>
-
-      {pickerOpen && (
-        <ul className="grid gap-2 sm:grid-cols-3" aria-label="Real Mosport sessions">
-          {REAL_SAMPLES.map((s) => (
-            <li key={s.file}>
-              <button
-                type="button"
-                className="min-h-[64px] w-full rounded-xl border border-n10-border bg-n10-panel px-4 py-3 text-left hover:border-n10-lime disabled:opacity-60"
-                onClick={() => void openRealSession(s)}
-                disabled={sampleBusy != null}
-              >
-                <span className="block font-semibold text-white">{sampleBusy === s.file ? 'Reading .xrk…' : s.label}</span>
-                <span className="block text-sm text-n10-mute">{s.note}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-      {sampleError && <p className="text-sm text-red-300">{sampleError}</p>}
 
       {multiDriver && (
         <div className="flex flex-wrap gap-2" role="tablist" aria-label="Driver">
