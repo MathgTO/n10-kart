@@ -32,7 +32,7 @@ export function VsLastStrip({
   }
   const top = deltas.slice(0, 5)
   return (
-    <section className="panel">
+    <section className="panel max-w-full overflow-x-clip">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-bold">vs last session</h2>
         <p className="text-sm text-n10-soft">
@@ -45,14 +45,14 @@ export function VsLastStrip({
           )}
         </p>
       </div>
-      <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         {top.map((d) => {
           const label = getDimension(d.dimension_id)?.label ?? d.dimension_id
           const up = d.delta > 0
           return (
             <div
               key={d.dimension_id}
-              className="min-w-[7.5rem] rounded-xl border border-n10-border bg-n10-card p-3"
+              className="min-w-0 rounded-xl border border-n10-border bg-n10-card p-3"
             >
               <p className="text-xs font-semibold text-n10-mute truncate">{label}</p>
               <p className={`text-lg font-bold ${up ? 'text-emerald-400' : d.delta < 0 ? 'text-red-400' : 'text-white'}`}>

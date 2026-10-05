@@ -115,7 +115,7 @@ export function SessionPage() {
   }
 
   return (
-    <div className="space-y-5 pb-28">
+    <div className="min-w-0 max-w-full space-y-5 pb-28">
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <Link to="/" className="no-print inline-flex min-h-[44px] items-center text-sm font-semibold text-n10-lime">
@@ -182,7 +182,7 @@ export function SessionPage() {
 
       <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-n10-border bg-n10-panel px-4 py-3">
         {best && (
-          <p className="mr-2 text-white">
+          <p className="mr-2 min-w-0 break-words text-white">
             <span className="font-semibold">★ Best lap {summary.bestLap?.lapNumber}</span> <span className="text-xl font-black">{formatLapTime(best.timeMs)}</span>
             {summary.compareLap && (
               <span className="text-sm text-n10-soft">
@@ -349,15 +349,15 @@ export function SessionPage() {
       )}
 
       {/* Sticky bottom: Import another + Share → native PDF sheet directly */}
-      <div className="no-print fixed inset-x-0 bottom-0 z-40 border-t border-n10-border bg-black/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur">
+      <div className="no-print fixed inset-x-0 bottom-0 z-40 border-t border-n10-border bg-black/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
         <div className="mx-auto max-w-3xl space-y-2">
-          <div className="flex gap-2">
-            <button type="button" className="btn-secondary min-h-[48px] flex-1" onClick={() => setImportOpen(true)}>
+          <div className="flex min-w-0 gap-2">
+            <button type="button" className="btn-secondary min-h-[48px] min-w-0 flex-1 px-3 sm:px-5" onClick={() => setImportOpen(true)}>
               Import another
             </button>
             <button
               type="button"
-              className="btn-primary min-h-[48px] flex-1"
+              className="btn-primary min-h-[48px] min-w-0 flex-1 px-3 sm:px-5"
               disabled={shareBusy}
               onClick={() => void onShare()}
             >

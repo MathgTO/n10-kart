@@ -83,12 +83,13 @@ export function GradeDeltaStrip({
   }
 
   return (
-    <section className="rounded-2xl border border-n10-border bg-n10-panel px-4 py-3">
+    <section className="max-w-full overflow-x-clip rounded-2xl border border-n10-border bg-n10-panel px-4 py-3">
       <div>
         <h2 className="text-base font-bold text-white">vs last session</h2>
         <p className="mt-0.5 text-xs font-bold uppercase tracking-wide text-n10-mute">prev → now</p>
       </div>
-      <div className="mt-3 flex overflow-x-auto pb-1" style={{ gap: 10 }}>
+      {/* Wrap on narrow phones so pills never spill past the viewport (iOS Safari horizontal pan). */}
+      <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
         {pills.map((p) => {
           const d = vocabulary === 'numbers' ? p.dNum : p.dLetter
           const up = d != null && d > 0
@@ -101,7 +102,7 @@ export function GradeDeltaStrip({
           const arrow = up ? '▲' : down ? '▼' : d === 0 ? '●' : null
           const arrowColor = up ? 'text-emerald-400' : down ? 'text-rose-400' : 'text-n10-mute'
           return (
-            <div key={p.id} className={`min-w-[6.25rem] flex-1 rounded-xl border ${tone}`} style={{ padding: '12px 10px' }}>
+            <div key={p.id} className={`min-w-0 rounded-xl border ${tone}`} style={{ padding: '12px 10px' }}>
               <div className="flex items-center justify-between gap-1">
                 <p className="text-xs font-bold text-n10-mute truncate" title={p.id === 'tires' ? 'Tire management — how well pace holds as the tires wear over the heat.' : undefined}>{p.label}</p>
                 {arrow && (

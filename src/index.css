@@ -8,6 +8,8 @@
 
 html, body, #root {
   min-height: 100%;
+  max-width: 100%;
+  overflow-x: clip; /* stop iOS Safari page pan from child overflow-x strips */
 }
 
 body {

@@ -263,7 +263,7 @@ export function SetupStepPage() {
             {psiNote}
           </p>
         </header>
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-n10-border bg-black/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-n10-border bg-black/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
           <div className="mx-auto flex max-w-3xl flex-col gap-2">
             <button type="button" className="btn-primary min-h-[52px] w-full text-lg" onClick={() => save(true)}>
               Same as last round
@@ -572,7 +572,7 @@ export function SetupStepPage() {
         </div>
       </details>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-n10-border bg-black/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-n10-border bg-black/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
         <div className="mx-auto flex max-w-3xl flex-col gap-2">
           <button type="button" className="btn-primary min-h-[52px] w-full text-lg" onClick={() => save()}>
             Save and see report

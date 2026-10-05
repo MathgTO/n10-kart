@@ -59,7 +59,7 @@ export function CornerExitsDetail({ session, confoundNote }: { session: StoredSe
           {confoundNote && gps ? ' GPS speed only.' : ''}
         </p>
       )}
-      <div className="mt-3 overflow-x-auto">
+      <div className="mt-3 max-w-full min-w-0 overflow-x-auto overscroll-x-contain">
         <table className="w-full text-left text-sm">
           <thead className="text-n10-mute">
             <tr>

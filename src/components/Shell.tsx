@@ -14,7 +14,7 @@ export function Shell() {
     window.scrollTo(0, 0)
   }, [pathname])
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen max-w-full flex-col overflow-x-clip">
       <header className="no-print sticky top-0 z-40 border-b border-n10-border bg-black/90 pt-[env(safe-area-inset-top)] backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-2">
           <Link to="/" className="flex min-h-[44px] items-center gap-2" aria-label="N10 sessions">
@@ -26,7 +26,7 @@ export function Shell() {
           </button>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5">
+      <main className="mx-auto w-full min-w-0 max-w-6xl flex-1 overflow-x-clip px-4 py-5">
         {storageFull && (
           <div role="alert" className="mb-4 rounded-xl border border-amber-300/50 bg-amber-300/10 px-4 py-3 text-sm text-amber-100">
             <span className="font-bold">Storage full, delete old sessions.</span> Your latest changes couldn&apos;t be saved on this device.
