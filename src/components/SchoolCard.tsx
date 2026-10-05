@@ -30,7 +30,7 @@ function DimRow({ s }: { s: Subject }) {
   )
 }
 
-/** Kid/adult school report: Keep / Start / Stop / Overall prose (no letters) + the same graded dim set as Coach. */
+/** Driver/coach school report: Keep / Start / Stop / Overall prose (no letters) + the same graded dim set as Coach. */
 export function SchoolCard({ summary, children }: { summary: DriverSummary; children?: React.ReactNode }) {
   const startTitle = summary.badDay ? 'Next focus' : 'Start doing'
   return (

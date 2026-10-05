@@ -14,7 +14,7 @@ export function SetupCard({
   sessionId: string
   confirmed: boolean
   kid: boolean
-  /** Coach view / explicit request — never on Kid by default. */
+  /** Coach view / explicit request — never on Driver view by default. */
   showTunerVoice?: boolean
 }) {
   return (
