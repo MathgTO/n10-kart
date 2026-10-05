@@ -91,8 +91,11 @@ function migrate(s: StoredSession): StoredSession {
     out.driverSource = out.driverSource ?? 'migrated'
   }
   if (out.isDemo) {
-    out.classId = out.classId ?? 'junior_light'
+    // Demos always teach Junior Light (blue .520 / 6150 / Vega White) — never yellow Junior.
+    out.classId = 'junior_light'
+    out.classAssumption = getClassConfig('junior_light').label
     out.layoutId = out.layoutId ?? 'gp'
+    out.setup = { tireCompound: getClassConfig('junior_light').defaultTire, rearTeeth: 67, ...out.setup }
     out.setupConfirmed = true
   }
   if (!out.setup && out.gearing) out.setup = { rearTeeth: out.gearing.rearTeeth, frontTeeth: out.gearing.frontTeeth }

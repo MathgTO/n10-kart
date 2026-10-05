@@ -298,38 +298,35 @@ function scoreFromTelemetry(
       }
     }
 
-    let score: number
-    if (seeded[id] != null) {
-      score = seeded[id]
-    } else {
-      score = 3.2
-      if (JUNIOR_EMPHASIS.includes(id) || MOSPORT_BIAS.includes(id)) score = 2.9
-      if (['D14', 'D15', 'D16', 'D17'].includes(id)) {
-        score = series === 'practice' ? 3.8 : series === 'bsc_ontario' ? 2.7 : 3.0
-      }
-      if (id === 'D20') score = conditions === 'wet' ? 3.0 : 4.0
-      const jitter = ((id.charCodeAt(1) % 5) - 2) * 0.25
-      score += jitter
-    }
-    // Soften with max loss for lap-craft dims
-    if (['D1', 'D2', 'D3', 'D5', 'D6', 'D8'].includes(id) && maxLoss > 80) {
-      score -= 0.5
-    }
-    const kind = evidenceKind(id, hasTelemetry, hasVideo, ch)
-    const clamped = clampScore(score)
-    const band = scoreBand(clamped)
-    const markers: string[] = []
-    if (MYCHRON_HONEST.has(id)) {
+    // Measured MyChron dims with a seeded score (D7 / D10 / D18).
+    if (seeded[id] != null && MYCHRON_HONEST.has(id)) {
+      const clamped = clampScore(seeded[id])
+      const band = scoreBand(clamped)
+      const markers: string[] = []
       if (id === 'D7') markers.push(`S1–S4 spread ~${Math.round(variance)} ms`)
       if (id === 'D18') markers.push(`vs ideal ${Math.round(consistencyGap)} ms`)
       if (id === 'D10') markers.push(`Peak S-split loss ${Math.round(maxLoss)} ms`)
+      return {
+        dimension_id: id,
+        score: clamped,
+        evidence_kind: 'mychron' as EvidenceKind,
+        evidence_markers: markers,
+        notes: dim?.example_feedback[band],
+      }
     }
+
+    // Honesty: never invent a 2.9–3.2 "estimate" that looks measured.
+    // Heuristic / video-needed dims stay N/A until real evidence exists (D1–D3 only via sector-loss path above).
+    const kind = evidenceKind(id, hasTelemetry, hasVideo, ch)
     return {
       dimension_id: id,
-      score: clamped,
+      score: null,
       evidence_kind: kind,
-      evidence_markers: markers,
-      notes: dim?.example_feedback[band],
+      evidence_markers: [],
+      notes:
+        kind === 'needs_kart_cam'
+          ? 'Not scored: needs someone watching on track. N10 only reads logger data.'
+          : 'Not measured from logger data — no estimate score.',
     }
   })
 }

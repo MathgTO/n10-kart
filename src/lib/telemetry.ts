@@ -1,15 +1,16 @@
 import type { LapData, TelemetrySample } from './types'
 
-/** Synthetic but realistic LO206 Junior Mosport-ish lap (~62s) */
+/** Synthetic but realistic LO206 Junior Light Mosport-ish lap (~62s). Default RPM cap = 6150 (blue .520). */
 export function synthLap(
   timeMs: number,
   seed: number,
-  opts?: { exitRpmBias?: number; earlyBrake?: number }
+  opts?: { exitRpmBias?: number; earlyBrake?: number; maxRpm?: number }
 ): LapData {
   const samples: TelemetrySample[] = []
   const n = 180
   const exitBias = opts?.exitRpmBias ?? 0
   const earlyBrake = opts?.earlyBrake ?? 0
+  const rpmCap = opts?.maxRpm ?? 6150
   for (let i = 0; i <= n; i++) {
     const u = i / n
     const t = (timeMs / 1000) * u
@@ -18,11 +19,11 @@ export function synthLap(
     const base = 72 + 22 * Math.sin(u * Math.PI * 2) - 18 * Math.max(0, cornerWave)
     const brakeDip = earlyBrake > 0 && u > 0.22 && u < 0.32 ? earlyBrake * 8 : 0
     const speed = Math.max(28, base - brakeDip + (seed % 5) * 0.3)
-    // RPM tracks speed (synthetic demo trace); exits recover toward the top of the rev range
+    // RPM tracks speed (synthetic demo trace); exits recover toward the class limiter
     const inExit = cornerWave < -0.2
     const rpmBase = 4200 + speed * 22
     const rpm = Math.min(
-      6100,
+      rpmCap,
       Math.max(3800, rpmBase + (inExit ? 400 + exitBias : 0) + Math.sin(u * 40) * 40)
     )
     samples.push({ t, dist: u, speed, rpm })
