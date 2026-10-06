@@ -13,9 +13,10 @@
   to = "/:splat"
   status = 301
 
-# SPA fallback
+# SPA fallback only for real client routes (src/App.tsx: /, /session/:id, /session/:id/setup).
+# "/" is dist/index.html; /privacy and /support are static files. Everything else gets dist/404.html with HTTP 404.
 [[redirects]]
-  from = "/*"
+  from = "/session/*"
   to = "/index.html"
   status = 200
 
@@ -58,3 +59,9 @@
     Cache-Control = "public, max-age=0, must-revalidate"
     Content-Type = "application/javascript; charset=utf-8"
 
+
+[[headers]]
+  for = "/llms.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+    Cache-Control = "public, max-age=0, must-revalidate"

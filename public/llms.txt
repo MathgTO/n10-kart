@@ -1,0 +1,26 @@
+# N10
+
+> N10 is a free karting data analysis app for Briggs LO206 drivers and tuners who log with an AiM MyChron. It reads MyChron .xrk / .xrz session files (or a Race Studio CSV export) in any browser (Mac, iPhone, iPad, Android, Windows) and gives a race report, a coaching note for the driver, and a setup note for the tuner between heats. Session files are analyzed on the device and are not uploaded.
+
+Key facts:
+
+- What it does: lap times and best lap, sector and delta versus a reference lap, GPS speed and RPM overlays, exit RPM, Keep / Start / Stop grades, a driver coaching note (where the time is, corner by corner), and a tuner setup note from the data (gear ratio, clutch, tire pressure).
+- Files: native MyChron .xrk and .xrz, and Race Studio CSV exports (lap, time, GPS speed, RPM, distance; sectors when present). Export from Race Studio 3, then open the file in N10.
+- Race Studio 3: N10 is a between-runs alternative for Mac and phone, not full Race Studio 3 parity. It does not do water temp, EGT or CHT maps, TPS or brake-pressure analysis, or full channel math. Race Studio 3 stays the full Windows tool for deep analysis and logger configuration.
+- Built for: Briggs LO206 drivers, parents and tuners. No logger handy? "Try sample sessions" on the home screen loads demo data (the iPad app also includes two real sessions recorded at Mosport Karting Centre).
+- Devices: runs in the browser with no install; on iPhone or iPad use Share → Add to Home Screen. The support and privacy pages also cover the N10 app for iPad and Mac.
+- Price: free. No account or sign-in.
+- Privacy: session files are read and analyzed on your device and are never uploaded; N10 has no server that receives session data. The n10kart.com website uses Google Analytics to count visits (standard usage data such as pages viewed and device type, never session files). The N10 app collects no data.
+- Made by: Mathieu Gamache. Contact: mathieugamache@icloud.com.
+- Independence: N10 is not affiliated with or endorsed by Briggs & Stratton or AiM Sportline. LO206, Briggs & Stratton, AiM, MyChron and Race Studio are trademarks of their owners.
+- Safety: review data between sessions. Never use N10 while driving.
+
+## App and help
+
+- [N10 app](https://n10kart.com/): Open a MyChron session in the browser. Try sample sessions if you have no logger handy.
+- [Support](https://n10kart.com/support): How to import .xrk / .xrz / CSV, why some laps are greyed out, storage, and contact.
+- [Privacy policy](https://n10kart.com/privacy): What happens to your files (they stay on your device) and how the website uses Google Analytics.
+
+## Optional
+
+- [Sitemap](https://n10kart.com/sitemap.xml)

@@ -26,6 +26,29 @@ const STEPS_REPORT = [
   },
 ]
 
+const FAQ = [
+  {
+    q: 'Is N10 a Race Studio 3 alternative?',
+    a: 'For between-runs analysis on Mac and phone, yes. N10 reads your MyChron session in the browser and gives you lap times, delta, speed, RPM, a coaching note and a setup note before the next outing. Race Studio 3 remains the full Windows tool for deep analysis and logger configuration.',
+  },
+  {
+    q: 'Does N10 work on Mac without Windows?',
+    a: 'Yes. N10 runs in the browser on Mac, iPhone, iPad and Android — no Windows, Boot Camp or virtual machine needed. On iPhone or iPad, tap Share → Add to Home Screen to open it like an app. Your sessions stay on the device.',
+  },
+  {
+    q: 'Which MyChron files does N10 read?',
+    a: 'Native MyChron .xrk and .xrz files, and CSV files exported from Race Studio (lap, time, GPS speed, RPM, distance; sectors when present). Files are read on your device and sessions stay on the device.',
+  },
+  {
+    q: 'What does N10 not do that Race Studio 3 does?',
+    a: 'N10 is not full Race Studio 3 parity. It does not do water temp, EGT or CHT maps, TPS or brake pressure analysis, or full channel math. N10 focuses on laps, delta, speed, RPM and exit RPM, plus the coaching note and the setup note.',
+  },
+  {
+    q: 'What karting data analysis does N10 do with a MyChron session?',
+    a: 'N10 runs karting data analysis on your MyChron .xrk or .xrz in the browser: lap times, delta, speed and RPM, a session debrief coaching note, and LO206 setup notes from the data. Files stay on your device.',
+  },
+]
+
 function useInViewOnce<T extends HTMLElement>() {
   const ref = useRef<T | null>(null)
   const [visible, setVisible] = useState(false)
@@ -155,6 +178,21 @@ export function LandingFirstVisit() {
             Same session. Two clear answers — the report and the notes.
           </p>
         </FadeIn>
+      </section>
+
+      {/* Questions (mirrors the FAQPage JSON-LD in index.html) */}
+      <section className="mt-14 border-t border-n10-border pt-10 sm:mt-16" aria-labelledby="faq-heading">
+        <h2 id="faq-heading" className="text-xl font-semibold text-white">
+          Questions
+        </h2>
+        <dl className="mt-4 max-w-2xl space-y-5">
+          {FAQ.map((f) => (
+            <div key={f.q}>
+              <dt className="text-base font-semibold text-white">{f.q}</dt>
+              <dd className="mt-1 text-sm leading-relaxed text-n10-mute">{f.a}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
 
       {/* Below the fold */}
