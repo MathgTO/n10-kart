@@ -150,7 +150,7 @@ export function buildReportCardPdf(summary: DriverSummary, opts?: ReportPdfOpts)
     doc.text(`Lap ${summary.bestLap.lapNumber}`, margin + 5 + lapW + 3, y + 11.5)
     if (summary.theoreticalBest) {
       const right = pageW - margin - 4
-      const gapBit = summary.theoreticalBest.gapText ? ` · ${summary.theoreticalBest.gapText}` : ''
+      const gapBit = summary.theoreticalBest.gapText ? ` · ${summary.theoreticalBest.gapText} vs best` : ''
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(7)
       doc.setTextColor(MUTE[0], MUTE[1], MUTE[2])

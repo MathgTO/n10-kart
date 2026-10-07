@@ -369,13 +369,14 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
   if (bestLap) v.push(`Best lap was a ${bestLap.spoken} on lap ${numberWords(bestLap.lapNumber)}.`)
   if (theoreticalBest) {
     const tenths = Math.round(theoreticalBest.gapMs / 100)
+    // Gap is best − theoretical: the driver is off the theoretical, not the other way around.
     const gap =
       tenths >= 1
-        ? `, about ${tenths === 1 ? 'a tenth' : `${numberWords(tenths)}-tenths`} off your best lap`
+        ? `You're about ${tenths === 1 ? 'a tenth' : `${numberWords(tenths)}-tenths`} off it.`
         : theoreticalBest.gapMs >= 20
-          ? ', a few hundredths off your best lap'
-          : " — you're right on it"
-    v.push(`Theoretical best is a ${lapSpokenShort(theoreticalBest.ms)}${gap}.`)
+          ? "You're a few hundredths off it."
+          : "You're right on it."
+    v.push(`Theoretical best is a ${lapSpokenShort(theoreticalBest.ms)}. ${gap}`)
   }
   if (close) v.push(`${badDay ? 'Good effort' : "That's a solid build"} — by lap ${numberWords(close)} you were already close, so you're finding the kart early.`)
   else if (keepSubject) v.push(`${keepSubject.why}`)

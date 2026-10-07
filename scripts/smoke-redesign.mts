@@ -102,11 +102,19 @@ check(
   !!a.summary.theoreticalBest && a.summary.theoreticalBest.text === formatLapTime(a.summary.theoreticalBest.ms) && (a.summary.theoreticalBest.gapMs ?? 0) >= 0,
   'theoretical best uses formatLapTime and a non-negative gap',
 )
-check(/Theoretical best is a /.test(a.summary.voiceScript) && !/target lap/i.test(a.summary.voiceScript), 'driver voice mentions theoretical best, not a coach target')
+check(
+  /Theoretical best is a one-ten-seven\. You're about two-tenths off it\./.test(a.summary.voiceScript) &&
+    !/off your best lap/.test(a.summary.voiceScript) &&
+    !/target lap/i.test(a.summary.voiceScript),
+  'driver voice: best lap is off the theoretical (not the other way around)',
+)
 check(!/Theoretical best/.test(a.verdict.voiceScript), 'tuner voice unchanged — no theoretical best')
 {
   const pdf = Buffer.from(await (await buildReportCardPdf(a.summary, { trackLabel: 'Mosport', dateLabel: 'Oct 4' })).arrayBuffer()).toString('latin1')
-  check(pdf.includes('THEORETICAL BEST') && pdf.includes(a.summary.theoreticalBest!.text), 'PDF lap strip includes theoretical best time')
+  check(
+    pdf.includes('THEORETICAL BEST') && pdf.includes(a.summary.theoreticalBest!.text) && pdf.includes(`${a.summary.theoreticalBest!.gapText} vs best`),
+    'PDF lap strip includes theoretical best time and gap vs best',
+  )
   check(!/target lap/i.test(pdf), 'PDF has no coach target lap')
 }
 check(idealLapMs([synthLap(70000, 1)]) === null, 'one full lap → theoretical best hidden')

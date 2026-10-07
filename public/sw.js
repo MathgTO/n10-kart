@@ -1,5 +1,5 @@
-/* Network-first for shell + assets so deploys win over stale PWA cache. v47 Theoretical best on the lap strip */
-const CACHE = 'n10-shell-v47'
+/* Network-first for shell + assets so deploys win over stale PWA cache. v48 Theoretical best voice: driver is off the ideal */
+const CACHE = 'n10-shell-v48'
 const BASE = self.registration.scope // e.g. https://n10-kart.netlify.app/
 const SHELL = ['', 'index.html', 'manifest.webmanifest', 'n10-mark.png', 'n10-logo.jpg', 'apple-touch-icon.png'].map(
   (p) => new URL(p || './', BASE).href,
