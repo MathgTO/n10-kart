@@ -6,14 +6,10 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <title>Shave the Next Tenth | MyChron Data Analysis on Mac &amp; Phone | N10</title>
+    <title>Karting Data Analysis for MyChron | LO206 | N10</title>
     <meta
       name="description"
-      content="Coaching for Briggs LO206 drivers and tuners, from your MyChron data. Reads your .xrk and shows where the time is: driving, corner by corner, and setup from the data (gear, clutch, tire pressure)."
-    />
-    <meta
-      name="keywords"
-      content="LO206, Briggs LO206, LO206 coach, LO206 coaching app, LO206 data, LO206 gear ratio, LO206 clutch, LO206 tire pressure, MyChron LO206, MyChron xrk, kart tuning, junior karting"
+      content="Karting data analysis for MyChron .xrk / .xrz: lap timing, session debrief, and LO206 setup notes in any browser. Race Studio 3 coaching alternative — files stay on your device."
     />
     <link rel="canonical" href="https://n10kart.com/" />
     <meta name="robots" content="index, follow" />
@@ -28,19 +24,19 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://n10kart.com/" />
     <meta property="og:site_name" content="N10" />
-    <meta property="og:title" content="Shave the Next Tenth | MyChron Data Analysis on Mac &amp; Phone | N10" />
-    <meta property="og:description" content="MyChron data coach for karting: lap times, delta, corner-by-corner driving notes and setup from the data." />
+    <meta property="og:title" content="Karting Data Analysis for MyChron | LO206 | N10" />
+    <meta property="og:description" content="Karting data analysis for MyChron: lap timing, session debrief, and Briggs LO206 setup notes in any browser. Files stay on your device." />
     <meta property="og:image" content="https://n10kart.com/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:alt" content="N10 — The next tenth. This session." />
+    <meta property="og:image:alt" content="N10 — MyChron karting data analysis" />
     <meta property="og:locale" content="en_CA" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Shave the Next Tenth | MyChron Data Analysis on Mac &amp; Phone | N10" />
-    <meta name="twitter:description" content="MyChron data coach for karting: lap times, delta, corner-by-corner driving notes and setup from the data." />
+    <meta name="twitter:title" content="Karting Data Analysis for MyChron | LO206 | N10" />
+    <meta name="twitter:description" content="Karting data analysis for MyChron: lap timing, session debrief, and Briggs LO206 setup notes in any browser. Files stay on your device." />
     <meta name="twitter:image" content="https://n10kart.com/og-image.png" />
 
     <link rel="manifest" href="/manifest.webmanifest" />
@@ -58,112 +54,175 @@
           "@id": "https://n10kart.com/#website",
           "url": "https://n10kart.com/",
           "name": "N10",
-          "description": "Coaching for Briggs LO206 drivers and tuners, from your MyChron data. Reads your .xrk and shows where the time is: driving, corner by corner, and setup from the data (gear, clutch, tire pressure).",
+          "description": "Karting data analysis for MyChron and Briggs LO206: lap timing, session debrief, and setup notes in any browser.",
+          "publisher": {
+            "@id": "https://n10kart.com/#mathieu"
+          },
           "inLanguage": "en"
         },
         {
-          "@type": "SoftwareApplication",
+          "@type": "WebApplication",
           "@id": "https://n10kart.com/#app",
           "name": "N10",
+          "alternateName": "N10 — LO206 Coach",
           "url": "https://n10kart.com/",
           "applicationCategory": "SportsApplication",
-          "operatingSystem": "Web",
-          "description": "Coaching for Briggs LO206 drivers and tuners, from your MyChron data. Reads your .xrk and shows where the time is: driving, corner by corner, and setup from the data (gear, clutch, tire pressure).",
+          "applicationSubCategory": "Karting data analysis",
+          "operatingSystem": "Any (web browser); iOS, iPadOS, Android, macOS, Windows",
+          "browserRequirements": "Requires a modern web browser with JavaScript",
+          "description": "Free karting data analysis for Briggs LO206 drivers and tuners. Reads MyChron .xrk / .xrz files and Race Studio CSV exports in the browser and gives a race report, a coaching note for the driver, and a setup note for the tuner. Files are analyzed on the device.",
           "featureList": [
-            "Coaching built for the Briggs LO206 — drivers and tuners",
+            "Karting data analysis built for Briggs LO206 — drivers and tuners",
             "Reads your MyChron .xrk / .xrz and Race Studio CSV — on phone or Mac",
             "Driver coaching: where the time is, corner by corner (Coach call)",
-            "Tuner view: what the data says about gear ratio, clutch and tire pressure",
+            "Tuner view: gear ratio, exit RPM, and tire-pressure trends from session data",
             "Lap times and sector / delta vs reference",
             "GPS speed and RPM overlay",
-            "Onboard video attach (mp4/mov/webm, client-side)",
             "LO206 exit RPM band and gear ratio band"
           ],
+          "audience": {
+            "@type": "Audience",
+            "audienceType": "Briggs LO206 kart drivers, parents, and tuners using AiM MyChron data loggers"
+          },
+          "author": {
+            "@id": "https://n10kart.com/#mathieu"
+          },
+          "publisher": {
+            "@id": "https://n10kart.com/#mathieu"
+          },
+          "softwareHelp": {
+            "@type": "CreativeWork",
+            "url": "https://n10kart.com/support"
+          },
+          "image": "https://n10kart.com/og-image.png",
           "offers": {
             "@type": "Offer",
             "price": "0",
             "priceCurrency": "CAD"
           },
-          "browserRequirements": "Requires a modern web browser",
-          "isAccessibleForFree": true
-        }
-      ]
-    }
-    </script>
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "@id": "https://n10kart.com/#faq",
-      "mainEntity": [
+          "isAccessibleForFree": true,
+          "inLanguage": "en"
+        },
         {
-          "@type": "Question",
-          "name": "Is N10 a Race Studio 3 alternative?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "For between-runs analysis on Mac and phone, yes. N10 reads your MyChron session in the browser and gives you lap times, delta, speed, RPM, a coaching note and a setup note before the next outing. Race Studio 3 remains the full Windows tool for deep analysis and logger configuration."
+          "@type": "WebPage",
+          "@id": "https://n10kart.com/#webpage",
+          "url": "https://n10kart.com/",
+          "name": "Karting Data Analysis for MyChron | LO206 | N10",
+          "isPartOf": {
+            "@id": "https://n10kart.com/#website"
+          },
+          "about": {
+            "@id": "https://n10kart.com/#app"
+          },
+          "mainEntity": {
+            "@id": "https://n10kart.com/#app"
           }
         },
         {
-          "@type": "Question",
-          "name": "Does N10 work on Mac without Windows?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Yes. N10 runs in the browser on Mac, iPhone, iPad and Android — no Windows, Boot Camp or virtual machine needed. On iPhone or iPad, tap Share → Add to Home Screen to open it like an app. Your sessions stay on the device."
-          }
+          "@type": "Person",
+          "@id": "https://n10kart.com/#mathieu",
+          "name": "Mathieu Gamache",
+          "url": "https://n10kart.com/support"
         },
         {
-          "@type": "Question",
-          "name": "Which MyChron files does N10 read?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Native MyChron .xrk and .xrz files, and CSV files exported from Race Studio (lap, time, GPS speed, RPM, distance; sectors when present). Files are read on your device and sessions stay on the device."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "What does N10 not do that Race Studio 3 does?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "N10 is not full Race Studio 3 parity. It does not do water temp, EGT or CHT maps, TPS or brake pressure analysis, or full channel math. N10 focuses on laps, delta, speed, RPM and exit RPM, plus the coaching note and the setup note."
-          }
+          "@type": "FAQPage",
+          "@id": "https://n10kart.com/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Is N10 a Race Studio 3 alternative?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "For between-runs analysis on Mac and phone, yes. N10 reads your MyChron session in the browser and gives you lap times, delta, speed, RPM, a coaching note and a setup note before the next outing. Race Studio 3 remains the full Windows tool for deep analysis and logger configuration."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Does N10 work on Mac without Windows?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. N10 runs in the browser on Mac, iPhone, iPad and Android — no Windows, Boot Camp or virtual machine needed. On iPhone or iPad, tap Share → Add to Home Screen to open it like an app. Your sessions stay on the device."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Which MyChron files does N10 read?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Native MyChron .xrk and .xrz files, and CSV files exported from Race Studio (lap, time, GPS speed, RPM, distance; sectors when present). Files are read on your device and sessions stay on the device."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What does N10 not do that Race Studio 3 does?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "N10 is not full Race Studio 3 parity. It does not do water temp, EGT or CHT maps, TPS or brake pressure analysis, or full channel math. N10 focuses on laps, delta, speed, RPM and exit RPM, plus the coaching note and the setup note."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What karting data analysis does N10 do with a MyChron session?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "N10 runs karting data analysis on your MyChron .xrk or .xrz in the browser: lap times, delta, speed and RPM, a session debrief coaching note, and LO206 setup notes from the data. Files stay on your device."
+              }
+            }
+          ]
         }
       ]
     }
     </script>
   </head>
   <body class="bg-black text-white">
-    <div id="root"></div>
+    <div id="root">
+      <main class="mx-auto max-w-5xl px-4 pb-10 pt-6 sm:px-6">
+        <p class="text-xs font-medium uppercase tracking-widest text-n10-soft sm:text-sm">MyChron coaching for Briggs LO206 — any browser</p>
+        <h1 class="max-w-3xl text-4xl font-black tracking-tight text-white sm:text-6xl">Shave the Next Tenth</h1>
+        <p class="mt-3 max-w-xl text-base leading-relaxed text-n10-soft sm:text-lg">Full race report, coaching note, and setup note from your MyChron session — between heats, on whatever device is in your hand.</p>
+        <p class="mt-4"><a href="/" class="btn-primary inline-flex min-h-[56px] items-center px-8 text-lg">Upload a Session</a></p>
 
-    <!-- Crawler-visible SEO content (SPA #root is empty until JS). -->
-    <noscript>
-      <main style="max-width:42rem;margin:2rem auto;padding:1.5rem;font-family:system-ui,sans-serif;line-height:1.5;color:#fff;background:#0a0a0a">
-        <h1>Shave the Next Tenth</h1>
-        <p>
-          Coaching for Briggs LO206 drivers and tuners, from your MyChron data. Reads your .xrk and
-          shows where the time is: driving, corner by corner, and setup from the data (gear, clutch,
-          tire pressure).
-        </p>
-        <p><a href="https://n10kart.com/" style="color:#c8ff00">Open N10</a></p>
+        <section class="mt-10" aria-label="Advantage">
+          <p class="text-sm leading-relaxed text-n10-mute">Race Studio 3 can export on any device or OS it runs on. Full Race Studio 3 analysis still needs Windows.</p>
+          <p class="mt-2 text-sm leading-relaxed text-n10-soft">N10 does the analysis in any browser: race report, coaching note, setup note.</p>
+        </section>
+
+        <section id="how-it-works" class="mt-10" aria-labelledby="how-heading">
+          <h2 id="how-heading" class="text-xl font-semibold text-white">How it works</h2>
+          <ol class="mt-3 space-y-3 text-sm leading-relaxed text-n10-mute">
+            <li><strong class="text-white">Export.</strong> From Race Studio 3, save this outing as a MyChron .xrk or .xrz file.</li>
+            <li><strong class="text-white">Open in N10.</strong> Any browser, any device. Session stays on your device.</li>
+            <li><strong class="text-white">Race report.</strong> Laps, sectors, delta, speed, RPM, plus Keep / Start / Stop grades.</li>
+            <li><strong class="text-white">Notes.</strong> Coaching note for the driver. Setup note for the tuner.</li>
+          </ol>
+          <p class="mt-3 text-sm font-medium text-n10-soft">Same session. Two clear answers — the report and the notes.</p>
+        </section>
+
+        <section class="mt-12 border-t border-n10-border pt-8" aria-labelledby="faq-heading">
+          <h2 id="faq-heading" class="text-xl font-semibold text-white">Questions</h2>
+          <h3 class="mt-4 text-base font-semibold text-white">Is N10 a Race Studio 3 alternative?</h3>
+          <p class="mt-1 text-sm leading-relaxed text-n10-mute">For between-runs analysis on Mac and phone, yes. N10 reads your MyChron session in the browser and gives you lap times, delta, speed, RPM, a coaching note and a setup note before the next outing. Race Studio 3 remains the full Windows tool for deep analysis and logger configuration.</p>
+          <h3 class="mt-4 text-base font-semibold text-white">Does N10 work on Mac without Windows?</h3>
+          <p class="mt-1 text-sm leading-relaxed text-n10-mute">Yes. N10 runs in the browser on Mac, iPhone, iPad and Android — no Windows, Boot Camp or virtual machine needed. On iPhone or iPad, tap Share → Add to Home Screen to open it like an app. Your sessions stay on the device.</p>
+          <h3 class="mt-4 text-base font-semibold text-white">Which MyChron files does N10 read?</h3>
+          <p class="mt-1 text-sm leading-relaxed text-n10-mute">Native MyChron .xrk and .xrz files, and CSV files exported from Race Studio (lap, time, GPS speed, RPM, distance; sectors when present). Files are read on your device and sessions stay on the device.</p>
+          <h3 class="mt-4 text-base font-semibold text-white">What does N10 not do that Race Studio 3 does?</h3>
+          <p class="mt-1 text-sm leading-relaxed text-n10-mute">N10 is not full Race Studio 3 parity. It does not do water temp, EGT or CHT maps, TPS or brake pressure analysis, or full channel math. N10 focuses on laps, delta, speed, RPM and exit RPM, plus the coaching note and the setup note.</p>
+          <h3 class="mt-4 text-base font-semibold text-white">What karting data analysis does N10 do with a MyChron session?</h3>
+          <p class="mt-1 text-sm leading-relaxed text-n10-mute">N10 runs karting data analysis on your MyChron .xrk or .xrz in the browser: lap times, delta, speed and RPM, a session debrief coaching note, and LO206 setup notes from the data. Files stay on your device.</p>
+        </section>
+
+        <section class="mt-12 border-t border-n10-border pt-8" aria-label="Straight talk">
+          <p class="max-w-2xl text-sm leading-relaxed text-n10-mute">N10 is not full Race Studio 3. No water, EGT, CHT, TPS, or brake-pressure maps. Race Studio 3 stays the deep Windows tool. N10 is between-runs analysis on any device.</p>
+          <p class="mt-6 text-base font-semibold text-white">Open your last session in any browser. Try it free.</p>
+        </section>
+
+        <footer class="mt-12 text-xs leading-relaxed text-n10-mute">
+          <p>Review your data between sessions. Never use N10 while driving.</p>
+          <p>N10 is independent and not affiliated with or endorsed by Briggs &amp; Stratton. LO206 and Briggs &amp; Stratton are trademarks of their owners.</p>
+          <p><a href="/privacy">Privacy</a> · <a href="/support">Support</a> · <a href="mailto:mathieugamache@icloud.com">mathieugamache@icloud.com</a></p>
+        </footer>
       </main>
-    </noscript>
-    <div
-      id="n10-seo"
-      style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0"
-    >
-      <h1>Shave the Next Tenth</h1>
-      <p>Import the session. Get the coaching note and the setup note. Walk back to the grid knowing exactly what to change. Built for phone, between runs — when Windows Race Studio can wait.</p>
-      <h2>Works with your MyChron files on Mac, iPhone and Android</h2>
-      <p>Import .xrk, .xrz or Race Studio CSV exports right in the browser on Mac, iPhone, iPad or Android — no Windows needed. N10 shows lap times, sector and delta, GPS speed, RPM and exit RPM, then gives you a coaching note and a setup note. Sessions stay on your device.</p>
-      <h2>Race Studio 3 vs N10</h2>
-      <h3>Is N10 a Race Studio 3 alternative?</h3>
-      <p>For between-runs analysis on Mac and phone, yes. N10 reads your MyChron session in the browser and gives you lap times, delta, speed, RPM, a coaching note and a setup note before the next outing. Race Studio 3 remains the full Windows tool for deep analysis and logger configuration.</p>
-      <h3>Does N10 work on Mac without Windows?</h3>
-      <p>Yes. N10 runs in the browser on Mac, iPhone, iPad and Android — no Windows, Boot Camp or virtual machine needed. On iPhone or iPad, tap Share → Add to Home Screen to open it like an app. Your sessions stay on the device.</p>
-      <h3>Which MyChron files does N10 read?</h3>
-      <p>Native MyChron .xrk and .xrz files, and CSV files exported from Race Studio (lap, time, GPS speed, RPM, distance; sectors when present). Files are read on your device and sessions stay on the device.</p>
-      <h3>What does N10 not do that Race Studio 3 does?</h3>
-      <p>N10 is not full Race Studio 3 parity. It does not do water temp, EGT or CHT maps, TPS or brake pressure analysis, or full channel math. N10 focuses on laps, delta, speed, RPM and exit RPM, plus the coaching note and the setup note.</p>
     </div>
 
     <script type="module" src="/src/main.tsx"></script>

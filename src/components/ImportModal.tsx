@@ -25,6 +25,22 @@ export const IMPORT_ACCEPT = [
   'application/x-xrz',
 ].join(',')
 
+/** Mouse/trackpad computer (Mac, PC), not a phone or iPad. */
+export function isDesktop(): boolean {
+  if (typeof window === 'undefined') return false
+  const ua = navigator.userAgent
+  const ipadOs = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1
+  return !ipadOs && !/iPhone|iPad|iPod|Android/i.test(ua) && window.matchMedia?.('(pointer: fine)').matches !== false
+}
+
+/**
+ * On desktop, macOS/Windows file dialogs can grey out .xrk/.xrz (no registered type), so no filter
+ * there; importFile rejects anything that isn't a session file. Phones/iPad keep the list (no camera).
+ */
+export function pickerAccept(): string | undefined {
+  return isDesktop() ? undefined : IMPORT_ACCEPT
+}
+
 interface Props {
   open: boolean
   onClose: () => void
@@ -38,6 +54,8 @@ export function ImportModal({ open, onClose }: Props) {
   const [busy, setBusy] = useState(false)
   const [parse, setParse] = useState<ParseResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+  const [optionsOpen, setOptionsOpen] = useState(false)
 
   if (!open) return null
 
@@ -45,6 +63,7 @@ export function ImportModal({ open, onClose }: Props) {
     setBusy(true)
     setError(null)
     setParse(null)
+    setNotice(null)
     try {
       const result = await importFile(file)
       setParse(result.parse)
@@ -53,8 +72,15 @@ export function ImportModal({ open, onClose }: Props) {
         setBusy(false)
         return
       }
+      if (result.alreadyImported) {
+        setNotice('Already imported — opening the existing session.')
+        setBusy(false)
+        onClose()
+        nav(result.session.setupConfirmed === false ? `/session/${result.session.id}/setup` : `/session/${result.session.id}`)
+        return
+      }
       onClose()
-      nav(`/session/${result.session.id}`)
+      nav(`/session/${result.session.id}/setup`, { state: { fresh: true } })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Import failed')
     } finally {
@@ -63,7 +89,22 @@ export function ImportModal({ open, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-4"
+      onDragOver={(e) => {
+        e.preventDefault()
+        setDragging(true)
+      }}
+      onDragLeave={(e) => {
+        if (e.currentTarget === e.target) setDragging(false)
+      }}
+      onDrop={(e) => {
+        e.preventDefault()
+        setDragging(false)
+        const f = e.dataTransfer.files?.[0]
+        if (f) void handleFile(f)
+      }}
+    >
       <div className="w-full max-w-lg rounded-2xl border border-n10-border bg-n10-panel p-5 shadow-2xl">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -75,68 +116,61 @@ export function ImportModal({ open, onClose }: Props) {
               Lap / Time / Speed / RPM / Distance (sector columns recognized when present).
             </p>
           </div>
-          <button type="button" className="text-n10-mute text-2xl leading-none" onClick={onClose}>
+          <button type="button" className="min-h-[48px] min-w-[48px] text-n10-mute text-2xl leading-none" onClick={onClose} aria-label="Close">
             ×
           </button>
         </div>
 
-        <div className="mt-4">
-          <label className="label-lg">Series</label>
-          <select
-            className="mt-1 w-full rounded-lg border border-n10-border bg-black px-3 py-2 text-base"
-            value={prefs.series}
-            onChange={(e) => setSeries(e.target.value as SeriesTag)}
-          >
-            {SERIES_OPTIONS.map((o) => (
-              <option key={o} value={o}>
-                {seriesLabel(o)}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <input
-          ref={inputRef}
-          type="file"
-          accept={IMPORT_ACCEPT}
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0]
-            e.target.value = '' // allow picking the same file again
-            if (f) void handleFile(f)
-          }}
-        />
-
-        <button
-          type="button"
-          disabled={busy}
-          className={`mt-4 w-full rounded-xl border-2 border-dashed px-4 py-8 text-center transition ${
+        {/* File picker first */}
+        <label
+          className={`mt-4 block w-full cursor-pointer rounded-xl border-2 border-dashed px-4 py-8 text-center transition ${
+            busy ? 'pointer-events-none opacity-60' : ''
+          } ${
             dragging
               ? 'border-n10-lime bg-n10-lime/10'
               : 'border-n10-lime/50 bg-n10-lime/5 hover:border-n10-lime'
           }`}
-          onClick={() => inputRef.current?.click()}
-          onDragOver={(e) => {
-            e.preventDefault()
-            setDragging(true)
-          }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={(e) => {
-            e.preventDefault()
-            setDragging(false)
-            const f = e.dataTransfer.files?.[0]
-            if (f) void handleFile(f)
-          }}
         >
+          <input
+            ref={inputRef}
+            type="file"
+            accept={pickerAccept()}
+            className="sr-only"
+            disabled={busy}
+            onChange={(e) => {
+              const f = e.target.files?.[0]
+              e.target.value = ''
+              if (f) void handleFile(f)
+            }}
+          />
           <span className="block text-lg font-bold text-n10-lime">
-            {busy ? 'Importing…' : 'Choose or drop file'}
+            {busy ? 'Importing…' : isDesktop() ? 'Choose a file or drop it here' : 'Choose file'}
           </span>
           <span className="mt-2 block text-sm text-n10-soft">
-            .xrk / .xrz / .csv · metadata rows above the table are fine · lap-only CSV still works
-            (synthetic charts) · on iPad use Browse → Files
+            .xrk / .xrz / .csv · track, date and driver are read from the file{isDesktop() ? '' : ' · on iPad use Browse → Files'}
           </span>
-        </button>
+        </label>
 
+        {/* Series tucked under Options */}
+        <details className="mt-3 rounded-xl border border-n10-border bg-n10-card/40 p-3" open={optionsOpen} onToggle={(e) => setOptionsOpen((e.target as HTMLDetailsElement).open)}>
+          <summary className="min-h-[40px] cursor-pointer font-semibold text-n10-soft">Options</summary>
+          <div className="mt-2">
+            <label className="label-lg">Session type</label>
+            <select
+              className="mt-1 min-h-[48px] w-full rounded-lg border border-n10-border bg-black px-3 py-2 text-base"
+              value={prefs.series}
+              onChange={(e) => setSeries(e.target.value as SeriesTag)}
+            >
+              {SERIES_OPTIONS.map((o) => (
+                <option key={o} value={o}>
+                  {seriesLabel(o)}
+                </option>
+              ))}
+            </select>
+          </div>
+        </details>
+
+        {notice && <p className="mt-3 text-sm text-n10-lime">{notice}</p>}
         {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
 
         {parse && (

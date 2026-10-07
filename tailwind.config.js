@@ -12,7 +12,12 @@ export default {
           border: '#2a2a2a',
           mute: '#a3a3a3',
           soft: '#d4d4d4',
+          teal: '#2dd4bf',
         },
+      },
+      // Accessibility: nothing smaller than 14px (text-xs) anywhere.
+      fontSize: {
+        xs: ['14px', { lineHeight: '20px' }],
       },
       fontFamily: {
         sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],

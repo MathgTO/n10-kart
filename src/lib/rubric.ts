@@ -13,9 +13,12 @@ export const ADVANCE_PRIORITY_AT =
   rubric.session_progress?.advance_priority_when_score_ge ?? 4
 
 export const MYCHRON_HONEST = new Set(['D4', 'D7', 'D10', 'D18'])
+/** Dims that need onboard/kart-cam video — never invent a score without footage. */
 export const NEEDS_KART_CAM = new Set([
-  'D9', 'D12', 'D13', 'D14', 'D15', 'D16', 'D17',
+  'D8', 'D9', 'D11', 'D12', 'D13', 'D14', 'D15', 'D16', 'D17', 'D20',
 ])
+/** No honest MyChron basis and no realistic video path — hide from coach/driver grade UIs. */
+export const HIDDEN_GRADE_DIMS = new Set(['D1'])
 
 export function getDimension(id: DimensionId) {
   return rubric.dimensions.find((d) => d.id === id)
@@ -28,8 +31,6 @@ export function getDrill(id: DrillId) {
 export function getSetupTemplate(id: SetupHypothesisId) {
   return rubric.setup_hypothesis_templates.find((t) => t.id === id)
 }
-
-export const EXIT_RPM_BAND = { lo: 5800, hi: 6100 } as const
 
 /** Reader-facing titles for the rubric's source link-outs (the baked rubric only carries ids). */
 const LINK_TITLES: Record<string, string> = {

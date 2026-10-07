@@ -8,6 +8,8 @@
 
 html, body, #root {
   min-height: 100%;
+  max-width: 100%;
+  overflow-x: clip; /* stop iOS Safari page pan from child overflow-x strips */
 }
 
 body {
@@ -34,4 +36,16 @@ body {
   .sticky-focus {
     @apply sticky bottom-0 z-30 border-t border-n10-border bg-black/95 backdrop-blur px-4 py-3;
   }
+}
+
+/* Save PDF (window.print): school card + setup card only, black on white. */
+@media print {
+  .no-print { display: none !important; }
+  html, body { background: #fff !important; color: #000 !important; }
+  header, footer { display: none !important; }
+  main { padding: 0 !important; max-width: none !important; }
+  main * { color: #000 !important; background: transparent !important; box-shadow: none !important; }
+  main section, main div { border-color: #bbb !important; }
+  .print-card { break-inside: avoid; margin-bottom: 12px; }
+  @page { margin: 14mm; }
 }

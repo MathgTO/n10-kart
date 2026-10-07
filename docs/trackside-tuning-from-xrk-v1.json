@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "id": "trackside_tuning_from_xrk",
   "product": "Briggs LO206 trackside tuning bot (MyChron .xrk/.xrz)",
-  "class_default": "LO206 Junior @ Mosport / MIKA (path to BSC Ontario)",
+  "class_default": "LO206 Junior Light @ Mosport / MIKA (path to BSC Ontario)",
   "companion_docs": {
     "knowledge_base": "/workspace/briggs-karting-knowledge-base.md",
     "exec_brief": "/workspace/briggs-coach-api/trackside-tuning-exec.md",
@@ -24,7 +24,9 @@
       "confidence"
     ],
     "one_change_means": "one_category_not_one_increment",
-    "one_change_note": "One CATEGORY per outing (gearing OR clutch OR tires OR chassis). Within that category, magnitude follows best practice + data (gear may be +1 or +2+). Do not stack categories same outing."
+    "one_change_note": "One CATEGORY per outing (gearing OR clutch OR tires OR chassis). Within that category, magnitude follows best practice + data (gear may be +1 or +2+). Do not stack categories same outing.",
+    "junior_light_blue_slide_klaus_7_harder": true,
+    "blue_slide_dyno_peak_rpm_gap": true
   },
   "ingest": {
     "primary_formats": [
@@ -89,14 +91,14 @@
   },
   "class_defaults": {
     "engine": "Briggs LO206 sealed",
-    "slide": "Yellow .570 in (Briggs #555741)",
-    "carb_lock": "Locking cap #555726 typical Junior",
-    "rev_limiter_rpm": 6100,
+    "slide": "Blue .520 in (Briggs #555734)",
+    "carb_lock": "Locking cap #555726 required (Junior Light)",
+    "rev_limiter_rpm": 6150,
     "power_band_stock_slide_swift_rpm": {
       "low": 5800,
       "high": 6100
     },
-    "power_band_junior_note": "Restricted slides peak earlier than stock. Klaus: unrestricted peak HP ~5600; Green slide peak ~4800 — gearing past ~5300 can be slower. Yellow .570 sits between stock and green — confirm dyno; prefer strong mid-band exits over limiter ego.",
+    "power_band_junior_note": "Restricted slides peak earlier than stock. Blue .520 is MORE restricted than yellow .570 \u2014 peak power comes earlier; Klaus #7 applies even harder. Klaus examples: unrestricted peak HP ~5600; Green slide peak ~4800 \u2014 gearing past ~5300 can be slower. BLUE .520 DYNO PEAK RPM = OPEN GAP \u2014 confirm dyno/slide chart; do not invent. Prefer strong mid-band exits over limiter ego.",
     "klaus_green_example": {
       "peak_hp_rpm": 4800,
       "do_not_gear_past_approx": 5300,
@@ -117,11 +119,27 @@
       "on_17t": 0.06,
       "on_19t": 0.05
     },
-    "national_min_weight_lb_chart_typical": 300,
-    "min_weight_verify": "Confirm current MIKA Class Structure — do not assume 300 lb without PDF",
+    "national_min_weight_lb_chart_typical": 265,
+    "min_weight_verify": "MIKA 2026 Class Structure V1: BRIGGS JR LITE = 265 lb (confirmed Oct 5, 2026)",
     "home_track": "Mosport Karting Centre",
     "series_near": "MIKA",
-    "series_goal": "BSC Ontario"
+    "series_goal": "BSC Ontario",
+    "rev_limiter_note": "Factory \u00a734 Max RPM 6,150 applies to all classes except Kid Kart \u2014 NOT Junior Light-specific. Swift often cites ~6100 colloquially for stock-slide band.",
+    "mika_2026": {
+      "class_label": "BRIGGS JR LITE",
+      "min_weight_lb": 265,
+      "engine": "LO206/BLUE",
+      "dry_tires": "VEGA BLUE 4.6/6.5",
+      "wet_tires": "VEGA W6 4.60/6.50",
+      "numbers": "102-199",
+      "age": "8-14 (*15)",
+      "license": "B-B+"
+    },
+    "prior_junior_yellow_reference": {
+      "slide": "Yellow .570 (#555741)",
+      "mika_min_weight_lb": 300,
+      "engine": "LO206/YELLOW"
+    }
   },
   "qualitative_bands": {
     "exit_rpm_low": "Exit RPM clearly below usable band for this slide (Junior: below strong mid-band; do not use Green numbers as Yellow truth)",
@@ -162,16 +180,16 @@
         "min_corner_or_exit_speed_low"
       ],
       "tag": "driving_or_chassis",
-      "hypothesis": "Line / confidence / balance — not first a shorter gear",
+      "hypothesis": "Line / confidence / balance \u2014 not first a shorter gear",
       "template_id": "chassis_before_engine",
-      "one_change": "One drill (later turn-in/width) OR one chassis spacer — not both; do not add short gear yet",
+      "one_change": "One drill (later turn-in/width) OR one chassis spacer \u2014 not both; do not add short gear yet",
       "channels": [
         "rpm",
         "speed",
         "optional_brake",
         "optional_throttle"
       ],
-      "confidence_hint": "medium — needs notes or video for chassis vs driving",
+      "confidence_hint": "medium \u2014 needs notes or video for chassis vs driving",
       "sources": [
         "https://swiftkarting.com/blogs/news/how-to-use-aim-race-studio-lo206-data"
       ]
@@ -270,7 +288,7 @@
         "incomplete_lock_after_speed_caught"
       ],
       "tag": "setup",
-      "hypothesis": "Clutch incomplete lock — stop",
+      "hypothesis": "Clutch incomplete lock \u2014 stop",
       "template_id": "clutch_health",
       "one_change": "STOP session; full clutch inspection",
       "severity": true,
@@ -283,7 +301,7 @@
         "poor_accel_no_flare"
       ],
       "tag": "setup",
-      "hypothesis": "Power / drag / gear / load — not classic clutch slip",
+      "hypothesis": "Power / drag / gear / load \u2014 not classic clutch slip",
       "template_id": "chassis_before_engine",
       "one_change": "Check throttle opening, brake drag, gearing, load before clutch springs",
       "delegate": "clutch_health.power_or_drag_not_clutch"
@@ -330,7 +348,7 @@
       "tag": "setup",
       "hypothesis": "Tire pressure too high hot",
       "template_id": "tire_pressure_session",
-      "one_change": "Lower next cold start 0.5–2 PSI toward hot target; confirm series tire",
+      "one_change": "Lower next cold start 0.5\u20132 PSI toward hot target; confirm series tire",
       "sources": [
         "https://swiftkarting.com/pages/lo206-tire-pressure-guide-hot-vs-cold-growth"
       ]
@@ -356,9 +374,9 @@
         "peak_rpm_stable"
       ],
       "tag": "setup",
-      "hypothesis": "Grip/pressure/consistency — not gear first",
+      "hypothesis": "Grip/pressure/consistency \u2014 not gear first",
       "template_id": "tire_pressure_session",
-      "one_change": "One pressure step OR consistency drill — not both",
+      "one_change": "One pressure step OR consistency drill \u2014 not both",
       "channels": [
         "speed",
         "rpm"
@@ -372,7 +390,7 @@
       "tag": "setup",
       "hypothesis": "Need more front jack / turn-in",
       "template_id": "chassis_front_wider",
-      "one_change": "Widen front one spacer step OR +caster per chassis chart — one only",
+      "one_change": "Widen front one spacer step OR +caster per chassis chart \u2014 one only",
       "sources": [
         "https://nhka.net/wp-content/uploads/2018/02/crg-setup-guide.pdf"
       ]
@@ -385,7 +403,7 @@
       "tag": "setup",
       "hypothesis": "Too much rear grip / unload issue",
       "template_id": "chassis_rear_narrower",
-      "one_change": "Narrow rear slightly OR small seat/ballast stability move — one only"
+      "one_change": "Narrow rear slightly OR small seat/ballast stability move \u2014 one only"
     },
     {
       "id": "S17",
@@ -394,7 +412,7 @@
         "mosport_t5_type"
       ],
       "tag": "setup",
-      "hypothesis": "Split: low exit RPM → S1; RPM OK → driving line",
+      "hypothesis": "Split: low exit RPM \u2192 S1; RPM OK \u2192 driving line",
       "template_id": "gear_ratio_optimize",
       "one_change": "Apply S1 or S2 rule; Mosport overlay prioritizes exit",
       "channels": [
@@ -411,7 +429,7 @@
       "tag": "setup",
       "hypothesis": "Rotating inertia mismatch for layout",
       "template_id": "sprocket_pair_inertia",
-      "one_change": "Bigger pair for flowing; smaller for tight — keep same ratio first",
+      "one_change": "Bigger pair for flowing; smaller for tight \u2014 keep same ratio first",
       "sources": [
         "https://swiftkarting.com/pages/lo206-gear-ratio-tuning-guide"
       ]
@@ -426,12 +444,12 @@
     "clutch_health": {
       "tag": "setup",
       "action": "Use clutch-health-diagnostic-v1.json",
-      "when": "S6–S9"
+      "when": "S6\u2013S9"
     },
     "tire_pressure_session": {
       "tag": "setup",
-      "action": "Cold→hot methodology; confirm series tire; no invented Mosport PSI",
-      "when": "S12–S14",
+      "action": "Cold\u2192hot methodology; confirm series tire; no invented Mosport PSI",
+      "when": "S12\u2013S14",
       "methodology_url": "https://swiftkarting.com/pages/lo206-tire-pressure-guide-hot-vs-cold-growth",
       "sourced_growth_psi": {
         "typical_min": 2,
@@ -441,9 +459,9 @@
       "sourced_hot_window_hard_compound_illustrative_psi": {
         "min": 14,
         "max": 18,
-        "note": "Swift illustrative for many hard compounds — NOT Mosport Junior fact"
+        "note": "Swift illustrative for many hard compounds \u2014 NOT Mosport Junior fact"
       },
-      "mosport_junior_psi": "UNKNOWN — confirm series tire + MIKA/BSC bulletin"
+      "mosport_junior_psi": "UNKNOWN \u2014 confirm series tire + MIKA/BSC bulletin"
     },
     "chassis_before_engine": {
       "tag": "setup",
@@ -472,7 +490,7 @@
     },
     "gear_ratio_optimize": {
       "tag": "setup",
-      "action": "Use peak+exit RPM routine to pick ±1 tooth",
+      "action": "Use peak+exit RPM routine to pick \u00b11 tooth",
       "when": "S17 / general"
     },
     "gear_plus_rear": {
@@ -489,9 +507,9 @@
   "one_change_protocol": {
     "steps": [
       "Pick the single highest-confidence setup CATEGORY (gearing / clutch / tires / chassis) from largest delta loss",
-      "Within that category apply data-backed magnitude (gear: +1 or +2+ rear teeth per toothDelta / RPM+speed math — no forced ±1 cap)",
+      "Within that category apply data-backed magnitude (gear: +1 or +2+ rear teeth per toothDelta / RPM+speed math \u2014 no forced \u00b11 cap)",
       "Emit one setup-tagged action only for that category",
-      "Optional separate driving drill if S2 — never bundled as same physical change",
+      "Optional separate driving drill if S2 \u2014 never bundled as same physical change",
       "Re-run; compare reference lap RPM+speed+delta",
       "Queue next CATEGORY only after evidence"
     ],
@@ -503,18 +521,20 @@
     ]
   },
   "mosport_junior_overlays": {
+    "class": "LO206 Junior Light / MIKA JR LITE",
     "priority_corners": "Hairpin / T5-type exits (exit RPM + min speed); bowl/linked for scrub consistency",
-    "slide": "Yellow .570",
-    "weight": "Verify MIKA (~300 lb national chart typical)",
-    "rules_hub": "https://mosportkartingcentre.com/private-karting/for-members/rules-and-regulations/",
-    "rules_hub_note": "Prefer live PDF downloads; CDN may 404 intermittently"
+    "slide": "Blue .520 (#555734)",
+    "weight_lb": 265,
+    "rules_hub": "https://www.mosportkartingcentre.com/rules-regulations",
+    "rules_hub_note": "MIKA Class Structure V1 + Supp Regs on box under /workspace/briggs-coach-api/",
+    "klaus_7": "Blue more restricted than yellow \u2014 gear for earlier peak; blue dyno peak RPM = open gap"
   },
   "open_gaps": [
-    "Exact MIKA 2026 Junior min weight from current Class Structure PDF",
-    "Exact Mosport/MIKA/BSC Junior tire brand/compound and published PSI",
+    "Blue .520 (Junior Light) dyno peak RPM for this engine build \u2014 confirm dyno/slide chart; do not invent",
+    "Exact Mosport/MIKA/BSC Junior Light published cold/hot PSI (MIKA does not publish PSI)",
     "MathG baseline sprocket, widths, seat, clutch springs",
     "Whether sessions always have wheel speed vs GPS-only",
-    "Yellow-slide dyno peak RPM for this engine build"
+    "Supp Regs \u00a715 bumper names Cadet/Junior only \u2014 Junior Light not verbatim (coaching treats as ASN 5 s)"
   ],
   "sources": [
     {
@@ -557,5 +577,14 @@
       "title": "ASN Canada karting regulations",
       "url": "https://www.asncanada.ca/karting-regulations"
     }
-  ]
+  ],
+  "mosport_junior_light_overlays": {
+    "class": "LO206 Junior Light / MIKA JR LITE",
+    "priority_corners": "Hairpin / T5-type exits (exit RPM + min speed); bowl/linked for scrub consistency",
+    "slide": "Blue .520 (#555734)",
+    "weight_lb": 265,
+    "rules_hub": "https://www.mosportkartingcentre.com/rules-regulations",
+    "rules_hub_note": "MIKA Class Structure V1 + Supp Regs on box under /workspace/briggs-coach-api/",
+    "klaus_7": "Blue more restricted than yellow \u2014 gear for earlier peak; blue dyno peak RPM = open gap"
+  }
 }

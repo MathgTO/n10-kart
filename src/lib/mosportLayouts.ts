@@ -229,26 +229,35 @@ const CLUB: Seg[] = [
   { kind: 'straight', len: 58 },
 ]
 
+/**
+ * GP length recalibrated from real GPS laps (Sep 26 / Oct 4 2026 MyChron files: 1308–1323 m, median ≈1312 m).
+ * The original synthetic geometry was drawn at 1384 m; corner distances are scaled by the same factor.
+ * The geometry itself is still not georeferenced (shape is illustrative).
+ */
+export const GP_MEASURED_M = 1312
+const GP_SCALE = GP_MEASURED_M / 1384
+const g = (d: number) => Math.round(d * GP_SCALE)
+
 const gp = makeLayout(
   'gp',
   'Grand Prix (full)',
   'GP full',
-  'MIKA long circuit · ~1.38 km · 12 corners',
+  'MIKA long circuit · ~1.31 km (GPS-measured) · 12 corners',
   GP,
-  1384,
+  GP_MEASURED_M,
   [
-    { id: 't1', name: 'T1 Kink', dist: 210, type: 'kink' },
-    { id: 't2', name: 'T2 Crest', dist: 290, type: 'medium' },
-    { id: 't3', name: 'T3 Downhill', dist: 370, type: 'medium' },
-    { id: 't4', name: 'T4 Hairpin', dist: 470, type: 'hairpin' },
-    { id: 't5', name: 'T5 Uphill Hairpin', dist: 530, type: 'hairpin' },
-    { id: 't6', name: 'T6', dist: 610, type: 'medium' },
-    { id: 't7', name: 'T7', dist: 680, type: 'medium' },
-    { id: 't8', name: 'T8', dist: 740, type: 'medium' },
-    { id: 't9', name: 'T9 Sweep', dist: 860, type: 'sweeper' },
-    { id: 't10', name: 'T10', dist: 980, type: 'medium' },
-    { id: 't11', name: 'T11 Esses', dist: 1060, type: 'chicane' },
-    { id: 't12', name: 'T12 Last', dist: 1140, type: 'hairpin' },
+    { id: 't1', name: 'T1 Kink', dist: g(210), type: 'kink' },
+    { id: 't2', name: 'T2 Crest', dist: g(290), type: 'medium' },
+    { id: 't3', name: 'T3 Downhill', dist: g(370), type: 'medium' },
+    { id: 't4', name: 'T4 Hairpin', dist: g(470), type: 'hairpin' },
+    { id: 't5', name: 'T5 Uphill Hairpin', dist: g(530), type: 'hairpin' },
+    { id: 't6', name: 'T6', dist: g(610), type: 'medium' },
+    { id: 't7', name: 'T7', dist: g(680), type: 'medium' },
+    { id: 't8', name: 'T8', dist: g(740), type: 'medium' },
+    { id: 't9', name: 'T9 Sweep', dist: g(860), type: 'sweeper' },
+    { id: 't10', name: 'T10', dist: g(980), type: 'medium' },
+    { id: 't11', name: 'T11 Esses', dist: g(1060), type: 'chicane' },
+    { id: 't12', name: 'T12 Last', dist: g(1140), type: 'hairpin' },
   ],
   [0, 0.245, 0.426, 0.679, 1],
 )

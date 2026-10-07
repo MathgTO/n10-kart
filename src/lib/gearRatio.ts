@@ -1,4 +1,4 @@
-import { EXIT_RPM_BAND } from './rubric'
+import { getClassConfig, type ClassConfig } from './classConfig'
 
 /**
  * Per-session gearing (teeth). Rear is what the driver actually changes; front = clutch driver.
@@ -41,14 +41,17 @@ export const GEAR_ASSUMPTIONS = {
   typicalRatioBand: { lo: 3.4, hi: 4.3 },
 } as const
 
-/** Where the decision targets sit inside the 5,800–6,100 band. */
-const TARGET = {
-  /** Exit within this many RPM of the band edge still counts as "in band" (noise in one sample). */
-  edgeTolRpm: 50,
-  exitAfterPlus: EXIT_RPM_BAND.lo + 50, // 5,850
-  exitAfterMinus: EXIT_RPM_BAND.hi - 150, // 5,950
-  /** Never add teeth past this peak (keeps headroom under the top of the band / limiter). */
-  peakCeiling: EXIT_RPM_BAND.hi - 100, // 6,000
+/** Gearing targets from the class peak-speed band (straight-line story only; never corner exits). */
+function targets(cls: ClassConfig) {
+  const band = cls.peakSpeedBand!
+  return {
+    /** Peak within this many RPM of the band edge still counts as "at the edge" (one-sample noise). */
+    edgeTolRpm: 50,
+    /** Aim for the ideal (or band middle) when shortening/lengthening. */
+    ideal: band.ideal ?? Math.round((band.lo + band.hi) / 2),
+    /** Never add teeth past this peak (headroom under the limiter). */
+    peakCeiling: (cls.nearLimiter ?? band.hi) - 50,
+  }
 }
 
 export type GearVerdict = 'ok' | 'ok_edge' | 'too_tall' | 'too_short' | 'conflict'
@@ -115,7 +118,12 @@ export function suggestGearRatio(input: {
   frontTeeth?: number
   /** Median clutch-locked RPM per km/h for the session (robust ratio fingerprint). */
   rpmPerKmh?: number
+  /** Class id → peak-speed band + limiter. No band (class unconfirmed) → no gear verdict. */
+  classId?: string
 }): GearAdvice | null {
+  const cls = getClassConfig(input.classId ?? 'junior_light')
+  if (!cls.peakSpeedBand) return null
+  const TARGET = targets(cls)
   const peakRpm = input.maxRpm
   const peakSpeedKmh = input.maxSpeedKmh
   if (
@@ -131,6 +139,8 @@ export function suggestGearRatio(input: {
 
   const rearKnown = isValidTeeth(input.rearTeeth, 'rear')
   const rearTeeth = rearKnown ? (input.rearTeeth as number) : undefined
+  // Front unknown is allowed: never assume a tooth count for display; the calibrated 19T basis is only used
+  // internally for the ratio estimate, and tooth-level advice needs both sprockets (KTE Tier A).
   const frontAssumed = !isValidTeeth(input.frontTeeth, 'front')
   const frontTeeth = frontAssumed ? GEAR_DEFAULTS.frontTeeth : (input.frontTeeth as number)
   const D = GEAR_CALIBRATION.rollingDiameterM
@@ -143,71 +153,51 @@ export function suggestGearRatio(input: {
   let ratio: number
   let expectedRpmPerKmh: number | undefined
   let dataCheck: GearAdvice['dataCheck']
-  if (rearTeeth != null) {
+  if (rearTeeth != null && !frontAssumed) {
     ratio = rearTeeth / frontTeeth
     expectedRpmPerKmh = (ratio * KMH_TO_RPM_PER_M) / D
     if (rpmPerKmh != null) {
       dataCheck = Math.abs(rpmPerKmh / expectedRpmPerKmh - 1) <= 0.025 ? 'match' : 'mismatch'
     }
   } else {
-    // Calibrated on the owner's 67T/69T logs (19T front, Ø0.282 m) — a ratio, never a tooth guess.
+    // Calibrated on the owner's 67T/69T logs (Ø0.282 m) — a ratio estimate, never a tooth guess.
     ratio = (measuredRpmPerKmh * D) / KMH_TO_RPM_PER_M
   }
 
-  const { lo, hi } = EXIT_RPM_BAND
-  const exit = input.exitRpm != null && Number.isFinite(input.exitRpm) && input.exitRpm > 1000 ? input.exitRpm : undefined
+  const { lo, hi } = cls.peakSpeedBand
   const tol = TARGET.edgeTolRpm
+  const lim = cls.limiter
 
+  // Judged on peak RPM at peak speed vs the class peak-speed band (main straight), never on corner exits.
   let verdict: GearVerdict = 'ok'
   let pct = 0
-  let basis: 'exit' | 'peak' = 'exit'
-  let capped = false
-  if (exit != null) {
-    if (exit >= lo && exit <= hi) verdict = 'ok'
-    else if (exit >= lo - tol && exit <= hi + tol) verdict = 'ok_edge'
-    else if (exit < lo - tol) {
-      const want = TARGET.exitAfterPlus / exit - 1
-      const room = TARGET.peakCeiling / peakRpm - 1
-      if (room <= 0.004) verdict = 'conflict'
-      else {
-        verdict = 'too_tall'
-        capped = room < want
-        pct = Math.min(want, room)
-      }
-    } else {
-      verdict = 'too_short'
-      pct = TARGET.exitAfterMinus / exit - 1
-    }
+  if (peakRpm >= lo && peakRpm <= hi) verdict = cls.nearLimiter != null && peakRpm >= cls.nearLimiter ? 'ok_edge' : 'ok'
+  else if (peakRpm >= lo - tol && peakRpm <= hi + tol) verdict = 'ok_edge'
+  else if (peakRpm < lo - tol) {
+    verdict = 'too_tall'
+    pct = Math.min(TARGET.ideal, TARGET.peakCeiling) / peakRpm - 1
   } else {
-    basis = 'peak'
-    if (peakRpm >= lo - tol && peakRpm <= hi + tol) verdict = peakRpm >= lo && peakRpm <= hi ? 'ok' : 'ok_edge'
-    else if (peakRpm < lo - tol) {
-      verdict = 'too_tall'
-      pct = TARGET.peakCeiling / peakRpm - 1
-    } else {
-      verdict = 'too_short'
-      pct = TARGET.peakCeiling / peakRpm - 1
-    }
+    verdict = 'too_short'
+    pct = TARGET.ideal / peakRpm - 1
   }
 
+  const teethKnown = rearTeeth != null && !frontAssumed
   let toothDelta = 0
-  if (rearTeeth != null && pct !== 0) {
-    const raw = rearTeeth * pct
-    // Capped by peak headroom → floor so we never overshoot the ceiling; otherwise nearest tooth.
-    toothDelta = pct > 0 ? (capped ? Math.floor(raw) : Math.max(1, Math.round(raw))) : Math.min(-1, Math.round(raw))
-    if (toothDelta === 0) {
-      verdict = 'conflict'
-      pct = 0
-    }
+  if (teethKnown && pct !== 0) {
+    const raw = rearTeeth! * pct
+    toothDelta = pct > 0 ? Math.max(1, Math.round(raw)) : Math.min(-1, Math.round(raw))
   }
   const action: GearAdvice['action'] =
     verdict === 'too_tall' ? 'plus' : verdict === 'too_short' ? 'minus' : 'hold'
   if (action === 'hold') pct = 0
-  const suggestedRearTeeth = rearTeeth != null ? rearTeeth + toothDelta : undefined
+  const suggestedRearTeeth = teethKnown ? rearTeeth! + toothDelta : undefined
 
-  const gearLabel = rearTeeth != null ? `${rearTeeth}T rear / ${frontTeeth}T front${frontAssumed ? ' (front assumed)' : ''}` : 'rear sprocket not entered'
-  const exitTxt = exit != null ? `exit ~${rpm(exit)}` : 'no exit sample'
+  const gearLabel =
+    rearTeeth != null
+      ? `${rearTeeth}T rear · ${frontAssumed ? 'front sprocket unknown' : `${frontTeeth}T front`}`
+      : 'rear sprocket not entered'
   const bandTxt = `${rpm(lo)}–${rpm(hi)}`
+  const limTxt = lim != null ? `${cls.label} limiter ${rpm(lim)}` : `${cls.label}`
 
   let headline: string
   switch (verdict) {
@@ -215,53 +205,44 @@ export function suggestGearRatio(input: {
       headline = rearTeeth != null ? `Gearing OK — keep ${rearTeeth}T` : 'Gearing OK'
       break
     case 'ok_edge':
-      headline = rearTeeth != null ? `Gearing OK — keep ${rearTeeth}T (${basis} at the band edge)` : `Gearing OK (${basis} at the band edge)`
-      break
-    case 'conflict':
-      headline = rearTeeth != null ? `Keep ${rearTeeth}T — exit low but no peak headroom` : 'Hold gearing — exit low but no peak headroom'
+      headline = rearTeeth != null ? `Gearing OK — keep ${rearTeeth}T (peak near the limiter)` : 'Gearing OK (peak near the limiter)'
       break
     case 'too_tall':
-      headline =
-        rearTeeth != null
-          ? `Gearing too tall — +${toothDelta} teeth from your current ${rearTeeth}T`
-          : `Gearing too tall — shorten final drive ${fmtPct(pct)}`
+      headline = teethKnown
+        ? `Gearing too tall — +${toothDelta} teeth from your current ${rearTeeth}T`
+        : `Gearing too tall — more rear teeth (shorter gear) ${fmtPct(pct)}`
       break
     case 'too_short':
-      headline =
-        rearTeeth != null
-          ? `Gearing too short — −${Math.abs(toothDelta)} teeth from your current ${rearTeeth}T`
-          : `Gearing too short — lengthen final drive ${fmtPct(pct)}`
+      headline = teethKnown
+        ? `Gearing too short — −${Math.abs(toothDelta)} teeth from your current ${rearTeeth}T`
+        : `Gearing too short — fewer rear teeth (taller gear) ${fmtPct(pct)}`
       break
+    default:
+      headline = 'Gearing'
   }
 
   let summary: string
   if (action === 'hold') {
-    summary =
-      verdict === 'conflict'
-        ? `Exit is below the ${bandTxt} band but peak is already ~${rpm(peakRpm)} — more rear teeth would run out of RPM on the straight. Treat the low exit as a corner/clutch/driving item, not gearing.`
-        : `${exit != null ? `Exit ~${rpm(exit)}` : `Peak ~${rpm(peakRpm)}`} sits ${verdict === 'ok' ? 'in' : 'at the edge of'} the ${bandTxt} band — no gear change.${
-            verdict === 'ok_edge' && rearTeeth != null && exit != null && exit < lo
-              ? ` If exit stays under ${rpm(lo)} next run, try +1 (${rearTeeth + 1}T).`
-              : ''
-          }`
-  } else if (rearTeeth != null) {
-    summary = `${action === 'plus' ? '+' : '−'}${Math.abs(toothDelta)} teeth from your current ${rearTeeth}T → ${suggestedRearTeeth}T (${fmtPct(toothDelta / rearTeeth)} RPM at the same speed).${
-      capped ? ` Capped so peak stays ≤ ~${rpm(TARGET.peakCeiling)} (now ~${rpm(peakRpm)}).` : ''
-    }`
+    summary = `Peak ~${rpm(peakRpm)} RPM at ${peakSpeedKmh.toFixed(0)} km/h sits ${verdict === 'ok' ? 'in' : 'at the edge of'} the ${bandTxt} peak-speed band (${limTxt}) — no gear change.`
+  } else if (teethKnown) {
+    summary = `${action === 'plus' ? '+' : '−'}${Math.abs(toothDelta)} teeth from your current ${rearTeeth}T → ${suggestedRearTeeth}T (${fmtPct(toothDelta / rearTeeth!)} RPM at the same speed).`
   } else {
-    summary = `${action === 'plus' ? 'Shorten' : 'Lengthen'} the final drive by ~${Math.abs(pct * 100).toFixed(1)}% (${fmtPct(pct)} RPM at the same speed). Enter your rear sprocket to get the exact tooth change.`
+    summary = `${action === 'plus' ? 'Shorten' : 'Lengthen'} the final drive by ~${Math.abs(pct * 100).toFixed(1)}% (${fmtPct(pct)} RPM at the same speed). ${
+      rearTeeth == null ? 'Rear sprocket unknown — gear directional only.' : 'Front sprocket unknown — no tooth count.'
+    }`
   }
 
   const checkTxt =
     rpmPerKmh != null && expectedRpmPerKmh != null
       ? dataCheck === 'match'
-        ? ` Data check: ${rpmPerKmh.toFixed(1)} RPM per km/h matches ${rearTeeth}/${frontTeeth} (expected ${expectedRpmPerKmh.toFixed(1)}).`
-        : ` Data check: ${rpmPerKmh.toFixed(1)} RPM per km/h is ${fmtPct(rpmPerKmh / expectedRpmPerKmh - 1)} off what ${rearTeeth}/${frontTeeth} predicts (${expectedRpmPerKmh.toFixed(1)}) — recount the rear and check the front/clutch sprocket.`
+        ? ` Data check: ${rpmPerKmh.toFixed(1)} RPM per km/h matches ${rearTeeth}/${frontTeeth}.`
+        : ` Data check: ${rpmPerKmh.toFixed(1)} RPM per km/h is ${fmtPct(rpmPerKmh / expectedRpmPerKmh - 1)} off what ${rearTeeth}/${frontTeeth} predicts — recount the sprockets.`
       : ''
-  const detail = `Peak ${peakSpeedKmh.toFixed(0)} km/h @ ~${rpm(peakRpm)} RPM; ${exitTxt} vs ${bandTxt} band. Gearing: ${gearLabel}${
-    rearTeeth != null ? ` = ${ratio.toFixed(2)}` : ` · est. ratio ~${ratio.toFixed(2)} (calibrated, ${frontTeeth}T front basis)`
+  const detail = `Peak ${peakSpeedKmh.toFixed(0)} km/h @ ~${rpm(peakRpm)} RPM vs the ${bandTxt} peak-speed band (${limTxt}). Gearing: ${gearLabel}${
+    teethKnown ? ` = ${ratio.toFixed(2)}` : ''
   }.${checkTxt} One rear tooth ≈ ${rearTeeth != null ? fmtPct(1 / rearTeeth) : '±1.5%'} RPM at a given speed.`
 
+  const exit = input.exitRpm != null && Number.isFinite(input.exitRpm) && input.exitRpm > 1000 ? input.exitRpm : undefined
   return {
     peakSpeedKmh,
     peakRpm,
