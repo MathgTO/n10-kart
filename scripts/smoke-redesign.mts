@@ -22,7 +22,10 @@ import { letterForDim, letterFromScore, overallLetter } from '../src/lib/grades'
 import { analyzeSession, createSessionFromParse } from '../src/lib/pipeline'
 import { canonicalLabel, sessionLocal } from '../src/lib/sessionLabel'
 import { getTrack } from '../src/data/tracks'
+import { formatLapTime } from '../src/lib/format'
+import { buildReportCardPdf } from '../src/lib/reportPdf'
 import { lapSpokenFull, numberWords } from '../src/lib/speech'
+import { idealLapMs, synthLap } from '../src/lib/telemetry'
 import { parseXrkFile } from '../src/lib/xrk'
 import type { StoredSession } from '../src/lib/types'
 
@@ -93,6 +96,24 @@ check(/apex/i.test(a.summary.start.text) && !/only change the exit/i.test(a.summ
 check(/apex/i.test(a.summary.start.drill) && !/later turn-in/i.test(a.summary.start.drill), 'D3 drill is apex commitment, not Later turn-in')
 check(/apex/i.test(a.summary.overallSentence) && !/later turn-in/i.test(a.summary.overallSentence), 'D3 Overall locks apex, not later-turn-in')
 check(/commit to the apex/i.test(a.summary.voiceScript) && !/later turn-in/i.test(a.summary.voiceScript), 'D3 voice talks apex commitment')
+const octIdeal = idealLapMs(oct.laps)
+check(octIdeal != null && a.summary.theoreticalBest?.ms === octIdeal, `theoretical best is idealLapMs (${octIdeal == null ? 'null' : formatLapTime(octIdeal)})`)
+check(
+  !!a.summary.theoreticalBest && a.summary.theoreticalBest.text === formatLapTime(a.summary.theoreticalBest.ms) && (a.summary.theoreticalBest.gapMs ?? 0) >= 0,
+  'theoretical best uses formatLapTime and a non-negative gap',
+)
+check(/Theoretical best is a /.test(a.summary.voiceScript) && !/target lap/i.test(a.summary.voiceScript), 'driver voice mentions theoretical best, not a coach target')
+check(!/Theoretical best/.test(a.verdict.voiceScript), 'tuner voice unchanged — no theoretical best')
+{
+  const pdf = Buffer.from(await (await buildReportCardPdf(a.summary, { trackLabel: 'Mosport', dateLabel: 'Oct 4' })).arrayBuffer()).toString('latin1')
+  check(pdf.includes('THEORETICAL BEST') && pdf.includes(a.summary.theoreticalBest!.text), 'PDF lap strip includes theoretical best time')
+  check(!/target lap/i.test(pdf), 'PDF has no coach target lap')
+}
+check(idealLapMs([synthLap(70000, 1)]) === null, 'one full lap → theoretical best hidden')
+{
+  const two = idealLapMs([synthLap(70000, 1), synthLap(71200, 2)])
+  check(two != null && two > 0 && two <= 70000, `two full laps yield a theoretical best (${two == null ? 'null' : Math.round(two)} ms)`)
+}
 check(a.summary.keep.text.length > 0 && a.summary.start.text.length > 0 && a.summary.stop.text.length > 0, 'Keep / Start / Stop prose present on kid summary')
 check(!/^\s*[A-D][+−-]?\b/.test(a.summary.overallSentence) && !/Overall:\s*[A-D]/i.test(a.summary.overallSentence), 'Overall summary prose has no letter grade')
 const kidIds = new Set([...a.summary.face, ...a.summary.more, ...a.summary.fromVideo].map((x) => x.dimId))

@@ -8,8 +8,9 @@ import { getTrack } from '@/data/tracks'
 import { dimGrade, overallLetter, type Letter } from './grades'
 import { HIDDEN_GRADE_DIMS } from './rubric'
 import { getDrill } from './rubric'
+import { formatGapSeconds, formatLapTime } from './format'
 import { lapShort, lapSpokenShort, numberWords } from './speech'
-import { lapValidity } from './telemetry'
+import { idealLapMs, lapValidity } from './telemetry'
 import type { SetupVerdict } from './setupVerdict'
 import type { DimensionId, DimensionScore, DriverProfile, StoredSession } from './types'
 
@@ -119,6 +120,11 @@ export interface DriverSummary {
   exitsNote?: string
   unlockLine: string
   bestLap?: { ms: number; lapNumber: number; text: string; spoken: string }
+  /**
+   * Theoretical best = idealLapMs (sum of fastest equal-distance sectors).
+   * Absent when there are fewer than 2 valid full laps. Not a coach-entered target.
+   */
+  theoreticalBest?: { ms: number; gapMs: number; text: string; gapText?: string }
   compareLap?: { ms: number; lapNumber: number; deltaMs: number }
   gpsOnly: boolean
   badDay: boolean
@@ -210,6 +216,12 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
   const bestLap = best
     ? { ms: best.timeMs, lapNumber: bestNum, text: `${lapShort(best.timeMs)} Lap ${bestNum}`, spoken: lapSpokenShort(best.timeMs) }
     : undefined
+  const idealMs = idealLapMs(s.laps)
+  const gapMs = idealMs != null && best ? Math.max(0, best.timeMs - idealMs) : 0
+  const theoreticalBest =
+    idealMs != null
+      ? { ms: idealMs, gapMs, text: formatLapTime(idealMs), gapText: gapMs >= 1 ? formatGapSeconds(gapMs) : undefined }
+      : undefined
   const close = closeByLap(s)
   const bestText = bestLap ? `Best ${lapShort(bestLap.ms)} on lap ${bestLap.lapNumber}.` : undefined
 
@@ -355,6 +367,16 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
   // ---- driver voice (~45 s, RCA style) ----
   const v: string[] = [`${name}.`]
   if (bestLap) v.push(`Best lap was a ${bestLap.spoken} on lap ${numberWords(bestLap.lapNumber)}.`)
+  if (theoreticalBest) {
+    const tenths = Math.round(theoreticalBest.gapMs / 100)
+    const gap =
+      tenths >= 1
+        ? `, about ${tenths === 1 ? 'a tenth' : `${numberWords(tenths)}-tenths`} off your best lap`
+        : theoreticalBest.gapMs >= 20
+          ? ', a few hundredths off your best lap'
+          : " — you're right on it"
+    v.push(`Theoretical best is a ${lapSpokenShort(theoreticalBest.ms)}${gap}.`)
+  }
   if (close) v.push(`${badDay ? 'Good effort' : "That's a solid build"} — by lap ${numberWords(close)} you were already close, so you're finding the kart early.`)
   else if (keepSubject) v.push(`${keepSubject.why}`)
   if (exitsWork) {
@@ -399,6 +421,7 @@ export function buildDriverSummary(input: SummaryInput): DriverSummary {
     exitsNote,
     unlockLine: 'More subjects unlock when you add video',
     bestLap,
+    theoreticalBest,
     compareLap: cmp && best ? { ms: cmp.timeMs, lapNumber: cmp.lapNumber ?? cmp.index + 1, deltaMs: cmp.timeMs - best.timeMs } : undefined,
     gpsOnly: verdict.gpsOnly,
     badDay,

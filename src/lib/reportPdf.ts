@@ -4,6 +4,7 @@
  * Driving only — no PSI / sprocket / setup numbers.
  */
 import { jsPDF } from 'jspdf'
+import { formatLapTime } from './format'
 import { splitLetter } from './grades'
 import type { DriverSummary } from './summary'
 import { KID_DESCS } from './summary'
@@ -147,6 +148,17 @@ export function buildReportCardPdf(summary: DriverSummary, opts?: ReportPdfOpts)
     doc.setFontSize(10)
     doc.setTextColor(SOFT[0], SOFT[1], SOFT[2])
     doc.text(`Lap ${summary.bestLap.lapNumber}`, margin + 5 + lapW + 3, y + 11.5)
+    if (summary.theoreticalBest) {
+      const right = pageW - margin - 4
+      const gapBit = summary.theoreticalBest.gapText ? ` · ${summary.theoreticalBest.gapText}` : ''
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(7)
+      doc.setTextColor(MUTE[0], MUTE[1], MUTE[2])
+      doc.text(`THEORETICAL BEST${gapBit}`, right, y + 5, { align: 'right' })
+      doc.setFontSize(14)
+      doc.setTextColor(INK[0], INK[1], INK[2])
+      doc.text(formatLapTime(summary.theoreticalBest.ms), right, y + 12, { align: 'right' })
+    }
     y += 18
   }
 

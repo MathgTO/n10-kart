@@ -180,15 +180,24 @@ export function SessionPage() {
         ))}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-n10-border bg-n10-panel px-4 py-3">
+      <div className="flex max-w-full min-w-0 flex-wrap items-center gap-x-3 gap-y-1 overflow-x-clip rounded-2xl border border-n10-border bg-n10-panel px-4 py-3">
         {best && (
-          <p className="mr-2 min-w-0 break-words text-white">
-            <span className="font-semibold">★ Best lap {summary.bestLap?.lapNumber}</span> <span className="text-xl font-black">{formatLapTime(best.timeMs)}</span>
+          <p className="min-w-0 max-w-full break-words text-white">
+            <span className="font-semibold">★ Best lap {summary.bestLap?.lapNumber}</span> <span className="text-xl font-black tabular-nums">{formatLapTime(best.timeMs)}</span>
             {summary.compareLap && (
               <span className="text-sm text-n10-soft">
                 {' '}
                 vs lap {summary.compareLap.lapNumber} {formatLapTime(summary.compareLap.ms)} · +{(summary.compareLap.deltaMs / 1000).toFixed(3)}
               </span>
+            )}
+          </p>
+        )}
+        {summary.theoreticalBest && (
+          <p className="basis-full min-w-0 max-w-full break-words text-sm leading-snug text-n10-soft" data-theoretical-best={summary.theoreticalBest.text}>
+            <span className="font-semibold text-white">Theoretical best:</span>{' '}
+            <span className="text-lg font-black tabular-nums text-white">{summary.theoreticalBest.text}</span>
+            {summary.theoreticalBest.gapText && (
+              <span className="tabular-nums"> · {summary.theoreticalBest.gapText} vs theoretical best</span>
             )}
           </p>
         )}
