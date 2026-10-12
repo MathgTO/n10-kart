@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import {
   MOSPORT_LAYOUTS,
   getLayout,
@@ -7,6 +7,11 @@ import {
   type LayoutCorner,
   type TrackLayout,
 } from '@/lib/mosportLayouts'
+import {
+  geometryIdFor,
+  layoutDisplayName,
+  layoutLengthHint,
+} from '@/lib/layoutRegistry'
 import {
   MOSPORT_GP_SECTORS,
   SECTOR_VS_TURN_HELP,
@@ -60,12 +65,20 @@ export function TrackMap({
   focusCornerName,
   selectedSectorIndex,
   onSelectSector,
+  trackId = 'mosport',
+  layoutId: layoutIdProp,
 }: {
   focusCornerName?: string
   selectedSectorIndex: number | null
   onSelectSector: (index: number) => void
+  trackId?: string
+  /** Persisted on the session (registry id L1… or legacy stock id). Set on round setup. */
+  layoutId?: string
 }) {
-  const [layoutId, setLayoutId] = useState('gp')
+  const label = layoutDisplayName(trackId, layoutIdProp)
+  const lengthHint = layoutLengthHint(trackId, layoutIdProp)
+  const geoId = geometryIdFor(trackId, layoutIdProp) ?? 'gp'
+  const layoutId = MOSPORT_LAYOUTS.some((l) => l.id === geoId) ? geoId : 'gp'
   const layout = useMemo(() => getLayout(layoutId), [layoutId])
   const focusId = useMemo(() => matchFocusCorner(layout, focusCornerName), [layout, focusCornerName])
   const box = useMemo(() => bounds(layout), [layout])
@@ -86,38 +99,28 @@ export function TrackMap({
 
   return (
     <section className="panel">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-xl font-bold">Track map</h2>
-          <p className="mt-1 text-sm text-n10-soft">
-            Tap a <span className="text-white font-semibold">sector (S1–S4)</span> or a turn — same
-            language as Sector loss below
-          </p>
-          <p className="mt-1 text-xs text-n10-mute max-w-xl">{SECTOR_VS_TURN_HELP}</p>
-        </div>
-        <label className="text-sm text-n10-soft">
-          Layout
-          <select
-            className="ml-2 rounded-lg border border-n10-border bg-n10-card px-3 py-2 text-white font-semibold"
-            value={layoutId}
-            onChange={(e) => setLayoutId(e.target.value)}
-          >
-            {MOSPORT_LAYOUTS.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.name}
-              </option>
-            ))}
-          </select>
-        </label>
+      <div>
+        <h2 className="text-xl font-bold">Track map</h2>
+        <p className="mt-1 text-sm text-n10-soft">
+          Tap a <span className="text-white font-semibold">sector (S1–S4)</span> or a turn — same
+          language as Sector loss below
+        </p>
+        <p className="mt-1 text-sm text-n10-mute max-w-xl">{SECTOR_VS_TURN_HELP}</p>
       </div>
-      <p className="mt-2 text-xs text-n10-mute">{layout.blurb}</p>
+      <p className="mt-2 text-sm text-n10-mute">
+        <span className="font-semibold text-white">{label}</span>
+        {lengthHint ? ` · ${lengthHint}` : ''}
+        {label !== 'Layout?' ? '' : ' · Confirm on setup'}
+        {' · '}
+        {layout.blurb}
+      </p>
 
       <div className="mt-4 overflow-hidden rounded-xl border border-n10-border bg-black/50">
         <svg
           viewBox={`${box.minX} ${box.minY} ${box.width} ${box.height}`}
           className="mx-auto block h-auto w-full max-h-[420px]"
           role="img"
-          aria-label={`${layout.name} with sectors and turns`}
+          aria-label={`${label} with sectors and turns`}
         >
           {/* Base track */}
           <path

@@ -1,4 +1,4 @@
-import type { LapData, ParseResult, TelemetrySample } from './types'
+import type { FileMeta, LapData, ParseResult, TelemetrySample } from './types'
 export type { ParseResult }
 import { synthLap, withDistanceFromSpeed } from './telemetry'
 import { parseXrkFile } from './xrk'
@@ -33,7 +33,53 @@ export async function parseSessionFile(
   }
 
   const text = typeof textOrBuf === 'string' ? textOrBuf : new TextDecoder().decode(textOrBuf)
-  return parseCsvText(text, name)
+  const res = parseCsvText(text, name)
+  return { ...res, meta: csvMeta(text) }
+}
+
+/**
+ * RS3 CSV header metadata (`Track: …`, `Date: …`, `Time: …`) + GPS lat/lon columns → same detection inputs as .xrk.
+ * No GPS week in CSV, so the date stays unverified (logger clock).
+ */
+export function csvMeta(text: string): FileMeta {
+  const meta: FileMeta = { speedSource: 'unknown' }
+  const lines = text.split(/\r?\n/).slice(0, 4000)
+  const kv = (key: string): string | undefined => {
+    const re = new RegExp(`(?:^|[,;"\\s])${key}\\s*[:,]\\s*"?([^",;]+)`, 'i')
+    for (const l of lines.slice(0, 40)) {
+      const m = re.exec(l)
+      if (m && m[1].trim()) return m[1].trim()
+    }
+    return undefined
+  }
+  meta.trkName = kv('Track') ?? kv('Venue')
+  const date = kv('Date')
+  const time = kv('Time')
+  if (date && /\d/.test(date)) meta.loggerDate = date
+  if (time && /^\d{1,2}:\d{2}/.test(time)) meta.loggerTime = time
+  // GPS lat/lon columns
+  const hi = lines.findIndex((l) => /latitude/i.test(l) && /longitude/i.test(l))
+  if (hi >= 0) {
+    const head = splitCsvLine(lines[hi]).map((h) => h.toLowerCase())
+    const la = head.findIndex((h) => h.includes('latitude'))
+    const lo = head.findIndex((h) => h.includes('longitude'))
+    const lats: number[] = []
+    const lons: number[] = []
+    for (const l of lines.slice(hi + 1)) {
+      const c = splitCsvLine(l)
+      const a = parseNum(c[la] ?? '')
+      const b = parseNum(c[lo] ?? '')
+      if (a != null && b != null && Math.abs(a) > 0.01 && Math.abs(a) <= 90 && Math.abs(b) <= 180) {
+        lats.push(a)
+        lons.push(b)
+      }
+    }
+    if (lats.length >= 10) {
+      const med = (xs: number[]) => [...xs].sort((x, y) => x - y)[xs.length >> 1]
+      meta.gps = { goodFixes: lats.length, centroid: { lat: med(lats), lon: med(lons) } }
+    }
+  }
+  return meta
 }
 
 const LAP_ALIASES = ['lap number', 'lap_number', 'lapnumber', 'lap #', 'lap#', 'lap']

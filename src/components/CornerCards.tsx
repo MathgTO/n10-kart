@@ -15,8 +15,14 @@ export function CornerCards({
 }) {
   const refs = useRef<Record<number, HTMLElement | null>>({})
 
+  // Only follow the user's taps — never jump the page on first render (the report opens at the top).
+  const first = useRef(true)
   useEffect(() => {
     if (selectedSectorIndex == null) return
+    if (first.current) {
+      first.current = false
+      return
+    }
     const el = refs.current[selectedSectorIndex]
     el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }, [selectedSectorIndex])

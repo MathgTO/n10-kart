@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+# /session/... are device-local client routes; the session lives in this browser's storage.
+Disallow: /session/
 
 Sitemap: https://n10kart.com/sitemap.xml

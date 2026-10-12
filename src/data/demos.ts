@@ -1,13 +1,19 @@
 import { buildCoachingReport } from '@/lib/scoring'
+import { getClassConfig, DEFAULT_CLASS } from '@/lib/classConfig'
 import { synthLap } from '@/lib/telemetry'
 import type { LapData, SeriesTag, StoredSession } from '@/lib/types'
+import { DEMO_DRIVER_ID } from '@/lib/drivers'
 import { getTrack } from './tracks'
+
+const DEMO_CLASS = DEFAULT_CLASS // junior_light — demo class (anonymous Demo driver, not Gabriel)
+const DEMO_CLS = getClassConfig(DEMO_CLASS)
 
 function makeLaps(timesMs: number[], seedBase: number, exitBias = 0): LapData[] {
   return timesMs.map((ms, i) => {
     const lap = synthLap(ms, seedBase + i, {
       exitRpmBias: exitBias - i * 40,
-      earlyBrake: i === 2 ? 1 : 0,
+      // Cap at Junior Light limiter so demos never teach yellow-.570 / 6100.
+      maxRpm: DEMO_CLS.limiter ?? 6150,
     })
     lap.index = i
     return lap
@@ -34,7 +40,8 @@ function makeDemo(
   const { report, corners } = buildCoachingReport({
     sessionId: id,
     track: track.name,
-    classAssumption: 'LO206 Junior',
+    classAssumption: DEMO_CLS.label,
+    classId: DEMO_CLASS,
     series,
     conditions: 'dry',
     laps,
@@ -50,10 +57,17 @@ function makeDemo(
     conditions: 'dry',
     trackId: track.id,
     trackName: track.name,
-    classAssumption: 'LO206 Junior',
+    classAssumption: DEMO_CLS.label,
+    classId: DEMO_CLASS,
     notes,
     isDemo: true,
+    driverId: DEMO_DRIVER_ID,
+    driverSource: 'manual',
     sourceKind: 'demo',
+    setup: { tireCompound: DEMO_CLS.defaultTire, rearTeeth: 67 },
+    setupConfirmed: true,
+    layoutId: 'gp',
+    gearing: { rearTeeth: 67 },
     laps,
     referenceLapIndex,
     bestLapIndex,
@@ -71,7 +85,7 @@ export function buildDemoSessions(): StoredSession[] {
     'practice',
     '2026-09-12T14:18:00.000Z',
     [62140, 62480, 63100, 61920, 62200, 61850, 62550, 61780, 62010, 61900, 61820, 62140],
-    'Dry practice. Exit RPM soft on hairpin — Junior yellow-slide gearing check.'
+    `Dry practice. Exit RPM soft on hairpin — Junior Light ${DEMO_CLS.slide} gearing check (${DEMO_CLS.limiter} limiter · ${DEMO_CLS.defaultTire}).`
   )
   const quali = makeDemo(
     'demo-sun-qual',
@@ -79,7 +93,7 @@ export function buildDemoSessions(): StoredSession[] {
     'qualifying',
     '2026-09-13T13:42:00.000Z',
     [61400, 61680, 61320, 61890, 61250, 61440],
-    'Qualifying. Stack the reference — one clean flyer.',
+    `Qualifying · Junior Light ${DEMO_CLS.slide} · ${DEMO_CLS.limiter} limiter. Stack the reference — one clean flyer.`,
     practice
   )
   const heat = makeDemo(
@@ -88,7 +102,7 @@ export function buildDemoSessions(): StoredSession[] {
     'bsc_ontario',
     '2026-09-13T17:06:00.000Z',
     [61800, 62100, 61950, 61720, 62240, 61680, 61890, 61750, 61910, 61820],
-    'Heat 2 — racecraft weighted. Protect exit after passes.',
+    `Heat 2 · Junior Light · ${DEMO_CLS.defaultTire}. Racecraft weighted — protect exit after passes.`,
     quali
   )
   return [heat, quali, practice]

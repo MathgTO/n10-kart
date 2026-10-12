@@ -1,6 +1,6 @@
 # Briggs Karting Race-Win Knowledge Base
 
-**Research date:** Friday, Sep 11, 2026 (trackside MyChron tuning Mon Sep 28, 2026; weekly KB refresh Mon Sep 28, 2026 ET)  
+**Research date:** Friday, Sep 11, 2026 (trackside MyChron tuning Mon Sep 28, 2026; weekly KB refreshes Mon Sep 28 + Mon Oct 5, 2026 ET)  
 **Purpose:** Source-backed knowledge for a video-analysis coaching app that reviews kart-camera (onboard/GoPro) uploads from Briggs-class racers.  
 **Rule for consumers of this doc:** Prefer attributable coaching cues; do not invent quotes, video titles, or URLs. Where a URL could not be confirmed, that is marked clearly.
 
@@ -47,10 +47,12 @@ Coaching implication: **carry speed, protect exit RPM, minimize scrub/slide, pla
 ### Tier A — Official / series / engine authority
 1. **Briggs Racing — 206 Racing Engine** — [https://www.briggsracing.com/racing-engines/206](https://www.briggsracing.com/racing-engines/206) — Specs, sealed philosophy, docs list (carb guide, 16 Common Mistakes).
 2. **Briggs Racing — “The 16 Common Mistakes, A Preventative Guide” (David Klaus)** — [https://www.briggsracing.com/sites/default/files/2022-08/16commonmistakes.pdf](https://www.briggsracing.com/sites/default/files/2022-08/16commonmistakes.pdf) — Engine install, clutch, oil, gearing-for-power-band, chassis-first diagnosis.
-3. **Briggs 206 Factory Ruleset v2026.1.1** (effective Jan 31, 2026) — [https://www.briggsracing.com/sites/default/files/2026-01/Briggs%202026%20206%20Rules_Final.pdf](https://www.briggsracing.com/sites/default/files/2026-01/Briggs%202026%20206%20Rules_Final.pdf) — Unified US/Canada engine rules; Junior yellow .570″ slide #555741 + carb lock #555726; approved clutches include Inferno by Hilliard Flame; Canadian “Maple Leaf” embossed stamp **no longer required** (Canadian Eligibility §2). Local copy: `/workspace/briggs-coach-api/Briggs-2026-206-Rules_Final.pdf`.
+3. **Briggs 206 Factory Ruleset v2026.1.1** (effective Jan 31, 2026) — [https://www.briggsracing.com/sites/default/files/2026-01/Briggs%202026%20206%20Rules_Final.pdf](https://www.briggsracing.com/sites/default/files/2026-01/Briggs%202026%20206%20Rules_Final.pdf) — Unified US/Canada engine rules; Junior Light blue .520″ #555734 / Junior yellow .570″ #555741 + carb lock #555726; approved clutches include Inferno by Hilliard Flame; Canadian “Maple Leaf” embossed stamp **no longer required** (Canadian Eligibility §2). Local copy: `/workspace/briggs-coach-api/Briggs-2026-206-Rules_Final.pdf`.
 4. **Briggs news — Unified 2026 206 Rule Set** (Jan 30, 2026) — [https://www.briggsracing.com/support/news/briggs-stratton-motorsports-simplifies-racing](https://www.briggsracing.com/support/news/briggs-stratton-motorsports-simplifies-racing) — Announces US/Canada unification and removal of Canadian Maple Leaf seal requirement.
 5. **ASN Canada karting regulations hub** — [https://www.asncanada.ca/karting-regulations](https://www.asncanada.ca/karting-regulations) — Hosts same Briggs 2026 Factory PDF + **Bulletin 2026-01 LO206 Camshaft** (intake lobe centerline 105°–107.5° at pushrod; tech, not coaching). Local bulletin copy: `/workspace/briggs-coach-api/2026-ASN-Kart-Bulletin-01-LO206-Camshaft.pdf`.
 6. **TRAK / Goodwood 2026 Class Structure** — [https://goodwoodkartways.com/wp-content/uploads/2026/04/2026-TRAK-Class-Structure.pdf](https://goodwoodkartways.com/wp-content/uploads/2026/04/2026-TRAK-Class-Structure.pdf) — Ontario parallel (not MIKA): Briggs Junior **300 lbs**, tires **VEGA BLUE ONT 4.6/6.5**; TRAK lists “GOLD SLIDE” for Junior — **do not assume MIKA uses TRAK slide naming**. Local copy: `/workspace/briggs-coach-api/2026-TRAK-Class-Structure.pdf`.
+- 6a. **MIKA 2026 Class Structure V1** — [PDF](https://cdn.prod.website-files.com/69cb22d96d2aef5d02e95d66/69fe6d99e4a2bb2418b4c7de_2026%20MIKA%20Class%20Structure%20V1.pdf) (also on [mosportkartingcentre.com/kart-owners](https://www.mosportkartingcentre.com/kart-owners)) — **MIKA authority** (fetched Oct 5, 2026 ET): **default class Briggs JR LITE 265 lbs**, ages **8–14 (*15)**, **LO206/BLUE**, **VEGA BLUE 4.6/6.5**, license **B–B+**, numbers **102–199**. Briggs Junior (reference): 300 lbs, LO206/YELLOW, same tires, numbers 202–299. Local copy: `/workspace/briggs-coach-api/2026-MIKA-Class-Structure-V1.pdf`.
+- 6b. **2026 MIKA Supplemental Regulations (updated Apr 19, 2026)** + **MIKA Bulletin 2026-03 Contact Penalties** (effective Apr 26, 2026) — [Supp Regs PDF](https://cdn.prod.website-files.com/69cb22d96d2aef5d02e95d66/69fe66d4c4554c1c7623a38c_FINAL_2026_MIKA_supplemental_regulations_APR19.2026..pdf) · [Bulletin 2026-03 PDF](https://cdn.prod.website-files.com/69cb22d96d2aef5d02e95d66/69fe6a8fe7d024f9e476888f_2026-03%20-%20MIKA%20Bulletin%20-%20CONTACT%20PENALTY.pdf) — wet tire **VEGA W6** (4.60/6.50), spec **91-octane** fuel voucher, Junior on **ASN push-back bumper** rules, contact **position penalties**, points/drop rules. Local copies: `/workspace/briggs-coach-api/2026-MIKA-Supplemental-Regulations-APR19.pdf`, `/workspace/briggs-coach-api/2026-03-MIKA-Bulletin-Contact-Penalty.pdf`. Rules page: [mosportkartingcentre.com/rules-regulations](https://www.mosportkartingcentre.com/rules-regulations).
 7. **Road America Karting Club / Briggs & Stratton Motorplex** — [https://www.roadamerica.com/karting-club](https://www.roadamerica.com/karting-club) — Named Briggs facility + LO206 club racing.
 
 ### Tier B — LO206-specific technical coaching (setup/data)
@@ -407,12 +409,12 @@ Score each dimension **0–5** (or 0–100 scaled). Prefer **evidence clips** + 
   - Race footage: draft use (D14) on longer pulls; overtake quality (D15) into hairpins where inside ownership matters.
 
 ### Briggs classes observed at MIKA (2026 results samples)
-Public 2026 MIKA result grids at Mosport include (non-exhaustive): **LO206 Cadet, Junior Lite, Junior, Senior, Senior Lite/Light, Senior Heavy, Masters** (and combined Briggs Sr Heavy/Sr Light grids). Exact weights/tires = **MIKA Class Structure** (PDF not stably fetched this pass). Engine slide/lock/clutch = **Briggs 206 Factory Ruleset v2026.1.1**. App should link the live Mosport rules page when available plus the Factory Ruleset PDF.
+Public 2026 MIKA result grids at Mosport include (non-exhaustive): **LO206 Cadet, Junior Lite, Junior, Senior, Senior Lite/Light, Senior Heavy, Masters** (and combined Briggs Sr Heavy/Sr Light grids). Exact weights/tires = **MIKA 2026 Class Structure V1** (fetched Oct 5, 2026 ET — see “MIKA 2026 series rules” below). Engine slide/lock/clutch = **Briggs 206 Factory Ruleset v2026.1.1**. App should link the live Mosport rules page when available plus the Factory Ruleset PDF.
 
 ### Official docs to prefer for Mosport users
-1. Mosport kart-owner rules hub: https://mosportkartingcentre.com/private-karting/for-members/rules-and-regulations/ — **weekly refresh Sep 28, 2026 ET:** box fetch returned **404**; treat URL as live-site target; do not invent PDF filenames.
+1. Mosport rules page (new site): https://www.mosportkartingcentre.com/rules-regulations — fetched OK Oct 5, 2026 ET and links all MIKA/ASN/Briggs PDFs. Legacy URL `mosportkartingcentre.com/private-karting/for-members/rules-and-regulations/` still **404** from box.
 2. **Briggs 206 Factory Ruleset v2026.1.1** (unified US/Canada; replaces separate “Canadian Rule Set” naming for engine tech): https://www.briggsracing.com/sites/default/files/2026-01/Briggs%202026%20206%20Rules_Final.pdf — also mirrored on ASN hub and Goodwood.
-3. 2026 MIKA Supplemental Regulations + Class Structure (listed on Mosport hub when available) — **PDF not stably fetched this pass**.
+3. 2026 MIKA Supplemental Regulations (Apr 19) + Class Structure V1 + Bulletin 2026-03 — fetched Oct 5, 2026 ET; local copies in `/workspace/briggs-coach-api/`. 2026 schedule v1.5: [PDF](https://cdn.prod.website-files.com/69c7debe960b525c3df152f9/6a027adb1d8d1519117e58d4_MIKA_2026_Race_Schedule_v1.5.pdf) (local `/workspace/briggs-coach-api/MIKA_2026_Race_Schedule_v1.5.pdf`).
 4. Track map PDF linked under Forms & Waivers (“Mosport Track Map”)
 5. BSC Ontario series site: https://bscontario.com/ — championship context (prizing/weekends); still prefer CKN + club bulletins for sporting detail.
 
@@ -422,29 +424,64 @@ Public 2026 MIKA result grids at Mosport include (non-exhaustive): **LO206 Cadet
 
 ---
 
-## Confirmed class: LO206 Junior (Mosport / MIKA)
+## Confirmed class: LO206 Junior Light (Mosport / MIKA)
 
-**Confirmed by user:** Sep 11, 2026 — class = **LO206 Junior**.
+**Confirmed by user:** Oct 5, 2026 — Mathieu switched default class to **LO206 Junior Light** (driver Gabriel, age 11). Prior Sep 11 confirmation was LO206 Junior (yellow) — kept below as reference only.
 
-### Spec notes (Briggs 206 Factory Ruleset v2026.1.1; verify current-year MIKA PDF for weight/tires)
-From **Briggs 206 Factory Ruleset v2026.1.1** (fetched Sep 28, 2026; class structure chart — age/weight “per sanctioning body”):
-- **Yellow slide** Briggs Part **#555741**, max opening **.570”** (Junior)
+### Spec notes (Briggs 206 Factory Ruleset v2026.1.1 + MIKA 2026 Class Structure V1)
+From **Briggs 206 Factory Ruleset v2026.1.1** class chart:
+- **Blue slide** Briggs Part **#555734**, max opening **.520”** (Junior Light)
 - **Carb lock** required (locking cap Part **#555726**) for Kid Kart / Cadet / Junior Light / Junior
 - Exhaust for non-Kid Kart classes: RLV **EXF5520** (formerly 5506), **EXF5507**, or **EXF5511**
 - Slide optimization allowed only by removing material from the highlighted throttle-cap area; multiple gaskets / machining the slide prohibited; do not exceed No-Go — Briggs cautions ~0.1 hp for an extra .010” opening vs DQ risk
-- **Canadian Eligibility:** with combined Canadian/USA rulesets, the special embossed Maple Leaf stamp is **no longer required**; factory-sealed engines meeting class specs are eligible
-- **Min weight:** Factory chart does **not** fix a single Junior weight (sanctioning body). Ontario parallel: **TRAK 2026 Class Structure** lists Briggs Junior **300 lbs** + **VEGA BLUE ONT 4.6/6.5** (TRAK “GOLD SLIDE” naming — **not** authority for MIKA). **MIKA Class Structure PDF still unconfirmed this pass — do not invent Mosport numbers.**
+- **Ignition Max RPM 6,150** (Factory §34 green ignition) applies to **all classes except Kid Kart** — it is **not** a Junior Light-specific limiter
+- **Canadian Eligibility:** Maple Leaf embossed stamp **no longer required**
 
-### Coaching overlays vs Senior/Masters
-- Junior is **restricted** vs Senior **stock slide** — less power; Klaus #7 applies hard: **gear for power-band peak of the restricted slide, not the 6100 limiter ego**.
+**MIKA 2026 Class Structure V1 row — BRIGGS JR LITE** (fetched Oct 5, 2026 ET; local `/workspace/briggs-coach-api/2026-MIKA-Class-Structure-V1.pdf`):
+| Field | Value |
+| --- | --- |
+| Class label | **BRIGGS JR LITE** |
+| Weight | **265 lbs** |
+| Age | **8–14 (*15)** |
+| Engine | **LO206/BLUE** |
+| Dry tires | **VEGA BLUE 4.6/6.5** |
+| License | **B – B+** |
+| Race numbers | **102 – 199** |
+
+Wet tires (Supp Regs 25.1, all Briggs classes): **VEGA W6**, **4.60 fronts / 6.50 rears**. PSI **unpublished** — do not invent.
+
+**Ontario parallel (TRAK 2026):** BRIGGS JUNIOR LITE — **265 lbs**, ages **11–15**, **LO206 BLUE SLIDE**, VEGA BLUE ONT 4.6/6.5 (TRAK PDF; MIKA is Mosport authority).
+
+### Reference — prior class LO206 Junior (yellow .570)
+Kept for comparison / if Gabriel moves up. Factory: yellow slide **#555741** .570″. MIKA JUNIOR row: **300 lbs**, LO206/YELLOW, VEGA BLUE 4.6/6.5, B–B+, numbers **202–299**, ages 8–14 (*15).
+
+### Coaching overlays vs Senior/Masters (and vs yellow Junior)
+- Blue **.520** is **more restricted** than yellow **.570** — less power; **Klaus #7 applies even harder**: gear for the restricted-slide power-band peak (comes **earlier** than yellow), **not** the 6,150 ignition-max ego.
+- **Open gap:** blue-slide dyno peak RPM — **do not invent**; confirm via dyno/slide chart before hard RPM targets.
 - Even more emphasis on **exit RPM (D4)**, **late apex (D2/D3)**, **no scrub (D8)**, **consistency (D18)**.
-- Youth/junior racecraft: still teach inside ownership (D15) and selective defense (D16), but prioritize survival on lap 1 (D17) and clean passes.
-- Setup hypotheses should mention yellow-slide gearing; avoid Senior stock-slide assumptions.
+- Youth racecraft: inside ownership (D15), selective defense (D16), lap-1 survival (D17), clean passes.
+- Setup hypotheses: `restricted_slide_gearing` for **blue** slide; avoid Senior stock-slide and yellow-Junior peak assumptions.
 
 ### App defaults to set
-- `default_class_assumption` = `LO206 Junior @ Mosport / MIKA`
-- Prefer Junior-oriented setup templates: `restricted_slide_gearing`, `gear_plus_one` / `gear_minus_one`
-- Source link: Briggs 206 Factory Ruleset v2026.1.1 PDF + live Mosport rules hub (when available) + MIKA Class Structure
+- `default_class_assumption` = `LO206 Junior Light @ Mosport / MIKA`
+- Prefer: `restricted_slide_gearing`, `gear_plus_one` / `gear_minus_one`
+- Rubric `schema_version` **1.10** (`changelog_1_10`); MIKA docs from concurrent refresh remain under `changelog_1_9`
+- Sources: Factory Ruleset v2026.1.1 + MIKA Class Structure V1 + Supp Regs / Bulletin 2026-03
+
+---
+
+## MIKA 2026 series rules that change coaching (added Oct 5, 2026 ET)
+
+Sources: 2026 MIKA Supplemental Regulations (updated Apr 19, 2026), MIKA Bulletin 2026-03 Contact Penalties (effective Apr 26, 2026), 2026 MIKA Class Structure V1, MIKA 2026 schedule v1.5. All local copies in `/workspace/briggs-coach-api/`.
+
+- **Contact position penalties (Bulletin 2026-03):** on top of ASN 1-15 penalties (warning, 5 s minimum, black flag, last place, rear of grid next race, DQ), officials may place the offender **behind every driver who lost positions** from the contact, weighing positional loss, severity/avoidability, and circumstances. **Coaching:** a contact pass is a bad pass even if it “sticks” on track (D15); late blocks that cause contact carry the same risk (D16); lap-1 pack contact can cost more than it gains (D17).
+- **Push-back bumper (Supp Regs §15):** MIKA softened one-side-in to a warning **only for Briggs Senior/Masters**. **Quote:** “Cadet, Junior and all 2 stroke classes will follow the ASN regulations on the push back bumper” (1 side / both sides = **5 s**). Junior Light / JR LITE is **not named** in that sentence (eligible-class list does include Briggs Junior Light; not in Senior/Masters warning exception). **Coaching default:** treat Junior Light as ASN 5 s like Junior; never suggest bump-draft (D14).
+- **Wet tires (Supp Regs 25.1):** all Briggs classes run **VEGA W6** in the wet, **4.60 fronts / 6.50 rears** (Cadet 4.60 all round). Relevant to D20 wet sessions.
+- **Spec fuel:** all Briggs classes buy a **91-octane spec fuel voucher**; jug and kart must be empty and dry before filling.
+- **Points:** 5 bonus points for pole in timed qualifying; Briggs drivers drop their worst **3** finishes; black flag in the Final or post-tech DQ = 0 points and **cannot** be dropped; must qualify and start the Prefinal/Heat to race the Final; rookies start at the back for their first 2 races.
+- **Clutch:** MIKA relaxes Factory rule 36(a) for **Cadet only** — Junior Light / Junior follow Factory Ruleset §36 fully (Hilliard Inferno Flame still approved).
+- **Tire pressure:** MIKA documents publish **no** cold/hot PSI — keep methodology-only.
+- **Remaining 2026 MIKA dates (schedule v1.5, “subject to change”):** Race #14 **Sat Oct 10** at Mosport, National Track CCW; MIKA Enduro (non-points) **Sun Oct 11**, National CCW; Awards Banquet Nov 21 at CTMP.
 
 ---
 
@@ -452,19 +489,19 @@ From **Briggs 206 Factory Ruleset v2026.1.1** (fetched Sep 28, 2026; class struc
 
 **Confirmed by user:** Sep 11, 2026
 - **Near-term:** MIKA club racing at Mosport (weekly seat time, points, habits)
-- **Ultimate objective:** **Win Briggs & Stratton Challenge Ontario (BSC Ontario)** races in LO206 Junior
+- **Ultimate objective:** **Win Briggs & Stratton Challenge Ontario (BSC Ontario)** races in LO206 Junior Light
 
 ### What BSC Ontario is (2026 inaugural context)
 - Provincial Briggs-focused championship presented by REV Performance Materials; debuted alongside major weekends (e.g. RMC Ontario at Mosport) ([CKN opener coverage](https://www.canadiankartingnews.com/bsc-ontario-set-to-debut-this-weekend-at-mosport/)).
 - Typical event shape (Round 1 Mosport): **two complete race days** (Sat + Sun), each with practice, qualifying, pre-final, final. Drivers may do one or both days; both maximizes points/track time.
 - ASN National Licence **not required** for BSC Ontario (accessibility noted by CKN).
-- Mosport BSC weekends can **double as MIKA** for many Briggs categories (eligible classes get free MIKA drop; points from avg of Sat/Sun finals) — Junior should verify current eligibility bulletin.
+- Mosport BSC weekends can **double as MIKA** for many Briggs categories (eligible classes get free MIKA drop; points from avg of Sat/Sun finals) — Junior Light should verify current eligibility bulletin.
 - 2026 calendar signals (CKN): Mosport R1 → **Toronto Motorsports Park** (Jul 17–19) → **Hamilton Karting Complex** (Aug 7–9 finale). Coach must eventually generalize beyond Mosport, but Mosport remains home practice base.
 - Opener notes: Briggs Junior field ~15 with close finishes both days — **racecraft + consistency** decide, not just one flyer ([CKN opener recap](https://www.canadiankartingnews.com/strong-turnout-and-thrilling-racing-highlight-bsc-ontario-opener/)).
 
 ### Coaching product implications
 1. **MIKA sessions = training ground.** Score practice/club races for the BSC skill stack: qualifying pace (D1–D12, D18), start/lap1 (D17), draft/pass/defense (D14–D16), tire management over longer finals (D19).
-2. **BSC win profile for Junior:** one-lap speed for grid + multi-day stamina + high-% passes in 10–20 car packs + no mid-race over-defense that drops RPM/exit.
+2. **BSC win profile for Junior Light:** one-lap speed for grid + multi-day stamina + high-% passes in 10–20 car packs + no mid-race over-defense that drops RPM/exit.
 3. **Away rounds:** TMP + Hamilton will need track packs later; until then teach transferable cues (late apex onto straights, exit RPM, inside ownership) using Mosport footage.
 4. **Series vs club:** App reports can tag `series: mika | bsc_ontario` and weight racecraft higher for BSC race uploads.
 5. Do **not** confuse with Ontario Inter-Club Challenge (separate Briggs inter-club series: Goodwood / Mosport / Hamilton) — related ecosystem, different program ([inter-club.ca](https://inter-club.ca/)).
@@ -473,7 +510,7 @@ From **Briggs 206 Factory Ruleset v2026.1.1** (fetched Sep 28, 2026; class struc
 
 ## Product north star: continuous improvement AI coach
 
-**Confirmed by user:** Sep 11, 2026 — build an **AI coach** used **after every practice and race** to aim for **excellence** via **continuous improvement** (MIKA reps → BSC Ontario wins in LO206 Junior @ Mosport).
+**Confirmed by user:** Sep 11, 2026 — build an **AI coach** used **after every practice and race** to aim for **excellence** via **continuous improvement** (MIKA reps → BSC Ontario wins in LO206 Junior Light @ Mosport).
 
 ### Operating loop (for the app + this KB)
 1. **Upload** onboard kart-cam (practice or race).
@@ -483,7 +520,7 @@ From **Briggs 206 Factory Ruleset v2026.1.1** (fetched Sep 28, 2026; class struc
 5. **Compare to prior sessions** — trend the weak dims; celebrate closed gaps.
 6. **Next session goal** = last primary drill until it scores ≥4, then advance.
 
-### Excellence definition (LO206 Junior / BSC-oriented)
+### Excellence definition (LO206 Junior Light / BSC-oriented)
 - Qualifying: stacked lines, late apex onto straights, exit RPM in band.
 - Race: clean lap-1, high-% inside passes, selective defense, tire that lasts the final.
 - Season: MIKA footage shows measurable dim gains that transfer to BSC multi-day weekends.
@@ -540,7 +577,7 @@ Drives at idle / won’t release · cracked drum · broken spring · missing ret
 ## Trackside tuning from MyChron session data
 
 **Purpose:** Feed a future expert **tuning bot** that ingests AiM MyChron **`.xrk` / `.xrz`** (and related Race Studio exports) and emits **setup-tagged** directions — never driver blame mixed into setup.  
-**Product rules (hard):** (1) every setup hypothesis tagged `setup`; (2) **one change at a time**; (3) LO206 Junior = **yellow .570″ slide** → gear for **restricted power band**, not limiter ego (Klaus #7).  
+**Product rules (hard):** (1) every setup hypothesis tagged `setup`; (2) **one change at a time**; (3) LO206 Junior Light = **blue .520″ slide #555734** → gear for **restricted power band** (earlier than yellow; Klaus #7 even harder); **blue dyno peak RPM = open gap** — do not invent.  
 **Machine pack:** `/workspace/briggs-coach-api/trackside-tuning-from-xrk-v1.json`  
 **1-page brief:** `/workspace/briggs-coach-api/trackside-tuning-exec.md`  
 **Related:** clutch Health pack `clutch-health-diagnostic-v1.json` (RPM+speed); N10 already MyChron-first.
@@ -572,15 +609,13 @@ Attributed to Swift Karting “Most Important AiM Channels” (Nov 24, 2025): [s
 
 **Always pair RPM + speed** (never RPM alone) for clutch and gearing calls — same rule as Hilliard Health pack.
 
-### Qualitative power-band bands (sourced; Junior overlay)
+### Qualitative power-band bands (sourced; Junior Light overlay)
 
-| Band | Unrestricted / “stock slide” LO206 (Swift) | Junior yellow .570″ (Klaus overlay) |
+| Band | Unrestricted / “stock slide” LO206 (Swift) | Junior Light blue .520″ (Klaus overlay) |
 | --- | --- | --- |
-| Usable power band cited for gearing | **~5,800–6,100 RPM** ([Swift gear guide](https://swiftkarting.com/pages/lo206-gear-ratio-tuning-guide)) | **Do not treat 6,100 as the target.** Restricted slides peak **earlier**; Klaus example: unrestricted peak HP ~5,600; **Green** slide peak ~4,800 — gearing past ~5,300 can be slower ([Klaus PDF #7](https://www.briggsracing.com/sites/default/files/2022-08/16commonmistakes.pdf)). Yellow .570″ sits between stock and green — **confirm dyno/slide chart**; until then prefer **exit RPM in the strong mid-band** over “kiss the limiter mid-corner.” |
-| Rev ceiling | Sealed **6,100 RPM** | Same limiter hardware; **gear for band, not limiter ego** |
-| Typical sprint ratio zone | ~**3.8–4.7**; common medium-sprint start **68/17 = 4.00** (Swift) | Same math; Junior weight + less power → often lives toward **shorter** side of a Senior baseline for the same track — **verify with session peaks/floors**, don’t invent Mosport tooth counts |
+| Usable power band cited for gearing | **~5,800–6,100 RPM** ([Swift gear guide](https://swiftkarting.com/pages/lo206-gear-ratio-tuning-guide)) — **stock-slide context** | **Do not treat 6,150 ignition max as the target.** Restricted slides peak **earlier**; blue .520 is **more restricted than yellow .570**, so peak comes earlier still. Klaus example: unrestricted peak HP ~5,600; **Green** slide peak ~4,800 — gearing past ~5,300 can be slower ([Klaus PDF #7](https://www.briggsracing.com/sites/default/files/2022-08/16commonmistakes.pdf)). **Blue .520 dyno peak RPM = OPEN GAP** — confirm dyno/slide chart; until then prefer **exit RPM in the strong mid-band** over “kiss the limiter.” |
+| Ignition max (Factory §34) | **6,150 RPM** all non-Kid Kart classes | Same 6,150 — **not** Junior Light-specific |
 
-**Tooth math (Swift):** ratio = rear ÷ driver; one rear tooth ≈ **0.06** on 17T driver, ≈ **0.05** on 19T. Most LO206 changes = **±1 rear tooth**.
 
 ### Signal → tune action table (setup-tagged)
 
@@ -621,7 +656,7 @@ Full diagnostic lives in **Clutch health** section above + `clutch-health-diagno
 
 ### Tires / pressure methodology (no fake Mosport PSI)
 
-**Unknown / must confirm:** exact MIKA/BSC Ontario **Junior tire brand & compound** and any series-published PSI. Do **not** invent Mosport Junior cold/hot numbers.
+**MIKA tire (confirmed Oct 5, 2026 ET):** Briggs Junior dry = **VEGA BLUE 4.6/6.5**; wet = **VEGA W6** 4.60/6.50 (2026 MIKA Class Structure + Supp Regs 25.1). **No series-published PSI** — do **not** invent Mosport Junior cold/hot numbers. BSC Ontario tire still to confirm from series docs.
 
 **Published methodology (Swift LO206 tire guide, Feb 2026):** [swiftkarting.com/pages/lo206-tire-pressure-guide-hot-vs-cold-growth](https://swiftkarting.com/pages/lo206-tire-pressure-guide-hot-vs-cold-growth)
 
@@ -665,12 +700,12 @@ CRG baseline example (general kart, **not** Mosport-spec): front width ~45.5–4
 5. Only then queue the next change.  
 Matches Swift Race Studio step 5 (“one or two specific goals”) and rubric `change_one_priority_per_session`.
 
-### Junior / Mosport overlays
+### Junior Light / Mosport overlays
 
-- Class: **LO206 Junior**, yellow slide **.570″** (#555741), carb lock; national chart min weight often **~300 lb** — **verify current MIKA Class Structure**.  
-- Engine rules: [Briggs 206 Factory Ruleset v2026.1.1 PDF](https://www.briggsracing.com/sites/default/files/2026-01/Briggs%202026%20206%20Rules_Final.pdf). Mosport hub (cite live downloads; box fetch **404** on weekly refresh Sep 28, 2026 ET): [rules-and-regulations](https://mosportkartingcentre.com/private-karting/for-members/rules-and-regulations/).  
+- Class: **LO206 Junior Light** (MIKA **JR LITE**), blue slide **.520″** (#555734), carb lock #555726; MIKA min weight **265 lb**, VEGA BLUE 4.6/6.5, numbers 102–199 (2026 MIKA Class Structure V1). Ignition max **6,150** is all-classes-except-Kid-Kart, not JL-specific.  
+- Engine rules: [Briggs 206 Factory Ruleset v2026.1.1 PDF](https://www.briggsracing.com/sites/default/files/2026-01/Briggs%202026%20206%20Rules_Final.pdf). Mosport rules page: [rules-regulations](https://www.mosportkartingcentre.com/rules-regulations) (new site; legacy hub URL 404).  
 - Track: hairpin / T5-type → prioritize **exit RPM + min speed** (S1/S2/S17). Bowl / linked → scrub & consistency.  
-- Series path: MIKA reps → BSC Ontario multi-day — prefer tire-saving longer ratios for long finals when peaks still within ~100 RPM of clean limit (Swift), **Junior-adjusted**.
+- Series path: MIKA reps → BSC Ontario multi-day — prefer tire-saving longer ratios for long finals when peaks still within ~100 RPM of clean limit (Swift), **Junior Light-adjusted** (blue more restricted than yellow).
 
 ### Canadian / Briggs rule posture (high level)
 
@@ -682,20 +717,22 @@ Matches Swift Race Studio step 5 (“one or two specific goals”) and rubric `c
 
 ### Open gaps (do not fabricate)
 
-1. Exact **MIKA 2026 Junior min weight** from current MIKA Class Structure PDF (Mosport hub 404 from box on Sep 28 weekly refresh; TRAK parallel = 300 lbs — **not** MIKA confirmation).  
-2. Exact **MIKA Junior tire brand/compound** and published cold/hot PSI (TRAK parallel = VEGA BLUE ONT 4.6/6.5 — **not** MIKA confirmation).  
-3. MathG’s measured **baseline sprocket**, front/rear width, seat holes, clutch spring set.  
-4. Whether N10 session always includes **wheel speed** vs GPS-only.  
-5. Yellow-slide **dyno peak RPM** for this build (use Swift slide dyno summary when available; don’t assume Green numbers).
+1. ~~MIKA 2026 Junior Light (JR LITE) min weight / tires / numbers~~ — **closed Oct 5, 2026 ET:** **265 lb**, LO206/BLUE, VEGA BLUE 4.6/6.5, numbers 102–199 (MIKA Class Structure V1). Wet VEGA W6 per Supp Regs 25.1.  
+2. Cold/hot **PSI** remains **unpublished** by MIKA — methodology only; need driver’s measured baseline.  
+3. **Blue .520 dyno peak RPM** for this engine build — **confirm dyno/slide chart; do not invent.**  
+4. MathG’s measured **baseline sprocket**, front/rear width, seat holes, clutch spring set.  
+5. Whether N10 session always includes **wheel speed** vs GPS-only.  
+6. Away-track packs (TMP, Hamilton) / BSC 2027 tire-weight docs.  
+7. Supp Regs §15 bumper sentence names “Cadet, Junior” only — Junior Light not verbatim; coaching treats as ASN 5 s pending organizer clarification if needed.  
 
 
 ## Gaps / what needs user confirmation
 
-1. **Exact meaning of “Briggs Karting” for this user** — **Resolved:** LO206 Junior at Mosport Karting Centre (MIKA).
-2. **Home track and series** — **Mosport / MIKA (near-term).** **Ultimate: win BSC Ontario (LO206 Junior).** Still optional: Inter-Club Challenge interest.
-3. **Class & weight** — **Class confirmed LO206 Junior (yellow .570” slide #555741 per Factory Ruleset v2026.1.1).** Confirm current **MIKA** min weight (TRAK parallel 300 lbs is not MIKA).
-4. **Tire brand/compound** — confirm MIKA Junior tire (TRAK parallel VEGA BLUE ONT 4.6/6.5 is not MIKA) + cold/hot PSI.
-5. **Clutch brand allowed** — Factory Ruleset lists Hilliard Inferno Flame among legal options; still confirm any MIKA supplemental limits.
+1. **Exact meaning of “Briggs Karting” for this user** — **Resolved:** LO206 Junior Light at Mosport Karting Centre (MIKA).
+2. **Home track and series** — **Mosport / MIKA (near-term).** **Ultimate: win BSC Ontario (LO206 Junior Light).** Still optional: Inter-Club Challenge interest.
+3. **Class & weight** — **Class confirmed LO206 Junior Light (blue .520” slide #555734) by Mathieu Oct 5, 2026.** MIKA JR LITE min weight **265 lb** (Class Structure V1). Prior yellow Junior 300 lb retained as reference.
+4. **Tire brand/compound** — **MIKA confirmed VEGA BLUE 4.6/6.5 (wet VEGA W6)**; PSI not published (driver baseline needed).
+5. **Clutch brand allowed** — Factory Ruleset lists Hilliard Inferno Flame among legal options; MIKA Supp Regs add no Junior clutch limits (only a Cadet 36(a) relaxation).
 6. **Chain pitch** — #35 vs #219 adapter rules by sanctioning body.
 7. **Whether Animal (open/builder) is in scope** — driving similar but power/RPM/fuel differ; do not mix tech notes blindly.
 8. **Champion interviews** — region-specific LO206 champions’ tip videos not fully catalogued; needs a second pass once series is known.
@@ -721,4 +758,4 @@ Matches Swift Race Studio step 5 (“one or two specific goals”) and rubric `c
 
 ---
 
-*End of knowledge base. Core research Sep 11, 2026; trackside MyChron tuning pack Sep 28, 2026; weekly KB refresh Sep 28, 2026 ET (unified Factory Ruleset + TRAK class structure).*
+*End of knowledge base. Core research Sep 11, 2026; trackside MyChron tuning pack Sep 28, 2026; weekly KB refresh Sep 28, 2026 ET (unified Factory Ruleset + TRAK class structure); weekly KB refresh Oct 5, 2026 ET (MIKA Class Structure + Supp Regs + Bulletin 2026-03).*

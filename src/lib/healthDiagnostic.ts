@@ -1,5 +1,5 @@
-import { EXIT_RPM_BAND } from './rubric'
-import { suggestGearRatio, GEAR_DEFAULTS, type GearAdvice, type Gearing } from './gearRatio'
+import { getClassConfig } from './classConfig'
+import { suggestGearRatio, type GearAdvice, type Gearing } from './gearRatio'
 import type { DimensionScore, LapData, SeriesTag, StoredSession } from './types'
 
 export type HealthStatus = 'healthy' | 'watch' | 'fix'
@@ -114,18 +114,22 @@ function gearCard(
   exitRpm?: number,
   maxRpm?: number,
   maxSpeed?: number,
-  gearing?: Gearing
+  gearing?: Gearing,
+  classId?: string
 ): HealthCard {
   if (!gearAdvice) {
     const rear = gearing?.rearTeeth
+    const cls = getClassConfig(classId ?? 'junior_light')
     return {
       id: 'gear_ratio',
       title: 'Gear ratio',
       status: 'watch',
-      diagnosis: `Need peak speed + peak RPM to check gearing vs the ${EXIT_RPM_BAND.lo}–${EXIT_RPM_BAND.hi} band.`,
-      optimize: 'Import MyChron/CSV with RPM + speed, then re-check this card.',
+      diagnosis: cls.peakSpeedBand
+        ? `Need peak speed + peak RPM to check gearing vs the ${cls.label} peak-speed band.`
+        : 'Class unconfirmed — no limiter band, so no gear verdict.',
+      optimize: cls.peakSpeedBand ? 'Import MyChron/CSV with RPM + speed, then re-check this card.' : 'Pick the class in the setup step.',
       metrics: [
-        { label: 'Gearing', value: rear ? `${rear}T / ${gearing?.frontTeeth ?? GEAR_DEFAULTS.frontTeeth}T` : 'rear not set' },
+        { label: 'Gearing', value: rear ? `${rear}T / ${gearing?.frontTeeth ? `${gearing.frontTeeth}T` : 'front ?'}` : 'rear not set' },
         { label: 'Peak RPM', value: maxRpm != null ? String(Math.round(maxRpm)) : '—' },
         { label: 'Peak km/h', value: maxSpeed != null ? maxSpeed.toFixed(0) : '—' },
         { label: 'Exit RPM', value: exitRpm != null ? String(Math.round(exitRpm)) : '—' },
@@ -142,7 +146,7 @@ function gearCard(
   const metrics: { label: string; value: string }[] = [
     {
       label: 'Gearing',
-      value: a.rearTeeth != null ? `${a.rearTeeth}T / ${a.frontTeeth}T${a.frontAssumed ? '*' : ''}` : 'rear not set',
+      value: a.rearTeeth != null ? `${a.rearTeeth}T / ${a.frontAssumed ? 'front ?' : `${a.frontTeeth}T`}` : 'rear not set',
     },
     { label: a.ratioIsEstimate ? 'Est. ratio' : 'Ratio', value: a.ratio.toFixed(2) },
     { label: 'Exit RPM', value: a.exitRpm != null ? String(Math.round(a.exitRpm)) : '—' },
@@ -162,7 +166,7 @@ function gearCard(
     title: 'Gear ratio',
     status,
     headline: a.headline,
-    diagnosis: `${a.detail}${a.frontAssumed && a.rearTeeth != null ? ' *Front assumed — edit it above if different.' : ''}`,
+    diagnosis: a.detail,
     optimize,
     metrics,
   }
@@ -180,7 +184,7 @@ export type ClutchPattern =
  * Heuristic clutch flags from RPM + speed samples (Briggs / Hilliard Inferno Flame).
  * Setup-tagged only — never driver blame. Requires both channels.
  */
-function detectClutchPattern(laps: LapData[]): {
+function detectClutchPattern(laps: LapData[], highRpm: number): {
   pattern: ClutchPattern
   detail: string
 } {
@@ -249,7 +253,7 @@ function detectClutchPattern(laps: LapData[]): {
       const speedCaughtUp = b.speed >= 60 && a.speed >= 55
       if (speedCaughtUp) {
         midSpeedWindows++
-        if (b.rpm > 5800 && rpmRise > 400 && speedRise < 6) incompleteLockHits++
+        if (b.rpm > highRpm && rpmRise > 400 && speedRise < 6) incompleteLockHits++
       }
     }
   }
@@ -328,7 +332,10 @@ function hasRpmAndSpeedChannels(laps: LapData[]): boolean {
   )
 }
 
-function clutchCard(scores: DimensionScore[], laps: LapData[]): HealthCard {
+function clutchCard(scores: DimensionScore[], laps: LapData[], classId?: string): HealthCard {
+  const cls = getClassConfig(classId ?? 'junior_light')
+  // "High RPM under load" = the bottom of the class peak-speed band (fallback: 250 under the near-limiter mark).
+  const highRpm = cls.peakSpeedBand?.lo ?? (cls.nearLimiter != null ? cls.nearLimiter - 250 : 6000)
   const d17 = scoreOf(scores, 'D17', 3.5)
 
   const hasChannels = hasRpmAndSpeedChannels(laps)
@@ -349,7 +356,7 @@ function clutchCard(scores: DimensionScore[], laps: LapData[]): HealthCard {
     }
   }
 
-  const detected = detectClutchPattern(laps)
+  const detected = detectClutchPattern(laps, highRpm)
 
   const metrics: { label: string; value: string }[] = [
     { label: 'Clutch score', value: d17.toFixed(1) },
@@ -508,8 +515,8 @@ export function pickPrimaryOneChange(
       signal_ids: [gearAdvice.action === 'plus' ? 'gear_plus_rear' : 'gear_minus_rear'],
       hypothesis:
         gearAdvice.action === 'plus'
-          ? `Gearing too tall — ${gearAdvice.exitRpm != null ? `exit ~${Math.round(gearAdvice.exitRpm)}` : `peak ~${Math.round(gearAdvice.peakRpm)}`} below the ${EXIT_RPM_BAND.lo}–${EXIT_RPM_BAND.hi} band`
-          : `Gearing too short — ${gearAdvice.exitRpm != null ? `exit ~${Math.round(gearAdvice.exitRpm)}` : `peak ~${Math.round(gearAdvice.peakRpm)}`} above the ${EXIT_RPM_BAND.lo}–${EXIT_RPM_BAND.hi} band`,
+          ? `Gearing too tall — peak ~${Math.round(gearAdvice.peakRpm)} RPM below the peak-speed band`
+          : `Gearing too short — peak ~${Math.round(gearAdvice.peakRpm)} RPM above the peak-speed band (limiter)`,
       one_change_action: gear.optimize,
       evidence_channels: ['rpm', 'speed'],
       confidence: 'medium',
@@ -561,8 +568,10 @@ export function buildHealthDiagnostic(input: {
   maxSpeed?: number
   gearing?: Gearing
   rpmPerKmh?: number
+  classId?: string
 }): HealthDiagnostic {
   const gearAdvice = suggestGearRatio({
+    classId: input.classId,
     maxRpm: input.maxRpm,
     maxSpeedKmh: input.maxSpeed,
     exitRpm: input.exitRpm,
@@ -574,8 +583,8 @@ export function buildHealthDiagnostic(input: {
 
   const rawCards: HealthCard[] = [
     tireCard(input.scores, input.series, input.laps.length),
-    gearCard(gearAdvice, input.exitRpm, input.maxRpm, input.maxSpeed, input.gearing),
-    clutchCard(input.scores, input.laps),
+    gearCard(gearAdvice, input.exitRpm, input.maxRpm, input.maxSpeed, input.gearing, input.classId),
+    clutchCard(input.scores, input.laps, input.classId),
   ]
   const oneChange = pickPrimaryOneChange(rawCards, gearAdvice)
   const cards = applyOneChangeHoldLanguage(rawCards, oneChange, gearAdvice)
@@ -637,7 +646,8 @@ export function buildHealthDiagnosticFromSession(session: StoredSession): Health
     exitRpm: session.report.focus.exitRpm ?? best?.exitRpmFocus,
     maxRpm: peak.rpmAtPeak ?? best?.maxRpm,
     maxSpeed: peak.maxSpeed ?? best?.maxSpeed,
-    gearing: session.gearing,
+    gearing: session.setup ? { rearTeeth: session.setup.rearTeeth, frontTeeth: session.setup.frontTeeth } : session.gearing,
     rpmPerKmh: peak.rpmPerKmh,
+    classId: session.classId,
   })
 }

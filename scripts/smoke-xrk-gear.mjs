@@ -33,9 +33,19 @@ for (const [name, bestMs] of Object.entries(EXPECT)) {
     exitRpm: best.exitRpmFocus,
     rearTeeth: g?.rearTeeth,
     rpmPerKmh: peak.rpmPerKmh,
+    classId: 'junior_light',
+  })
+  // Front unknown never assumed; with the front entered (19T) the measured RPM/km/h must match the ratio.
+  const gearFront = suggestGearRatio({
+    maxRpm: peak.rpmAtPeak ?? best.maxRpm,
+    maxSpeedKmh: peak.maxSpeed ?? best.maxSpeed,
+    rearTeeth: g?.rearTeeth,
+    frontTeeth: 19,
+    rpmPerKmh: peak.rpmPerKmh,
+    classId: 'junior_light',
   })
   rpk[name] = peak.rpmPerKmh
-  const ok = best.timeMs === bestMs && gear?.rearTeeth === g?.rearTeeth && gear?.dataCheck === 'match'
+  const ok = best.timeMs === bestMs && gear?.rearTeeth === g?.rearTeeth && gear?.action === 'hold' && gear?.dataCheck === undefined && gearFront?.dataCheck === 'match'
   if (!ok) failed++
   console.log(`${ok ? 'OK  ' : 'FAIL'} ${name} best ${best.timeMs} · ${g?.rearTeeth}T · ${peak.rpmPerKmh?.toFixed(2)} RPM/km/h · ${gear?.headline}`)
 }

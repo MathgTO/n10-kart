@@ -1,5 +1,5 @@
-/* Network-first for shell + assets so deploys win over stale PWA cache. */
-const CACHE = 'n10-shell-v12'
+/* Network-first for shell + assets so deploys win over stale PWA cache. v49 Briggs rubric 1.11 (schedule status after MIKA Race #14) */
+const CACHE = 'n10-shell-v49'
 const BASE = self.registration.scope // e.g. https://n10-kart.netlify.app/
 const SHELL = ['', 'index.html', 'manifest.webmanifest', 'n10-mark.png', 'n10-logo.jpg', 'apple-touch-icon.png'].map(
   (p) => new URL(p || './', BASE).href,

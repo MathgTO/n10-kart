@@ -10,6 +10,7 @@ import { buildCoachingReport, pickBestFlyingLap, pickCompareLap } from '../src/l
 import { buildHealthDiagnosticFromSession } from '../src/lib/healthDiagnostic'
 import { getTrack } from '../src/data/tracks'
 import { sampleGearing } from '../src/lib/samples'
+import { getClassConfig } from '../src/lib/classConfig'
 import type { StoredSession } from '../src/lib/types'
 
 const BEST: Record<string, number> = {
@@ -47,6 +48,8 @@ for (const f of files) {
   } as unknown as StoredSession
   const gearing = sampleGearing(name)
   session.gearing = gearing
+  session.classId = 'junior_light'
+  session.setup = { rearTeeth: gearing?.rearTeeth }
   const h = buildHealthDiagnosticFromSession(session)
   console.log(`\n${name}  best L${parse.laps[best].lapNumber} ${parse.laps[best].timeMs} ms · compare L${parse.laps[cmp].lapNumber} · gearing ${gearing ? `${gearing.rearTeeth}T rear` : 'unknown'}`)
   console.log(`  sectors: ${corners.map((c) => `${c.name} ${Math.round(c.lossMs)}`).join(' | ')}`)
@@ -65,26 +68,33 @@ for (const f of files) {
     check(gearTxt.includes(`${rear}T`), `gear card shows the entered ${rear}T`)
     check(!/est\.? now|≈\s*\d+T/i.test(gearTxt), 'no "est. now ~NNT" tooth estimate when rear is known')
     check(teethIn(gearTxt).every((t) => allowed.has(t)), `only real/advised tooth counts in card (${[...new Set(teethIn(gearTxt))].join(', ')})`)
-    const exit = h.gearAdvice.exitRpm
-    if (exit != null && exit >= 5800 && exit <= 6100) {
-      check(h.gearAdvice.action === 'hold' && /Gearing OK/.test(gc.headline ?? ''), 'exit in band → "Gearing OK", hold')
-      check(!/too tall/i.test(gearTxt) && h.oneChange?.source_card !== 'gear_ratio', 'exit in band → no "too tall" and no gear one-change')
+    // Gear verdict comes from peak RPM vs the class peak-speed band (KTE), never from corner-exit RPM.
+    const band = getClassConfig('junior_light').peakSpeedBand!
+    const peak = h.gearAdvice.peakRpm
+    if (peak != null && peak >= band.lo && peak <= band.hi) {
+      check(h.gearAdvice.action === 'hold' && /Gearing OK/.test(gc.headline ?? ''), `peak ${Math.round(peak)} in class band → "Gearing OK", hold`)
+      check(!/too tall/i.test(gearTxt) && h.oneChange?.source_card !== 'gear_ratio', 'peak in band → no "too tall" and no gear one-change')
     }
+    // Front unknown → never assumed: no data-check claim, card says so.
+    check(h.gearAdvice.dataCheck === undefined, 'front unknown → no ratio data-check (19T never assumed)')
+    check(/front \?|Front sprocket unknown/i.test(gearTxt), 'front unknown shown as unknown')
   }
   if (name.startsWith('2026-10-04')) {
     // Kart Tuning Expert Oct 4: 69T confirmed — keep it; next change is tires, not gear.
     check(h.gearAdvice?.rearTeeth === 69, 'Oct 4 uses 69T')
     check(h.gearAdvice?.action === 'hold', `Oct 4 gear verdict is hold (${h.gearAdvice?.headline})`)
     check(h.oneChange?.source_card !== 'gear_ratio', 'Oct 4 one-change is not a gear change')
-    check(h.gearAdvice?.dataCheck === 'match', `Oct 4 RPM/km/h ${h.gearAdvice?.rpmPerKmh?.toFixed(1)} matches 69/${h.gearAdvice?.frontTeeth}`)
+    const withFront = buildHealthDiagnosticFromSession({ ...session, setup: { rearTeeth: 69, frontTeeth: 19 } })
+    check(withFront.gearAdvice?.dataCheck === 'match', `Oct 4 RPM/km/h ${withFront.gearAdvice?.rpmPerKmh?.toFixed(1)} matches 69/19 once the front is entered`)
   }
   if (name.startsWith('2026-09-25')) {
     check(h.gearAdvice?.rearTeeth === 67, 'Sep 25 uses 67T')
-    check(h.gearAdvice?.dataCheck === 'match', `Sep 25 RPM/km/h ${h.gearAdvice?.rpmPerKmh?.toFixed(1)} matches 67/${h.gearAdvice?.frontTeeth}`)
+    const withFront = buildHealthDiagnosticFromSession({ ...session, setup: { rearTeeth: 67, frontTeeth: 19 } })
+    check(withFront.gearAdvice?.dataCheck === 'match', `Sep RPM/km/h ${withFront.gearAdvice?.rpmPerKmh?.toFixed(1)} matches 67/19 once the front is entered`)
   }
 
   // Rear unknown → ratio change only, never an absolute tooth guess.
-  const unknown = buildHealthDiagnosticFromSession({ ...session, gearing: undefined })
+  const unknown = buildHealthDiagnosticFromSession({ ...session, gearing: undefined, setup: {} })
   const uc = unknown.cards.find((c) => c.id === 'gear_ratio')!
   const uTxt = [uc.headline, uc.diagnosis, uc.optimize, ...(uc.metrics ?? []).map((m) => `${m.label} ${m.value}`)].join(' ')
   console.log(`  [rear unknown] ${uc.status}: ${uc.headline} → ${uc.optimize}`)

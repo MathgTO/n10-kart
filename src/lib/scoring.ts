@@ -1,7 +1,8 @@
 import { suggestGearRatio } from './gearRatio'
+import { getClassConfig } from './classConfig'
+import { cornerExitStats, exitInWindow, scoreCornerExit } from './cornerExit'
 import {
   ADVANCE_PRIORITY_AT,
-  EXIT_RPM_BAND,
   JUNIOR_EMPHASIS,
   MOSPORT_BIAS,
   MYCHRON_HONEST,
@@ -17,6 +18,7 @@ import {
   biggestLossSector,
   computeDelta,
   idealLapMs,
+  lapValidity,
   pickBestFlyingLap,
   pickCompareLap,
   resolveCompareLap,
@@ -170,14 +172,103 @@ export function buildCornerCues(
   })
 }
 
+/** One braking zone on a lap: the local speed minimum and the peak deceleration leading into it. */
+interface BrakeZone {
+  dMin: number
+  vMin: number
+  /** km/h per second */
+  peakDecel: number
+}
+
+/** Braking zones from the speed trace: local minima at least 12 km/h below the preceding maximum. */
+function brakeZones(samples: LapData['samples']): BrakeZone[] {
+  const out: BrakeZone[] = []
+  if (samples.length < 10) return out
+  let lastMin = 0
+  for (let i = 1; i < samples.length - 1; i++) {
+    const v = samples[i].speed
+    if (!(v > 0) || !(v <= samples[i - 1].speed && v < samples[i + 1].speed)) continue
+    let iMax = i
+    for (let j = i - 1; j >= lastMin; j--) if (samples[j].speed > samples[iMax].speed) iMax = j
+    if (samples[iMax].speed - v < 12) continue
+    let peak = 0
+    for (let j = iMax + 1; j <= i; j++) {
+      const dt = samples[j].t - samples[j - 1].t
+      if (dt > 0) peak = Math.max(peak, (samples[j - 1].speed - samples[j].speed) / dt)
+    }
+    out.push({ dMin: samples[i].dist, vMin: v, peakDecel: peak })
+    lastMin = i
+  }
+  return out
+}
+
+/** The compare lap's matching zone (minimum within ±2% of the lap around the best lap's minimum). */
+function matchZone(samples: LapData['samples'], z: BrakeZone): { dMin: number; peakDecel: number } | null {
+  const win = samples.filter((x) => Math.abs(x.dist - z.dMin) <= 0.02 && x.speed > 0)
+  if (win.length < 2) return null
+  const m = win.reduce((a, b) => (b.speed < a.speed ? b : a))
+  const lead = samples.filter((x) => x.dist >= m.dist - 0.06 && x.dist <= m.dist)
+  let peak = 0
+  for (let j = 1; j < lead.length; j++) {
+    const dt = lead[j].t - lead[j - 1].t
+    if (dt > 0) peak = Math.max(peak, (lead[j - 1].speed - lead[j].speed) / dt)
+  }
+  return { dMin: m.dist, peakDecel: peak }
+}
+
+function median(xs: number[]): number {
+  const a = [...xs].sort((p, q) => p - q)
+  const m = Math.floor(a.length / 2)
+  return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2
+}
+
+/**
+ * Data-backed ESTIMATES (evidence_kind 'heuristic', low confidence) — only where the MyChron speed trace /
+ * lap times give a realistic basis, always against the driver's own best lap:
+ *  - D2 turn-in timing: where the minimum-speed point lands vs the best lap (early dart / late turn shift it)
+ *  - D5 braking aggressiveness: peak deceleration into each corner vs the best lap
+ *  - D19 tire management: lap-time fade at the end of the run vs best (setup/tire context → no letter)
+ */
+function dataEstimates(laps: LapData[], best: LapData, ref: LapData): Partial<Record<DimensionId, { score: number; markers: string[]; confounded?: boolean }>> {
+  const out: Partial<Record<DimensionId, { score: number; markers: string[]; confounded?: boolean }>> = {}
+  if (ref !== best && best.samples.length >= 20 && ref.samples.length >= 20) {
+    const zones = brakeZones(best.samples)
+    const pairs = zones.map((z) => ({ z, c: matchZone(ref.samples, z) })).filter((p): p is { z: BrakeZone; c: { dMin: number; peakDecel: number } } => p.c != null)
+    if (pairs.length >= 3) {
+      const offS = median(pairs.map((p) => Math.abs(p.c.dMin - p.z.dMin))) * (best.timeMs / 1000)
+      const d2 = offS <= 0.3 ? 4.0 : offS <= 0.6 ? 3.5 : offS <= 0.9 ? 3.0 : 2.5
+      out.D2 = { score: d2, markers: [`Min-speed point ~${offS.toFixed(1)} s off best lap (median, ${pairs.length} corners)`] }
+      const withDecel = pairs.filter((p) => p.z.peakDecel > 0)
+      if (withDecel.length >= 3) {
+        const ratio = median(withDecel.map((p) => p.c.peakDecel / p.z.peakDecel))
+        const bestG = median(withDecel.map((p) => p.z.peakDecel)) / 3.6 / 9.81
+        const d5 = ratio >= 0.95 ? 4.0 : ratio >= 0.85 ? 3.5 : ratio >= 0.75 ? 3.0 : 2.5
+        out.D5 = { score: d5, markers: [`Peak decel ~${bestG.toFixed(2)} g on best lap · compare lap ~${Math.round(ratio * 100)}% of that`] }
+      }
+    }
+  }
+  const v = lapValidity(laps)
+  const ok = laps.filter((l, i) => v[i] === 'ok' && l.timeMs > 0)
+  if (ok.length >= 5) {
+    const bestMs = Math.min(...ok.map((l) => l.timeMs))
+    const tail = ok.slice(-2)
+    const fade = (tail.reduce((a, l) => a + l.timeMs, 0) / tail.length - bestMs) / bestMs
+    const d19 = fade < 0.005 ? 4.0 : fade < 0.01 ? 3.5 : fade < 0.02 ? 3.0 : 2.5
+    out.D19 = { score: d19, markers: [`Last laps +${((fade * bestMs) / 1000).toFixed(2)} s vs best (end-of-run fade)`], confounded: true }
+  }
+  return out
+}
+
 function scoreFromTelemetry(
   laps: LapData[],
   refIdx: number,
   series: SeriesTag,
   conditions: 'dry' | 'wet',
   hasVideo: boolean,
-  channels?: ChannelFlags
+  channels?: ChannelFlags,
+  opts: ScoreOpts = {}
 ): DimensionScore[] {
+  const cls = getClassConfig(opts.classId)
   const ch = channels ?? detectChannels(laps)
   const hasTelemetry = ch.speed || ch.rpm || ch.lapTimes
   const bestIdx = pickBestFlyingLap(laps)
@@ -186,17 +277,32 @@ function scoreFromTelemetry(
   // Positive = compare lap slower than best in that sector
   const losses = sectorLosses(ref.samples, best.samples, 4)
   const maxLoss = Math.max(...losses, 0)
-  const exitRpm = best.exitRpmFocus ?? 5500
   const ideal = idealLapMs(laps)
   const consistencyGap =
     ideal != null ? best.timeMs - ideal : laps.length > 1 ? 200 : 100
 
-  // D4 exit commitment from exit RPM band
-  let d4 = 3.5
-  if (exitRpm >= EXIT_RPM_BAND.lo && exitRpm <= EXIT_RPM_BAND.hi) d4 = 4.5
-  else if (exitRpm < EXIT_RPM_BAND.lo - 300) d4 = 2.0
-  else if (exitRpm < EXIT_RPM_BAND.lo) d4 = 2.5
-  else if (exitRpm > EXIT_RPM_BAND.hi) d4 = 3.0 // living on limiter — gearing talk
+  // D4 corner exits: RPM 0.8 s after slow-corner minima vs the class corner-exit floor (never the peak band).
+  const floor = cls.cornerExitLowRpm
+  const exits = cornerExitStats(laps, floor)
+  const d4: number | null =
+    floor != null && exits.medianRpm08 != null && exits.windows.length >= 3 ? scoreCornerExit(exits.medianRpm08, floor) : null
+  const gpsOnly = opts.speedSource === 'gps'
+  const d4Confounded = d4 == null || gpsOnly || !!opts.exitsConfounded
+  const d4Reason = floor == null
+    ? 'Class corner-exit floor unknown — no exit grade.'
+    : exits.windows.length < 3
+      ? 'Not enough slow-corner windows for an exit grade.'
+      : opts.exitsConfounded
+        ? 'Kart setup is the likely limiter on exits this outing — see the setup card.'
+        : gpsOnly
+          ? 'GPS speed only — exit grade is medium confidence (context only).'
+          : undefined
+
+  // D3 apex from sector-loss evidence only (sector whose loss shows a lower minimum speed than best).
+  const cuesForD3 = buildCornerCues(losses, MOSPORT_GP_SECTORS.map((x) => sectorTitle(x)), best, ref !== best ? ref : undefined)
+  const d3Loss = Math.max(0, ...cuesForD3.filter((c) => c.dimId === 'D3' && (c.lossMs ?? 0) > 40).map((c) => c.lossMs ?? 0))
+  const d3: number | null =
+    ref !== best && d3Loss > 40 ? (d3Loss < 80 ? 4.0 : d3Loss < 150 ? 3.5 : d3Loss < 250 ? 3.0 : d3Loss < 400 ? 2.5 : 2.0) : null
 
   // D7 braking consistency from sector loss variance
   const variance = average(losses.map((l) => Math.abs(l)))
@@ -208,8 +314,9 @@ function scoreFromTelemetry(
   // D18 consistency
   let d18 = consistencyGap < 150 ? 4.5 : consistencyGap < 350 ? 3.0 : 2.0
 
+  const estimates = dataEstimates(laps, best, ref)
+
   const seeded: Record<string, number> = {
-    D4: d4,
     D7: d7,
     D10: d10,
     D18: d18,
@@ -244,39 +351,90 @@ function scoreFromTelemetry(
       }
     }
 
-    let score: number
-    if (seeded[id] != null) {
-      score = seeded[id]
-    } else {
-      score = 3.2
-      if (JUNIOR_EMPHASIS.includes(id) || MOSPORT_BIAS.includes(id)) score = 2.9
-      if (['D14', 'D15', 'D16', 'D17'].includes(id)) {
-        score = series === 'practice' ? 3.8 : series === 'bsc_ontario' ? 2.7 : 3.0
+    if (id === 'D4') {
+      const markers: string[] = []
+      if (exits.medianRpm08 != null) markers.push(`Exit ~${Math.round(exits.medianRpm08)} RPM at 0.8 s · min ~${Math.round(exits.medianMinSpeed ?? 0)} km/h`)
+      if (floor != null) markers.push(`floor ~${floor} RPM (${cls.label})`)
+      if (d4 == null) {
+        return {
+          dimension_id: id,
+          score: null,
+          evidence_kind: 'heuristic' as EvidenceKind,
+          evidence_markers: markers,
+          unavailable_reason: ch.rpm && ch.speed ? undefined : ('needs_channels' as const),
+          setup_confounded: true,
+          confidence: 'low' as const,
+          notes: d4Reason ?? 'Needs MyChron RPM + speed.',
+        }
       }
-      if (id === 'D20') score = conditions === 'wet' ? 3.0 : 4.0
-      const jitter = ((id.charCodeAt(1) % 5) - 2) * 0.25
-      score += jitter
+      return {
+        dimension_id: id,
+        score: d4,
+        evidence_kind: 'mychron' as EvidenceKind,
+        evidence_markers: markers,
+        setup_confounded: d4Confounded,
+        confidence: gpsOnly ? ('medium' as const) : ('high' as const),
+        notes: d4Reason ?? dim?.example_feedback[scoreBand(d4)],
+      }
     }
-    // Soften with max loss for lap-craft dims
-    if (['D1', 'D2', 'D3', 'D5', 'D6', 'D8'].includes(id) && maxLoss > 80) {
-      score -= 0.5
+    if (id === 'D3' && d3 != null) {
+      return {
+        dimension_id: id,
+        score: d3,
+        evidence_kind: 'mychron' as EvidenceKind,
+        evidence_markers: [`Sector loss with lower minimum speed ~${Math.round(d3Loss)} ms`],
+        confidence: 'medium' as const,
+        notes: dim?.example_feedback[scoreBand(d3)],
+      }
     }
-    const kind = evidenceKind(id, hasTelemetry, hasVideo, ch)
-    const clamped = clampScore(score)
-    const band = scoreBand(clamped)
-    const markers: string[] = []
-    if (MYCHRON_HONEST.has(id)) {
-      if (id === 'D4') markers.push(`Exit RPM ~${Math.round(exitRpm)}`)
+
+    // Measured MyChron dims with a seeded score (D7 / D10 / D18).
+    if (seeded[id] != null && MYCHRON_HONEST.has(id)) {
+      const clamped = clampScore(seeded[id])
+      const band = scoreBand(clamped)
+      const markers: string[] = []
       if (id === 'D7') markers.push(`S1–S4 spread ~${Math.round(variance)} ms`)
       if (id === 'D18') markers.push(`vs ideal ${Math.round(consistencyGap)} ms`)
       if (id === 'D10') markers.push(`Peak S-split loss ${Math.round(maxLoss)} ms`)
+      return {
+        dimension_id: id,
+        score: clamped,
+        evidence_kind: 'mychron' as EvidenceKind,
+        evidence_markers: markers,
+        notes: dim?.example_feedback[band],
+      }
     }
+
+    // Data-backed estimates (D2 / D5 / D19) — real speed-trace / lap-time evidence, never a constant guess.
+    const est = estimates[id]
+    if (est && hasTelemetry) {
+      const clamped = clampScore(est.score)
+      return {
+        dimension_id: id,
+        score: clamped,
+        evidence_kind: 'heuristic' as EvidenceKind,
+        evidence_markers: est.markers,
+        setup_confounded: est.confounded || undefined,
+        confidence: 'low' as const,
+        notes: est.confounded
+          ? 'Estimate from lap times — tires/setup explain fade as much as driving, so context only (see the setup card).'
+          : `Estimate from the MyChron speed trace vs your best lap. ${dim?.example_feedback[scoreBand(clamped)] ?? ''}`.trim(),
+      }
+    }
+
+    // No realistic logger/GPS basis (or video needed): stay N/A — never invent a constant "estimate".
+    const kind = evidenceKind(id, hasTelemetry, hasVideo, ch)
     return {
       dimension_id: id,
-      score: clamped,
+      score: null,
       evidence_kind: kind,
-      evidence_markers: markers,
-      notes: dim?.example_feedback[band],
+      evidence_markers: [],
+      notes:
+        kind === 'needs_kart_cam'
+          ? 'Not scored: needs someone watching on track. N10 only reads logger data.'
+          : id === 'D20' && conditions !== 'wet'
+            ? 'Dry session — wet driving not graded.'
+            : 'No realistic basis in MyChron speed/RPM data — not graded.',
     }
   })
 }
@@ -310,9 +468,14 @@ function computeComposites(scores: DimensionScore[]) {
   }
 }
 
+/** Measured (MyChron or video) and not setup-confounded — the only scores that can drive priority or get letters. */
+export function isMeasured(s: DimensionScore): s is DimensionScore & { score: number } {
+  return isAvailableScore(s) && (s.evidence_kind === 'mychron' || s.evidence_kind === 'kart_cam') && !s.setup_confounded
+}
+
 function pickTopWeaknesses(scores: DimensionScore[], series: SeriesTag, max = 3): WeaknessFinding[] {
   const ranked = scores
-    .filter(isAvailableScore)
+    .filter(isMeasured)
     .map((s) => ({ ...s, weighted: s.score / weightForDim(s.dimension_id, series) }))
     .sort((a, b) => a.weighted - b.weighted)
   const out: WeaknessFinding[] = []
@@ -331,7 +494,7 @@ function pickTopWeaknesses(scores: DimensionScore[], series: SeriesTag, max = 3)
 }
 
 function pickStrengths(scores: DimensionScore[], max = 3): WeaknessFinding[] {
-  const ranked = scores.filter(isAvailableScore).sort((a, b) => b.score - a.score)
+  const ranked = scores.filter(isMeasured).sort((a, b) => b.score - a.score)
   const out: WeaknessFinding[] = []
   for (const s of ranked) {
     if (out.length >= max) break
@@ -347,36 +510,39 @@ function pickStrengths(scores: DimensionScore[], max = 3): WeaknessFinding[] {
   return out
 }
 
+/**
+ * One priority, from measured evidence only (heuristic estimates never drive priority):
+ * 1) pinned priority from this driver's previous session while it is still measured and < ADVANCE_PRIORITY_AT;
+ * 2) the turn that lost the most time (sector-loss evidence → its skill's drill, craft-only even when the kart is the limiter);
+ * 3) the weakest measured skill; 4) consistency.
+ */
 function resolvePrimaryDrill(
   weaknesses: WeaknessFinding[],
-  previousPriority?: DimensionId,
-  previousScores?: DimensionScore[]
+  scores: DimensionScore[],
+  focusDim?: DimensionId,
+  previousPriority?: DimensionId
 ): { id: DrillId; name: string; message: string; dimension_id: DimensionId; advanced: boolean } {
   let advanced = false
-  let focusDim = weaknesses[0]?.dimension_id
-  if (previousPriority && previousScores) {
-    const prev = previousScores.find((s) => s.dimension_id === previousPriority)
-    if (prev && prev.score != null && prev.score < ADVANCE_PRIORITY_AT) {
-      focusDim = previousPriority
-    } else if (prev && prev.score != null && prev.score >= ADVANCE_PRIORITY_AT) {
-      advanced = true
-      focusDim =
-        weaknesses.find((w) => w.dimension_id !== previousPriority)?.dimension_id ??
-        weaknesses[0]?.dimension_id
+  let pick: DimensionId | undefined
+  if (previousPriority) {
+    const now = scores.find((s) => s.dimension_id === previousPriority)
+    if (now && isMeasured(now)) {
+      if (now.score < ADVANCE_PRIORITY_AT) pick = previousPriority
+      else advanced = true
     }
   }
-  focusDim = focusDim ?? 'D2'
-  const dim = getDimension(focusDim)
+  pick = pick ?? focusDim ?? weaknesses[0]?.dimension_id ?? 'D18'
+  const dim = getDimension(pick)
   const drillId = (dim?.primary_drill_id ?? 'later_turn_in') as DrillId
   const drill = getDrill(drillId)
   const message = advanced
-    ? `Priority advanced (≥${ADVANCE_PRIORITY_AT}). New focus: ${dim?.label ?? focusDim}. ${drill?.instruction ?? ''}`
+    ? `Last priority is now solid (≥${ADVANCE_PRIORITY_AT}). Next focus: ${drill?.name ?? drillId}. ${drill?.instruction ?? ''}`
     : `One priority: ${drill?.name ?? drillId}. ${drill?.instruction ?? ''}`
   return {
     id: drillId,
     name: drill?.name ?? drillId,
     message,
-    dimension_id: focusDim,
+    dimension_id: pick,
     advanced,
   }
 }
@@ -384,7 +550,7 @@ function resolvePrimaryDrill(
 function buildSetupHypotheses(
   scores: DimensionScore[],
   series: SeriesTag,
-  exitRpm?: number,
+  classId?: string,
   maxRpm?: number,
   maxSpeed?: number
 ): CoachingReport['setup_hypotheses'] {
@@ -416,8 +582,8 @@ function buildSetupHypotheses(
   const gear = suggestGearRatio({
     maxRpm,
     maxSpeedKmh: maxSpeed,
-    exitRpm,
     series,
+    classId,
   })
   if (gear) {
     picks.push('gear_ratio_optimize')
@@ -427,9 +593,6 @@ function buildSetupHypotheses(
       id: 'gear_ratio_optimize',
       message: `Gear (setup): ${gear.action === 'hold' ? 'Hold' : gear.action === 'plus' ? '+ rear tooth' : '− rear tooth'} — see Health diagnostic for diagnosis + optimize.`,
     })
-  } else if (exitRpm != null && exitRpm < EXIT_RPM_BAND.lo) {
-    picks.push('gear_plus_one')
-    picks.push('restricted_slide_gearing')
   }
   if (series === 'bsc_ontario' || series === 'mika' || series === 'qualifying' || series === 'race') {
     picks.push('restricted_slide_gearing')
@@ -497,13 +660,25 @@ export function buildFocus(
     exit: 'Earlier progressive throttle; full track-out. Protect exit RPM.',
     drillName,
     drillInstruction,
-    exitRpm: compare?.exitRpmFocus ?? best?.exitRpmFocus,
+    // Softest slow-corner exit in the focus sector (RPM 0.8 s after the minimum), paired with min speed.
+    ...(() => {
+      const e = exitInWindow(compare ?? best, sectorIndex / 4, (sectorIndex + 1) / 4)
+      return e ? { exitRpm: Math.round(e.rpm08), exitMinSpeed: Math.round(e.minSpeed) } : {}
+    })(),
     referenceLapIndex: compareIdx,
     bestLapIndex: bestIdx,
   }
 }
 
-export interface BuildReportInput {
+export interface ScoreOpts {
+  classId?: string
+  /** 'gps' = speed from GPS only (no wheel speed) → D4 medium confidence, context only. */
+  speedSource?: 'gps' | 'wheel' | 'unknown'
+  /** Setup verdict says the kart (gearing/tires/clutch) explains soft exits this outing. */
+  exitsConfounded?: boolean
+}
+
+export interface BuildReportInput extends ScoreOpts {
   sessionId: string
   track: string
   classAssumption: string
@@ -532,18 +707,13 @@ export function buildCoachingReport(input: BuildReportInput): {
     input.series,
     input.conditions,
     hasVideo,
-    input.channels
+    input.channels,
+    { classId: input.classId, speedSource: input.speedSource, exitsConfounded: input.exitsConfounded }
   )
   const composites = computeComposites(scores)
   const top_weaknesses = pickTopWeaknesses(scores, input.series, 3) // M2 hard cap 3
   const strengths = pickStrengths(scores, 3)
-  const primary = resolvePrimaryDrill(
-    top_weaknesses,
-    input.previousSession?.activePriorityDimensionId,
-    input.previousSession?.report.scores
-  )
   const best = input.laps[bestIdx]
-  const setup_hypotheses = buildSetupHypotheses(scores, input.series, best?.exitRpmFocus, best?.maxRpm, best?.maxSpeed)
   const names = input.cornerNames ?? DEFAULT_CORNERS
   // Compare lap = referenceLapIndex (the lap under the microscope).
   // Best ★ stays the target. Delta/losses = compare vs best (positive = compare slower).
@@ -554,6 +724,15 @@ export function buildCoachingReport(input: BuildReportInput): {
       ? sectorLosses(compare.samples, best.samples, 4)
       : [0, 0, 0, 0]
   const corners = buildCornerCues(losses, names, best, compare)
+  const focusSector = biggestLossSector(losses)
+  const focusCue = compare && (losses[focusSector] ?? 0) > 40 ? corners[focusSector] : undefined
+  const primary = resolvePrimaryDrill(
+    top_weaknesses,
+    scores,
+    focusCue?.dimId,
+    input.previousSession?.activePriorityDimensionId
+  )
+  const setup_hypotheses = buildSetupHypotheses(scores, input.series, input.classId, best?.maxRpm, best?.maxSpeed)
   const focus = buildFocus(
     input.laps,
     refIdx,
@@ -604,7 +783,8 @@ export function buildCoachingReport(input: BuildReportInput): {
 export function refreshStoredSession(
   s: StoredSession,
   previousSession?: StoredSession | null,
-  cornerNames?: string[]
+  cornerNames?: string[],
+  opts?: { exitsConfounded?: boolean }
 ): StoredSession {
   const names = cornerNames ?? (s.corners.length ? s.corners.map((c) => c.name) : DEFAULT_CORNERS)
   const { report, corners } = buildCoachingReport({
@@ -617,6 +797,9 @@ export function refreshStoredSession(
     referenceLapIndex: s.referenceLapIndex,
     cornerNames: names,
     previousSession: previousSession ?? null,
+    classId: s.classId,
+    speedSource: s.sourceKind === 'xrk' || s.sourceKind === 'xrz' ? 'gps' : undefined,
+    exitsConfounded: opts?.exitsConfounded,
   })
   const bestLapIndex = pickBestFlyingLap(s.laps)
   return {

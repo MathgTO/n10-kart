@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "id": "hilliard_inferno_flame_clutch_health",
   "product": "N10 Health \u2014 clutch diagnostic",
-  "class_default": "LO206 Junior @ Mosport / MIKA",
+  "class_default": "LO206 Junior Light @ Mosport / MIKA",
   "clutch_model": "Hilliard Inferno Flame (4-shoe centrifugal)",
   "source": {
     "title": "The clutch, understood. \u2014 Hilliard Inferno Flame trackside service guide",

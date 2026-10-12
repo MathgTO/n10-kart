@@ -9,6 +9,11 @@ export function formatLapTime(ms: number | null | undefined): string {
   return `${minutes}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(3, '0')}`
 }
 
+/** Best-lap gap in seconds, 3 decimals — same style as the session lap-strip compare delta. */
+export function formatGapSeconds(ms: number): string {
+  return `+${(Math.max(0, ms) / 1000).toFixed(3)}`
+}
+
 export function formatDeltaMs(ms: number): string {
   const sign = ms > 0 ? '+' : ms < 0 ? '−' : ''
   const abs = Math.abs(Math.round(ms))
@@ -32,5 +37,5 @@ export function formatRpm(n: number | undefined): string {
 /** MyChron lap number when known; else 1-based array index. */
 export function formatLapLabel(lap: { lapNumber?: number; index?: number } | null | undefined, fallbackIndex: number): string {
   const n = lap?.lapNumber ?? (lap?.index != null ? lap.index + 1 : fallbackIndex + 1)
-  return `L${n}`
+  return `Lap ${n}`
 }

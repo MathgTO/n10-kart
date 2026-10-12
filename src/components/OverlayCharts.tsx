@@ -1,15 +1,18 @@
 import { useMemo, useState } from 'react'
 import type { LapData } from '@/lib/types'
 import { computeDelta } from '@/lib/telemetry'
-import { EXIT_RPM_BAND } from '@/lib/rubric'
 
 interface Props {
   best: LapData
   reference: LapData
   cornerLabels?: { name: string; at: number }[]
+  /** Class peak-speed band (straight-line story only), from classConfig. Omitted when the class has none. */
+  band?: { lo: number; hi: number }
+  /** Corner-exit floor line (class working threshold). */
+  floor?: number
 }
 
-export function OverlayCharts({ best, reference, cornerLabels }: Props) {
+export function OverlayCharts({ best, reference, cornerLabels, band, floor }: Props) {
   const [scrub, setScrub] = useState(0.35)
   // Positive delta = compare (reference) losing time to best ★
   const delta = useMemo(
@@ -23,7 +26,7 @@ export function OverlayCharts({ best, reference, cornerLabels }: Props) {
         <div>
           <h2 className="text-xl font-bold">Speed + RPM overlay</h2>
           <p className="text-sm text-n10-soft mt-1">
-            Best ★ vs compare lap — scrub to separate driving (speed) vs gearing (exit RPM)
+            Best ★ vs compare lap. Shaded band = class peak-speed band (straights); dashed teal = corner-exit floor.
           </p>
         </div>
         <div className="text-sm text-n10-soft">
@@ -46,9 +49,10 @@ export function OverlayCharts({ best, reference, cornerLabels }: Props) {
         b={reference.samples}
         keyName="rpm"
         scrub={scrub}
-        yMin={3500}
-        yMax={6200}
-        band={EXIT_RPM_BAND}
+        yMin={3000}
+        yMax={6400}
+        band={band}
+        floor={floor}
       />
       <DeltaChart delta={delta} scrub={scrub} cornerLabels={cornerLabels} />
 
@@ -76,6 +80,7 @@ function Chart({
   yMin = 0,
   yMax,
   band,
+  floor,
 }: {
   title: string
   a: LapData['samples']
@@ -85,6 +90,7 @@ function Chart({
   yMin?: number
   yMax: number
   band?: { lo: number; hi: number }
+  floor?: number
 }) {
   const W = 640
   const H = 140
@@ -113,6 +119,9 @@ function Chart({
             fill="#c8f542"
             opacity={0.08}
           />
+        )}
+        {floor != null && (
+          <line x1={0} x2={W} y1={H - ((floor - yMin) / (yMax - yMin)) * H} y2={H - ((floor - yMin) / (yMax - yMin)) * H} stroke="#2dd4bf" strokeDasharray="6 5" strokeOpacity={0.8} />
         )}
         {path(b, '#38bdf8')}
         {path(a, '#c8f542')}
