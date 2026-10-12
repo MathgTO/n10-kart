@@ -1,0 +1,37 @@
+{
+  "name": "N10 \u2014 LO206 Coach",
+  "short_name": "N10",
+  "description": "The LO206 coach for drivers and tuners. Built for the Briggs LO206: reads your MyChron .xrk and shows where the time is, corner by corner, and what the data says about gear, clutch and tire pressure.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#0a0a0a",
+  "background_color": "#000000",
+  "lang": "en",
+  "categories": [
+    "sports",
+    "education",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
